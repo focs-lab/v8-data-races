@@ -1,0 +1,791 @@
+Test: mjsunit/wasm/table-grow (flaky in a repeated run)
+Flags: --test /b/s/w/ir/test/mjsunit/mjsunit.js /b/s/w/ir/test/mjsunit/wasm/table-grow.js --random-seed=-1302123168 --nohard-abort --testing-d8-test-runner --random-gc-interval=5000 --stress-compaction-random --stress-incremental-marking
+Command: out/build/d8 --test test/mjsunit/mjsunit.js test/mjsunit/wasm/table-grow.js --random-seed=-1302123168 --nohard-abort --testing-d8-test-runner --random-gc-interval=5000 --stress-compaction-random --stress-incremental-marking
+Variant: stress_incremental_marking
+Shard: 1:2
+
+GN arguments:
+dcheck_always_on = false
+is_component_build = false
+is_debug = false
+is_tsan = true
+target_cpu = "x64"
+use_remoteexec = true
+v8_enable_google_benchmark = true
+v8_enable_test_features = true
+
+Trigger flake bisect on command line:
+bb add v8/try.triggered/v8_flako -p 'bisect_builder_group="client.v8.clusterfuzz"' -p 'bisect_buildername="V8 Clusterfuzz Linux64 TSAN - release builder"' -p 'revision="2eb530ff76cd9d2ff7e80f26714c6732e0f79ac5"' -p 'swarming_dimensions=["cpu:x86-64", "pool:chromium.tests", "os:Ubuntu-22.04"]' -p 'isolated_name="d8_default"' -p 'test_name="mjsunit/wasm/table-grow"' -p 'timeout_sec=60' -p 'total_timeout_sec=120' -p 'variant="stress_incremental_marking"' -p 'extra_args=["--random-gc-stress"]'
+
+Local flake reproduction on command line:
+tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress_incremental_marking --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1 --random-gc-stress mjsunit/wasm/table-grow
+
+Run #1
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS
+Duration: 00:11:954
+
+Crash Type:
+Data race
+WRITE 4
+
+Crash State:
+WriteMaybeUnalignedValue<int>
+WriteField<int, 0>
+v8::internal::WasmDispatchTable::Grow(v8::internal::Isolate*, v8::internal::Handle<v8::internal::WasmDispatchTable>, int)
+
+Stdout:
+TableGrowBoundsCheck
+TableGrowBoundsZeroInitial
+InstancesShareTableAndGrowTest
+base = 0
+base = 1
+base = 2
+base = 3
+base = 4
+ModulesShareTableAndGrowTest
+   initial check
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  base = 3
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[3] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[4] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[5] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 3
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[3] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[4] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[5] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 4
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[4] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[5] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[6] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 4
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[4] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[5] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[6] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 5
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[5] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[6] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[7] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 5
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[5] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[6] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[7] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 6
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[6] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[7] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[8] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 6
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[6] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[7] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[8] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 7
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[7] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[8] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[9] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 7
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[7] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[8] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[9] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 8
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[8] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[9] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[10] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 8
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[8] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[9] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[10] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 9
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[9] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[10] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[11] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 9
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[9] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[10] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[11] = function 2() { [native code] }
+    -> expect 8, got 8
+ModulesInstancesSharedTableBoundsCheck
+Verifying bounds for size = 1
+Verifying bounds for size = 99901
+Verifying bounds for size = 199801
+Verifying bounds for size = 299701
+
+Stderr:
+==================
+WARNING: ThreadSanitizer: data race (pid=125887)
+  Write of size 4 at 0x7e5b0004a094 by main thread:
+    #0 WriteMaybeUnalignedValue<int> src/common/ptr-compr.h:192:24 (d8+0x17ab73f) (BuildId: 059d6c5792ffba37)
+    #1 WriteField<int, 0> src/objects/heap-object.h:253:12 (d8+0x17ab73f)
+    #2 v8::internal::WasmDispatchTable::Grow(v8::internal::Isolate*, v8::internal::Handle<v8::internal::WasmDispatchTable>, int) src/wasm/wasm-objects.cc:1971:16 (d8+0x17ab73f)
+    #3 v8::internal::WasmTrustedInstanceData::EnsureIndirectFunctionTableWithMinimumSize(v8::internal::Isolate*, v8::internal::Handle<v8::internal::WasmTrustedInstanceData>, int, unsigned int) src/wasm/wasm-objects.cc:1196:13 (d8+0x17a1845) (BuildId: 059d6c5792ffba37)
+    #4 v8::internal::WasmTableObject::Grow(v8::internal::Isolate*, v8::internal::Handle<v8::internal::WasmTableObject>, unsigned int, v8::internal::Handle<v8::internal::Object>) src/wasm/wasm-objects.cc:249:5 (d8+0x17a14c6) (BuildId: 059d6c5792ffba37)
+    #5 WebAssemblyTableGrowImpl src/wasm/wasm-js.cc:2425:7 (d8+0x177be8c) (BuildId: 059d6c5792ffba37)
+    #6 v8::internal::wasm::WebAssemblyTableGrow(v8::FunctionCallbackInfo<v8::Value> const&) src/wasm/wasm-js.cc:2952:1 (d8+0x177be8c)
+    #7 Builtins_CallApiCallbackGeneric setup-isolate-deserialize.cc (d8+0x2370416) (BuildId: 059d6c5792ffba37)
+    #8 v8::internal::Execution::CallScript(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSFunction>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>) src/execution/execution.cc:515:10 (d8+0x93a995) (BuildId: 059d6c5792ffba37)
+    #9 v8::Script::Run(v8::Local<v8::Context>, v8::Local<v8::Data>) src/api/api.cc:2175:7 (d8+0x6e6b0a) (BuildId: 059d6c5792ffba37)
+    #10 v8::Script::Run(v8::Local<v8::Context>) src/api/api.cc:2139:10 (d8+0x6e6400) (BuildId: 059d6c5792ffba37)
+    #11 v8::Shell::ExecuteString(v8::Isolate*, v8::Local<v8::String>, v8::Local<v8::String>, v8::Shell::PrintResult, v8::Shell::ReportExceptions, v8::Shell::ProcessMessageQueue) src/d8/d8.cc:980:28 (d8+0x6a7177) (BuildId: 059d6c5792ffba37)
+    #12 v8::SourceGroup::Execute(v8::Isolate*) src/d8/d8.cc:4373:10 (d8+0x6be51e) (BuildId: 059d6c5792ffba37)
+    #13 v8::Shell::RunMainIsolate(v8::Isolate*, bool) src/d8/d8.cc:5191:37 (d8+0x6c28be) (BuildId: 059d6c5792ffba37)
+    #14 v8::Shell::RunMain(v8::Isolate*, bool) src/d8/d8.cc:5108:18 (d8+0x6c2356) (BuildId: 059d6c5792ffba37)
+    #15 v8::Shell::Main(int, char**) src/d8/d8.cc:5979:18 (d8+0x6c4a4d) (BuildId: 059d6c5792ffba37)
+    #16 main src/d8/d8.cc:6071:43 (d8+0x6c5230) (BuildId: 059d6c5792ffba37)
+
+  Previous read of size 4 at 0x7e5b0004a094 by thread T11:
+    #0 ReadMaybeUnalignedValue<int> src/common/ptr-compr.h:174:12 (d8+0x9ad6f0) (BuildId: 059d6c5792ffba37)
+    #1 ReadField<int, 0> src/objects/heap-object.h:246:12 (d8+0x9ad6f0)
+    #2 length src/wasm/wasm-objects-inl.h:340:48 (d8+0x9ad6f0)
+    #3 IterateBody<v8::internal::ConcurrentMarkingVisitor> src/objects/objects-body-descriptors-inl.h:843:48 (d8+0x9ad6f0)
+    #4 VisitWasmDispatchTable src/heap/objects-visiting-inl.h:221:1 (d8+0x9ad6f0)
+    #5 Visit src/heap/objects-visiting-inl.h:156:5 (d8+0x9ad6f0)
+    #6 v8::internal::ConcurrentMarking::RunMajor(v8::JobDelegate*, v8::base::EnumSet<v8::internal::CodeFlushMode, int>, unsigned int, bool) src/heap/concurrent-marking.cc:350:45 (d8+0x9ad6f0)
+    #7 v8::internal::ConcurrentMarking::JobTaskMajor::Run(v8::JobDelegate*) src/heap/concurrent-marking.cc:172:28 (d8+0x9eb962) (BuildId: 059d6c5792ffba37)
+    #8 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (d8+0x2702d0b) (BuildId: 059d6c5792ffba37)
+    #9 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:93:25 (d8+0x27097b8) (BuildId: 059d6c5792ffba37)
+    #10 NotifyStartedAndRun src/base/platform/platform.h:613:5 (d8+0x26fca89) (BuildId: 059d6c5792ffba37)
+    #11 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1189:11 (d8+0x26fca89)
+
+  Thread T11 'V8 DefaultWorke' (tid=125939, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1022:3 (d8+0x6104cb) (BuildId: 059d6c5792ffba37)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1221:14 (d8+0x26fc979) (BuildId: 059d6c5792ffba37)
+    #2 WorkerThread src/libplatform/default-worker-threads-task-runner.cc:78:3 (d8+0x2708fdb) (BuildId: 059d6c5792ffba37)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *, v8::base::Thread::Priority &> third_party/libc++/src/include/__memory/unique_ptr.h:597:30 (d8+0x2708fdb)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)(), v8::base::Thread::Priority) src/libplatform/default-worker-threads-task-runner.cc:18:28 (d8+0x2708fdb)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, v8::platform::DefaultWorkerThreadsTaskRunner *> third_party/libc++/src/include/__memory/construct_at.h:41:46 (d8+0x26ff4ae) (BuildId: 059d6c5792ffba37)
+    #6 __construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, v8::platform::DefaultWorkerThreadsTaskRunner *> third_party/libc++/src/include/__memory/construct_at.h:49:10 (d8+0x26ff4ae)
+    #7 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void, void> third_party/libc++/src/include/__memory/allocator_traits.h:305:5 (d8+0x26ff4ae)
+    #8 __shared_ptr_emplace<const int &, double (*)(), v8::base::Thread::Priority, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, 0> third_party/libc++/src/include/__memory/shared_ptr.h:262:5 (d8+0x26ff4ae)
+    #9 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), v8::base::Thread::Priority, void> third_party/libc++/src/include/__memory/shared_ptr.h:820:51 (d8+0x26ff4ae)
+    #10 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void> third_party/libc++/src/include/__memory/shared_ptr.h:828:10 (d8+0x26ff4ae)
+    #11 v8::platform::DefaultPlatform::EnsureBackgroundTaskRunnerInitialized() src/libplatform/default-platform.cc:141:9 (d8+0x26ff4ae)
+    #12 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:112:5 (d8+0x26ff2d5) (BuildId: 059d6c5792ffba37)
+    #13 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController> >, v8::platform::PriorityMode &> third_party/libc++/src/include/__memory/unique_ptr.h:597:30 (d8+0x26fe8fc) (BuildId: 059d6c5792ffba37)
+    #14 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:54:19 (d8+0x26fe8fc)
+    #15 v8::Shell::Main(int, char**) src/d8/d8.cc:5750:18 (d8+0x6c3e16) (BuildId: 059d6c5792ffba37)
+    #16 main src/d8/d8.cc:6071:43 (d8+0x6c5230) (BuildId: 059d6c5792ffba37)
+
+SUMMARY: ThreadSanitizer: data race src/common/ptr-compr.h:192:24 in WriteMaybeUnalignedValue<int>
+==================
+ThreadSanitizer: reported 1 warnings
+
+Run #2
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS
+Duration: 00:11:779
+
+Crash Type:
+Data race
+WRITE 4
+
+Crash State:
+WriteMaybeUnalignedValue<int>
+WriteField<int, 0>
+v8::internal::WasmDispatchTable::Grow(v8::internal::Isolate*, v8::internal::Handle<v8::internal::WasmDispatchTable>, int)
+
+Stdout:
+TableGrowBoundsCheck
+TableGrowBoundsZeroInitial
+InstancesShareTableAndGrowTest
+base = 0
+base = 1
+base = 2
+base = 3
+base = 4
+ModulesShareTableAndGrowTest
+   initial check
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  base = 3
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[3] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[4] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[5] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 3
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[3] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[4] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[5] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 4
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[4] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[5] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[6] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 4
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[4] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[5] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[6] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 5
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[5] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[6] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[7] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 5
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[5] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[6] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[7] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 6
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[6] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[7] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[8] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 6
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[6] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[7] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[8] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 7
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[7] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[8] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[9] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 7
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[7] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[8] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[9] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 8
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[8] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[9] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[10] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 8
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[8] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[9] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[10] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 9
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[9] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[10] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[11] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 9
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[9] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[10] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[11] = function 2() { [native code] }
+    -> expect 8, got 8
+ModulesInstancesSharedTableBoundsCheck
+Verifying bounds for size = 1
+Verifying bounds for size = 99901
+Verifying bounds for size = 199801
+Verifying bounds for size = 299701
+
+Stderr:
+==================
+WARNING: ThreadSanitizer: data race (pid=133297)
+  Write of size 4 at 0x7e100004a094 by main thread:
+    #0 WriteMaybeUnalignedValue<int> src/common/ptr-compr.h:192:24 (d8+0x17ab73f) (BuildId: 059d6c5792ffba37)
+    #1 WriteField<int, 0> src/objects/heap-object.h:253:12 (d8+0x17ab73f)
+    #2 v8::internal::WasmDispatchTable::Grow(v8::internal::Isolate*, v8::internal::Handle<v8::internal::WasmDispatchTable>, int) src/wasm/wasm-objects.cc:1971:16 (d8+0x17ab73f)
+    #3 v8::internal::WasmTrustedInstanceData::EnsureIndirectFunctionTableWithMinimumSize(v8::internal::Isolate*, v8::internal::Handle<v8::internal::WasmTrustedInstanceData>, int, unsigned int) src/wasm/wasm-objects.cc:1196:13 (d8+0x17a1845) (BuildId: 059d6c5792ffba37)
+    #4 v8::internal::WasmTableObject::Grow(v8::internal::Isolate*, v8::internal::Handle<v8::internal::WasmTableObject>, unsigned int, v8::internal::Handle<v8::internal::Object>) src/wasm/wasm-objects.cc:249:5 (d8+0x17a14c6) (BuildId: 059d6c5792ffba37)
+    #5 WebAssemblyTableGrowImpl src/wasm/wasm-js.cc:2425:7 (d8+0x177be8c) (BuildId: 059d6c5792ffba37)
+    #6 v8::internal::wasm::WebAssemblyTableGrow(v8::FunctionCallbackInfo<v8::Value> const&) src/wasm/wasm-js.cc:2952:1 (d8+0x177be8c)
+    #7 Builtins_CallApiCallbackGeneric setup-isolate-deserialize.cc (d8+0x2370416) (BuildId: 059d6c5792ffba37)
+    #8 v8::internal::Execution::CallScript(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSFunction>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>) src/execution/execution.cc:515:10 (d8+0x93a995) (BuildId: 059d6c5792ffba37)
+    #9 v8::Script::Run(v8::Local<v8::Context>, v8::Local<v8::Data>) src/api/api.cc:2175:7 (d8+0x6e6b0a) (BuildId: 059d6c5792ffba37)
+    #10 v8::Script::Run(v8::Local<v8::Context>) src/api/api.cc:2139:10 (d8+0x6e6400) (BuildId: 059d6c5792ffba37)
+    #11 v8::Shell::ExecuteString(v8::Isolate*, v8::Local<v8::String>, v8::Local<v8::String>, v8::Shell::PrintResult, v8::Shell::ReportExceptions, v8::Shell::ProcessMessageQueue) src/d8/d8.cc:980:28 (d8+0x6a7177) (BuildId: 059d6c5792ffba37)
+    #12 v8::SourceGroup::Execute(v8::Isolate*) src/d8/d8.cc:4373:10 (d8+0x6be51e) (BuildId: 059d6c5792ffba37)
+    #13 v8::Shell::RunMainIsolate(v8::Isolate*, bool) src/d8/d8.cc:5191:37 (d8+0x6c28be) (BuildId: 059d6c5792ffba37)
+    #14 v8::Shell::RunMain(v8::Isolate*, bool) src/d8/d8.cc:5108:18 (d8+0x6c2356) (BuildId: 059d6c5792ffba37)
+    #15 v8::Shell::Main(int, char**) src/d8/d8.cc:5979:18 (d8+0x6c4a4d) (BuildId: 059d6c5792ffba37)
+    #16 main src/d8/d8.cc:6071:43 (d8+0x6c5230) (BuildId: 059d6c5792ffba37)
+
+  Previous read of size 4 at 0x7e100004a094 by thread T14:
+    #0 ReadMaybeUnalignedValue<int> src/common/ptr-compr.h:174:12 (d8+0x9ad6f0) (BuildId: 059d6c5792ffba37)
+    #1 ReadField<int, 0> src/objects/heap-object.h:246:12 (d8+0x9ad6f0)
+    #2 length src/wasm/wasm-objects-inl.h:340:48 (d8+0x9ad6f0)
+    #3 IterateBody<v8::internal::ConcurrentMarkingVisitor> src/objects/objects-body-descriptors-inl.h:843:48 (d8+0x9ad6f0)
+    #4 VisitWasmDispatchTable src/heap/objects-visiting-inl.h:221:1 (d8+0x9ad6f0)
+    #5 Visit src/heap/objects-visiting-inl.h:156:5 (d8+0x9ad6f0)
+    #6 v8::internal::ConcurrentMarking::RunMajor(v8::JobDelegate*, v8::base::EnumSet<v8::internal::CodeFlushMode, int>, unsigned int, bool) src/heap/concurrent-marking.cc:350:45 (d8+0x9ad6f0)
+    #7 v8::internal::ConcurrentMarking::JobTaskMajor::Run(v8::JobDelegate*) src/heap/concurrent-marking.cc:172:28 (d8+0x9eb962) (BuildId: 059d6c5792ffba37)
+    #8 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (d8+0x2702d0b) (BuildId: 059d6c5792ffba37)
+    #9 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:93:25 (d8+0x27097b8) (BuildId: 059d6c5792ffba37)
+    #10 NotifyStartedAndRun src/base/platform/platform.h:613:5 (d8+0x26fca89) (BuildId: 059d6c5792ffba37)
+    #11 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1189:11 (d8+0x26fca89)
+
+  Thread T14 'V8 DefaultWorke' (tid=133425, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1022:3 (d8+0x6104cb) (BuildId: 059d6c5792ffba37)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1221:14 (d8+0x26fc979) (BuildId: 059d6c5792ffba37)
+    #2 WorkerThread src/libplatform/default-worker-threads-task-runner.cc:78:3 (d8+0x2708fdb) (BuildId: 059d6c5792ffba37)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *, v8::base::Thread::Priority &> third_party/libc++/src/include/__memory/unique_ptr.h:597:30 (d8+0x2708fdb)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)(), v8::base::Thread::Priority) src/libplatform/default-worker-threads-task-runner.cc:18:28 (d8+0x2708fdb)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, v8::platform::DefaultWorkerThreadsTaskRunner *> third_party/libc++/src/include/__memory/construct_at.h:41:46 (d8+0x26ff4ae) (BuildId: 059d6c5792ffba37)
+    #6 __construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, v8::platform::DefaultWorkerThreadsTaskRunner *> third_party/libc++/src/include/__memory/construct_at.h:49:10 (d8+0x26ff4ae)
+    #7 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void, void> third_party/libc++/src/include/__memory/allocator_traits.h:305:5 (d8+0x26ff4ae)
+    #8 __shared_ptr_emplace<const int &, double (*)(), v8::base::Thread::Priority, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, 0> third_party/libc++/src/include/__memory/shared_ptr.h:262:5 (d8+0x26ff4ae)
+    #9 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), v8::base::Thread::Priority, void> third_party/libc++/src/include/__memory/shared_ptr.h:820:51 (d8+0x26ff4ae)
+    #10 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void> third_party/libc++/src/include/__memory/shared_ptr.h:828:10 (d8+0x26ff4ae)
+    #11 v8::platform::DefaultPlatform::EnsureBackgroundTaskRunnerInitialized() src/libplatform/default-platform.cc:141:9 (d8+0x26ff4ae)
+    #12 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:112:5 (d8+0x26ff2d5) (BuildId: 059d6c5792ffba37)
+    #13 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController> >, v8::platform::PriorityMode &> third_party/libc++/src/include/__memory/unique_ptr.h:597:30 (d8+0x26fe8fc) (BuildId: 059d6c5792ffba37)
+    #14 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:54:19 (d8+0x26fe8fc)
+    #15 v8::Shell::Main(int, char**) src/d8/d8.cc:5750:18 (d8+0x6c3e16) (BuildId: 059d6c5792ffba37)
+    #16 main src/d8/d8.cc:6071:43 (d8+0x6c5230) (BuildId: 059d6c5792ffba37)
+
+SUMMARY: ThreadSanitizer: data race src/common/ptr-compr.h:192:24 in WriteMaybeUnalignedValue<int>
+==================
+ThreadSanitizer: reported 1 warnings
+
+Run #3
+Exit code: 0 [0x00]
+Result: PASS
+Expected outcomes: PASS
+Duration: 00:11:031
+
+Stdout:
+TableGrowBoundsCheck
+TableGrowBoundsZeroInitial
+InstancesShareTableAndGrowTest
+base = 0
+base = 1
+base = 2
+base = 3
+base = 4
+ModulesShareTableAndGrowTest
+   initial check
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  base = 3
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[3] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[4] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[5] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 3
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[3] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[4] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[5] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 4
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[4] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[5] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[6] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 4
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[4] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[5] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[6] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 5
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[5] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[6] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[7] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 5
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[5] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[6] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[7] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 6
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[6] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[7] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[8] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 6
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[6] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[7] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[8] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 7
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[7] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[8] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[9] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 7
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[7] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[8] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[9] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 8
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[8] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[9] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[10] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 8
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[8] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[9] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[10] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 9
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[9] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[10] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[11] = function 2() { [native code] }
+    -> expect 8, got 8
+  base = 9
+  table[0] = function 0() { [native code] }
+    -> expect 5, got 5
+  table[1] = function 1() { [native code] }
+    -> expect 9, got 9
+  table[2] = function 2() { [native code] }
+    -> expect 10, got 10
+  table[9] = function 0() { [native code] }
+    -> expect 20, got 20
+  table[10] = function 1() { [native code] }
+    -> expect 12, got 12
+  table[11] = function 2() { [native code] }
+    -> expect 8, got 8
+ModulesInstancesSharedTableBoundsCheck
+Verifying bounds for size = 1
+Verifying bounds for size = 99901
+Verifying bounds for size = 199801
+Verifying bounds for size = 299701
+

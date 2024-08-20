@@ -1,0 +1,396 @@
+Test: mjsunit/regress/regress-crbug-1394741 (flaky in a repeated run)
+Flags: --test /b/s/w/ir/test/mjsunit/mjsunit.js /b/s/w/ir/test/mjsunit/regress/regress-crbug-1394741.js --random-seed=-1206385236 --nohard-abort --testing-d8-test-runner --stress-incremental-marking --expose-gc --expose-externalize-string --shared-string-table
+Command: out/build/d8 --test test/mjsunit/mjsunit.js test/mjsunit/regress/regress-crbug-1394741.js --random-seed=-1206385236 --nohard-abort --testing-d8-test-runner --stress-incremental-marking --expose-gc --expose-externalize-string --shared-string-table
+Variant: stress_incremental_marking
+
+GN arguments:
+dcheck_always_on = true
+is_component_build = true
+is_debug = true
+is_tsan = true
+symbol_level = 1
+target_cpu = "x64"
+use_goma = false
+use_remoteexec = true
+v8_enable_backtrace = true
+v8_enable_fast_mksnapshot = true
+v8_enable_google_benchmark = true
+v8_enable_slow_dchecks = false
+v8_enable_test_features = true
+v8_enable_verify_heap = false
+
+Trigger flake bisect on command line:
+bb add v8/try.triggered/v8_flako -p 'bisect_builder_group="client.v8"' -p 'bisect_buildername="V8 Linux64 TSAN - debug builder"' -p 'revision="53799101225772729a4dffc0976907b1c15dc0d4"' -p 'swarming_dimensions=["cpu:x86-64", "pool:chromium.tests", "os:Ubuntu-18.04"]' -p 'isolated_name="bot_default"' -p 'test_name="mjsunit/regress/regress-crbug-1394741"' -p 'timeout_sec=60' -p 'total_timeout_sec=120' -p 'variant="stress_incremental_marking"' -p 'extra_args=[]'
+
+Local flake reproduction on command line:
+tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress_incremental_marking --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1 mjsunit/regress/regress-crbug-1394741
+
+Run #1
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS
+Duration: 00:03:252
+
+Crash Type:
+Data race
+WRITE 8
+
+Crash State:
+ClearCellRangeRelaxed
+Clear
+ClearMarkBitsAndHandleLivenessStatistics
+
+Stderr:
+==================
+WARNING: ThreadSanitizer: data race (pid=23904)
+  Write of size 8 at 0x7e9b00200258 by thread T6 (mutexes: write M0):
+    #0 __tsan_memset /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:3113:3 (d8+0xf13ad) (BuildId: 2f29a8d5e9fef599)
+    #1 ClearCellRangeRelaxed src/heap/marking.h:209:16 (libv8.so+0x21689bf) (BuildId: d54a84ebb5882d6c)
+    #2 Clear src/heap/marking.h:232:3 (libv8.so+0x21689bf)
+    #3 ClearMarkBitsAndHandleLivenessStatistics src/heap/sweeper.cc:508:33 (libv8.so+0x21689bf)
+    #4 v8::internal::Sweeper::RawSweep(v8::internal::Page*, v8::internal::FreeSpaceTreatmentMode, v8::internal::Sweeper::SweepingMode, v8::base::LockGuard<v8::base::Mutex, (v8::base::NullBehavior)0> const&, std::Cr::unordered_map<v8::internal::AllocationSite, unsigned long, v8::internal::Object::Hasher, std::Cr::equal_to<v8::internal::AllocationSite>, std::Cr::allocator<std::Cr::pair<v8::internal::AllocationSite const, unsigned long>>>*) src/heap/sweeper.cc:636:3 (libv8.so+0x21689bf)
+    #5 v8::internal::Sweeper::ParallelSweepPage(v8::internal::Page*, v8::internal::AllocationSpace, std::Cr::unordered_map<v8::internal::AllocationSite, unsigned long, v8::internal::Object::Hasher, std::Cr::equal_to<v8::internal::AllocationSite>, std::Cr::allocator<std::Cr::pair<v8::internal::AllocationSite const, unsigned long>>>*, v8::internal::Sweeper::SweepingMode) src/heap/sweeper.cc:958:17 (libv8.so+0x216ae35) (BuildId: d54a84ebb5882d6c)
+    #6 ConcurrentSweepSpace src/heap/sweeper.cc:51:17 (libv8.so+0x2178e0b) (BuildId: d54a84ebb5882d6c)
+    #7 v8::internal::Sweeper::SweeperJob::SweepNonNewSpaces(v8::internal::Sweeper::ConcurrentSweeper&, v8::JobDelegate*, bool, int, int) src/heap/sweeper.cc:144:31 (libv8.so+0x2178e0b)
+    #8 v8::internal::Sweeper::SweeperJob::RunImpl(v8::JobDelegate*, bool) src/heap/sweeper.cc:117:12 (libv8.so+0x21783a7) (BuildId: d54a84ebb5882d6c)
+    #9 v8::internal::Sweeper::SweeperJob::Run(v8::JobDelegate*) src/heap/sweeper.cc:98:5 (libv8.so+0x21781ef) (BuildId: d54a84ebb5882d6c)
+    #10 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (libv8_libplatform.so+0x1b2fb) (BuildId: 7b008cb550e67426)
+    #11 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:73:11 (libv8_libplatform.so+0x1ee10) (BuildId: 7b008cb550e67426)
+    #12 NotifyStartedAndRun src/base/platform/platform.h:596:5 (libv8_libbase.so+0x56a88) (BuildId: c965a046f7d0084e)
+    #13 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1123:11 (libv8_libbase.so+0x56a88)
+
+  Previous atomic read of size 4 at 0x7e9b00200258 by thread T8 (mutexes: write M1):
+    #0 __cxx_atomic_load<int> buildtools/third_party/libc++/trunk/include/atomic:948:12 (libv8.so+0x2039666) (BuildId: d54a84ebb5882d6c)
+    #1 load buildtools/third_party/libc++/trunk/include/atomic:1537:17 (libv8.so+0x2039666)
+    #2 atomic_load_explicit<int> buildtools/third_party/libc++/trunk/include/atomic:1916:17 (libv8.so+0x2039666)
+    #3 Acquire_Load src/base/atomicops.h:247:10 (libv8.so+0x2039666)
+    #4 Acquire_Load<unsigned int> src/base/atomic-utils.h:80:9 (libv8.so+0x2039666)
+    #5 Get<(v8::internal::AccessMode)0> src/heap/marking.h:78:11 (libv8.so+0x2039666)
+    #6 IsImpossible<(v8::internal::AccessMode)0> src/heap/marking.h:369:36 (libv8.so+0x2039666)
+    #7 IsImpossible src/heap/marking-state-inl.h:36:10 (libv8.so+0x2039666)
+    #8 v8::internal::MarkingBarrier::MarkValue(v8::internal::HeapObject, v8::internal::HeapObject) src/heap/marking-barrier-inl.h:19:3 (libv8.so+0x2039666)
+    #9 v8::internal::MarkingBarrier::Write(v8::internal::HeapObject, v8::internal::CompressedHeapObjectSlot, v8::internal::HeapObject) src/heap/marking-barrier.cc:44:3 (libv8.so+0x20ca02f) (BuildId: d54a84ebb5882d6c)
+    #10 v8::internal::WriteBarrier::MarkingSlow(v8::internal::HeapObject, v8::internal::CompressedHeapObjectSlot, v8::internal::HeapObject) src/heap/heap-write-barrier.cc:49:20 (libv8.so+0x1ff2894) (BuildId: d54a84ebb5882d6c)
+    #11 CombinedWriteBarrierInternal src/heap/heap-write-barrier-inl.h:124:5 (libv8.so+0x2bbfea0) (BuildId: d54a84ebb5882d6c)
+    #12 CombinedWriteBarrier src/heap/heap-write-barrier-inl.h:171:3 (libv8.so+0x2bbfea0)
+    #13 v8::internal::SlotAccessorForHeapObject::Write(v8::internal::MaybeObject, int) src/snapshot/deserializer.cc:64:5 (libv8.so+0x2bbfea0)
+    #14 v8::internal::SlotAccessorForHeapObject::Write(v8::internal::HeapObject, v8::internal::HeapObjectReferenceType, int) src/snapshot/deserializer.cc:69:12 (libv8.so+0x2bbfcc9) (BuildId: d54a84ebb5882d6c)
+    #15 int v8::internal::Deserializer<v8::internal::Isolate>::ReadSharedHeapObjectCache<v8::internal::SlotAccessorForHeapObject>(unsigned char, v8::internal::SlotAccessorForHeapObject) src/snapshot/deserializer.cc:1078:24 (libv8.so+0x2bc0f7e) (BuildId: d54a84ebb5882d6c)
+    #16 int v8::internal::Deserializer<v8::internal::Isolate>::ReadSingleBytecodeData<v8::internal::SlotAccessorForHeapObject>(unsigned char, v8::internal::SlotAccessorForHeapObject) src/snapshot/deserializer.cc:915:14 (libv8.so+0x2bb2262) (BuildId: d54a84ebb5882d6c)
+    #17 v8::internal::Deserializer<v8::internal::Isolate>::ReadData(v8::internal::Handle<v8::internal::HeapObject>, int, int) src/snapshot/deserializer.cc:880:16 (libv8.so+0x2bb1ef9) (BuildId: d54a84ebb5882d6c)
+    #18 v8::internal::Deserializer<v8::internal::Isolate>::ReadObject(v8::internal::SnapshotSpace) src/snapshot/deserializer.cc:682:3 (libv8.so+0x2bafd1d) (BuildId: d54a84ebb5882d6c)
+    #19 ReadNewObject<v8::internal::SlotAccessorForHeapObject> src/snapshot/deserializer.cc:990:36 (libv8.so+0x2bb2186) (BuildId: d54a84ebb5882d6c)
+    #20 int v8::internal::Deserializer<v8::internal::Isolate>::ReadSingleBytecodeData<v8::internal::SlotAccessorForHeapObject>(unsigned char, v8::internal::SlotAccessorForHeapObject) src/snapshot/deserializer.cc:903:14 (libv8.so+0x2bb2186)
+    #21 v8::internal::Deserializer<v8::internal::Isolate>::ReadData(v8::internal::Handle<v8::internal::HeapObject>, int, int) src/snapshot/deserializer.cc:880:16 (libv8.so+0x2bb1ef9) (BuildId: d54a84ebb5882d6c)
+    #22 v8::internal::Deserializer<v8::internal::Isolate>::ReadObject(v8::internal::SnapshotSpace) src/snapshot/deserializer.cc:682:3 (libv8.so+0x2bafd1d) (BuildId: d54a84ebb5882d6c)
+    #23 ReadNewObject<v8::internal::SlotAccessorForHandle<v8::internal::Isolate> > src/snapshot/deserializer.cc:990:36 (libv8.so+0x2bb15d9) (BuildId: d54a84ebb5882d6c)
+    #24 int v8::internal::Deserializer<v8::internal::Isolate>::ReadSingleBytecodeData<v8::internal::SlotAccessorForHandle<v8::internal::Isolate>>(unsigned char, v8::internal::SlotAccessorForHandle<v8::internal::Isolate>) src/snapshot/deserializer.cc:903:14 (libv8.so+0x2bb15d9)
+    #25 v8::internal::Deserializer<v8::internal::Isolate>::ReadObject() src/snapshot/deserializer.cc:568:3 (libv8.so+0x2bb1467) (BuildId: d54a84ebb5882d6c)
+    #26 v8::internal::Deserializer<v8::internal::Isolate>::ReadObject(v8::internal::SnapshotSpace) src/snapshot/deserializer.cc:596:39 (libv8.so+0x2baf76e) (BuildId: d54a84ebb5882d6c)
+    #27 ReadNewObject<v8::internal::SlotAccessorForHeapObject> src/snapshot/deserializer.cc:990:36 (libv8.so+0x2bb2186) (BuildId: d54a84ebb5882d6c)
+    #28 int v8::internal::Deserializer<v8::internal::Isolate>::ReadSingleBytecodeData<v8::internal::SlotAccessorForHeapObject>(unsigned char, v8::internal::SlotAccessorForHeapObject) src/snapshot/deserializer.cc:903:14 (libv8.so+0x2bb2186)
+    #29 v8::internal::Deserializer<v8::internal::Isolate>::ReadData(v8::internal::Handle<v8::internal::HeapObject>, int, int) src/snapshot/deserializer.cc:880:16 (libv8.so+0x2bb1ef9) (BuildId: d54a84ebb5882d6c)
+    #30 v8::internal::Deserializer<v8::internal::Isolate>::ReadObject(v8::internal::SnapshotSpace) src/snapshot/deserializer.cc:682:3 (libv8.so+0x2bafd1d) (BuildId: d54a84ebb5882d6c)
+    #31 ReadNewObject<v8::internal::SlotAccessorForHeapObject> src/snapshot/deserializer.cc:990:36 (libv8.so+0x2bb2186) (BuildId: d54a84ebb5882d6c)
+    #32 int v8::internal::Deserializer<v8::internal::Isolate>::ReadSingleBytecodeData<v8::internal::SlotAccessorForHeapObject>(unsigned char, v8::internal::SlotAccessorForHeapObject) src/snapshot/deserializer.cc:903:14 (libv8.so+0x2bb2186)
+    #33 v8::internal::Deserializer<v8::internal::Isolate>::ReadData(v8::internal::Handle<v8::internal::HeapObject>, int, int) src/snapshot/deserializer.cc:880:16 (libv8.so+0x2bb1ef9) (BuildId: d54a84ebb5882d6c)
+    #34 v8::internal::Deserializer<v8::internal::Isolate>::ReadObject(v8::internal::SnapshotSpace) src/snapshot/deserializer.cc:682:3 (libv8.so+0x2bafd1d) (BuildId: d54a84ebb5882d6c)
+    #35 ReadNewObject<v8::internal::SlotAccessorForHeapObject> src/snapshot/deserializer.cc:990:36 (libv8.so+0x2bb2186) (BuildId: d54a84ebb5882d6c)
+    #36 int v8::internal::Deserializer<v8::internal::Isolate>::ReadSingleBytecodeData<v8::internal::SlotAccessorForHeapObject>(unsigned char, v8::internal::SlotAccessorForHeapObject) src/snapshot/deserializer.cc:903:14 (libv8.so+0x2bb2186)
+    #37 v8::internal::Deserializer<v8::internal::Isolate>::ReadData(v8::internal::Handle<v8::internal::HeapObject>, int, int) src/snapshot/deserializer.cc:880:16 (libv8.so+0x2bb1ef9) (BuildId: d54a84ebb5882d6c)
+    #38 v8::internal::Deserializer<v8::internal::Isolate>::ReadObject(v8::internal::SnapshotSpace) src/snapshot/deserializer.cc:682:3 (libv8.so+0x2bafd1d) (BuildId: d54a84ebb5882d6c)
+    #39 ReadNewObject<v8::internal::SlotAccessorForHeapObject> src/snapshot/deserializer.cc:990:36 (libv8.so+0x2bb2186) (BuildId: d54a84ebb5882d6c)
+    #40 int v8::internal::Deserializer<v8::internal::Isolate>::ReadSingleBytecodeData<v8::internal::SlotAccessorForHeapObject>(unsigned char, v8::internal::SlotAccessorForHeapObject) src/snapshot/deserializer.cc:903:14 (libv8.so+0x2bb2186)
+    #41 v8::internal::Deserializer<v8::internal::Isolate>::ReadData(v8::internal::Handle<v8::internal::HeapObject>, int, int) src/snapshot/deserializer.cc:880:16 (libv8.so+0x2bb1ef9) (BuildId: d54a84ebb5882d6c)
+    #42 v8::internal::Deserializer<v8::internal::Isolate>::ReadObject(v8::internal::SnapshotSpace) src/snapshot/deserializer.cc:682:3 (libv8.so+0x2bafd1d) (BuildId: d54a84ebb5882d6c)
+    #43 ReadNewObject<v8::internal::SlotAccessorForHeapObject> src/snapshot/deserializer.cc:990:36 (libv8.so+0x2bb2186) (BuildId: d54a84ebb5882d6c)
+    #44 int v8::internal::Deserializer<v8::internal::Isolate>::ReadSingleBytecodeData<v8::internal::SlotAccessorForHeapObject>(unsigned char, v8::internal::SlotAccessorForHeapObject) src/snapshot/deserializer.cc:903:14 (libv8.so+0x2bb2186)
+    #45 v8::internal::Deserializer<v8::internal::Isolate>::ReadData(v8::internal::Handle<v8::internal::HeapObject>, int, int) src/snapshot/deserializer.cc:880:16 (libv8.so+0x2bb1ef9) (BuildId: d54a84ebb5882d6c)
+    #46 v8::internal::Deserializer<v8::internal::Isolate>::ReadObject(v8::internal::SnapshotSpace) src/snapshot/deserializer.cc:682:3 (libv8.so+0x2bafd1d) (BuildId: d54a84ebb5882d6c)
+    #47 ReadNewObject<v8::internal::SlotAccessorForHeapObject> src/snapshot/deserializer.cc:990:36 (libv8.so+0x2bb2186) (BuildId: d54a84ebb5882d6c)
+    #48 int v8::internal::Deserializer<v8::internal::Isolate>::ReadSingleBytecodeData<v8::internal::SlotAccessorForHeapObject>(unsigned char, v8::internal::SlotAccessorForHeapObject) src/snapshot/deserializer.cc:903:14 (libv8.so+0x2bb2186)
+    #49 v8::internal::Deserializer<v8::internal::Isolate>::ReadData(v8::internal::Handle<v8::internal::HeapObject>, int, int) src/snapshot/deserializer.cc:880:16 (libv8.so+0x2bb1ef9) (BuildId: d54a84ebb5882d6c)
+    #50 v8::internal::Deserializer<v8::internal::Isolate>::ReadObject(v8::internal::SnapshotSpace) src/snapshot/deserializer.cc:682:3 (libv8.so+0x2bafd1d) (BuildId: d54a84ebb5882d6c)
+    #51 ReadNewObject<v8::internal::SlotAccessorForHandle<v8::internal::Isolate> > src/snapshot/deserializer.cc:990:36 (libv8.so+0x2bb15d9) (BuildId: d54a84ebb5882d6c)
+    #52 int v8::internal::Deserializer<v8::internal::Isolate>::ReadSingleBytecodeData<v8::internal::SlotAccessorForHandle<v8::internal::Isolate>>(unsigned char, v8::internal::SlotAccessorForHandle<v8::internal::Isolate>) src/snapshot/deserializer.cc:903:14 (libv8.so+0x2bb15d9)
+    #53 v8::internal::Deserializer<v8::internal::Isolate>::ReadObject() src/snapshot/deserializer.cc:568:3 (libv8.so+0x2bb1467) (BuildId: d54a84ebb5882d6c)
+    #54 v8::internal::ContextDeserializer::Deserialize(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSGlobalProxy>, v8::DeserializeInternalFieldsCallback) src/snapshot/context-deserializer.cc:42:14 (libv8.so+0x2baadbe) (BuildId: d54a84ebb5882d6c)
+    #55 v8::internal::ContextDeserializer::DeserializeContext(v8::internal::Isolate*, v8::internal::SnapshotData const*, bool, v8::internal::Handle<v8::internal::JSGlobalProxy>, v8::DeserializeInternalFieldsCallback) src/snapshot/context-deserializer.cc:20:9 (libv8.so+0x2baac72) (BuildId: d54a84ebb5882d6c)
+    #56 v8::internal::Snapshot::NewContextFromSnapshot(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSGlobalProxy>, unsigned long, v8::DeserializeInternalFieldsCallback) src/snapshot/snapshot.cc:208:39 (libv8.so+0x2bfdd05) (BuildId: d54a84ebb5882d6c)
+    #57 v8::internal::Genesis::Genesis(v8::internal::Isolate*, v8::internal::MaybeHandle<v8::internal::JSGlobalProxy>, v8::Local<v8::ObjectTemplate>, unsigned long, v8::DeserializeInternalFieldsCallback, v8::MicrotaskQueue*) src/init/bootstrapper.cc:6586:9 (libv8.so+0x2208bce) (BuildId: d54a84ebb5882d6c)
+    #58 v8::internal::Bootstrapper::CreateEnvironment(v8::internal::MaybeHandle<v8::internal::JSGlobalProxy>, v8::Local<v8::ObjectTemplate>, v8::ExtensionConfiguration*, unsigned long, v8::DeserializeInternalFieldsCallback, v8::MicrotaskQueue*) src/init/bootstrapper.cc:339:13 (libv8.so+0x21c1a62) (BuildId: d54a84ebb5882d6c)
+    #59 Invoke src/api/api.cc:6507:39 (libv8.so+0x196f2e0) (BuildId: d54a84ebb5882d6c)
+    #60 CreateEnvironment<v8::internal::Context> src/api/api.cc:6611:21 (libv8.so+0x196f2e0)
+    #61 v8::NewContext(v8::Isolate*, v8::ExtensionConfiguration*, v8::MaybeLocal<v8::ObjectTemplate>, v8::MaybeLocal<v8::Value>, unsigned long, v8::DeserializeInternalFieldsCallback, v8::MicrotaskQueue*) src/api/api.cc:6652:31 (libv8.so+0x196f2e0)
+    #62 v8::Context::New(v8::Isolate*, v8::ExtensionConfiguration*, v8::MaybeLocal<v8::ObjectTemplate>, v8::MaybeLocal<v8::Value>, v8::DeserializeInternalFieldsCallback, v8::MicrotaskQueue*) src/api/api.cc:6669:10 (libv8.so+0x196fb55) (BuildId: d54a84ebb5882d6c)
+    #63 v8::Shell::CreateEvaluationContext(v8::Isolate*) src/d8/d8.cc:3807:28 (d8+0x1685eb) (BuildId: 2f29a8d5e9fef599)
+    #64 v8::Worker::ExecuteInThread() src/d8/d8.cc:4784:32 (d8+0x16c59d) (BuildId: 2f29a8d5e9fef599)
+    #65 v8::Worker::WorkerThread::Run() src/d8/d8.cc:4640:11 (d8+0x16c314) (BuildId: 2f29a8d5e9fef599)
+    #66 NotifyStartedAndRun src/base/platform/platform.h:596:5 (libv8_libbase.so+0x56a88) (BuildId: c965a046f7d0084e)
+    #67 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1123:11 (libv8_libbase.so+0x56a88)
+
+  Mutex M0 (0x7b0c000008d0) created at:
+    #0 pthread_mutex_init /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1331:3 (d8+0xae700) (BuildId: 2f29a8d5e9fef599)
+    #1 InitializeNativeHandle src/base/platform/mutex.cc:94:12 (libv8_libbase.so+0x41f34) (BuildId: c965a046f7d0084e)
+    #2 v8::base::Mutex::Mutex() src/base/platform/mutex.cc:152:3 (libv8_libbase.so+0x41f34)
+    #3 v8::internal::MemoryChunk::MemoryChunk(v8::internal::Heap*, v8::internal::BaseSpace*, unsigned long, unsigned long, unsigned long, v8::internal::VirtualMemory, v8::internal::Executability, v8::internal::PageSize) src/heap/memory-chunk.cc:154:16 (libv8.so+0x20fb88d) (BuildId: d54a84ebb5882d6c)
+    #4 v8::internal::Page::Page(v8::internal::Heap*, v8::internal::BaseSpace*, unsigned long, unsigned long, unsigned long, v8::internal::VirtualMemory, v8::internal::Executability) src/heap/spaces.cc:53:7 (libv8.so+0x215f07f) (BuildId: d54a84ebb5882d6c)
+    #5 v8::internal::MemoryAllocator::AllocatePage(v8::internal::MemoryAllocator::AllocationMode, v8::internal::Space*, v8::internal::Executability) src/heap/memory-allocator.cc:579:40 (libv8.so+0x20f6c1d) (BuildId: d54a84ebb5882d6c)
+    #6 v8::internal::PagedSpaceBase::TryExpandBackground(unsigned long) src/heap/paged-spaces.cc:406:44 (libv8.so+0x2129121) (BuildId: d54a84ebb5882d6c)
+    #7 v8::internal::ConcurrentAllocator::AllocateFromSpaceFreeList(unsigned long, unsigned long, v8::internal::AllocationOrigin) src/heap/concurrent-allocator.cc:238:22 (libv8.so+0x1ef7f8b) (BuildId: d54a84ebb5882d6c)
+    #8 v8::internal::ConcurrentAllocator::AllocateLab(v8::internal::AllocationOrigin) src/heap/concurrent-allocator.cc:160:17 (libv8.so+0x1ef7bea) (BuildId: d54a84ebb5882d6c)
+    #9 v8::internal::ConcurrentAllocator::AllocateInLabSlow(int, v8::internal::AllocationAlignment, v8::internal::AllocationOrigin) src/heap/concurrent-allocator.cc:150:8 (libv8.so+0x1ef7adc) (BuildId: d54a84ebb5882d6c)
+    #10 v8::internal::ConcurrentAllocator::AllocateRaw(int, v8::internal::AllocationAlignment, v8::internal::AllocationOrigin) src/heap/concurrent-allocator-inl.h:43:16 (libv8.so+0x1ef8e02) (BuildId: d54a84ebb5882d6c)
+    #11 v8::internal::AllocationResult v8::internal::HeapAllocator::AllocateRaw<(v8::internal::AllocationType)5>(int, v8::internal::AllocationOrigin, v8::internal::AllocationAlignment) src/heap/heap-allocator-inl.h:125:47 (libv8.so+0x1fd54e5) (BuildId: d54a84ebb5882d6c)
+    #12 v8::internal::HeapAllocator::AllocateRaw(int, v8::internal::AllocationType, v8::internal::AllocationOrigin, v8::internal::AllocationAlignment) src/heap/heap-allocator-inl.h:186:14 (libv8.so+0x1fd3c2c) (BuildId: d54a84ebb5882d6c)
+    #13 v8::internal::HeapAllocator::AllocateRawWithLightRetrySlowPath(int, v8::internal::AllocationType, v8::internal::AllocationOrigin, v8::internal::AllocationAlignment) src/heap/heap-allocator.cc:78:29 (libv8.so+0x1ff0d2f) (BuildId: d54a84ebb5882d6c)
+    #14 v8::internal::HeapAllocator::AllocateRawWithRetryOrFailSlowPath(int, v8::internal::AllocationType, v8::internal::AllocationOrigin, v8::internal::AllocationAlignment) src/heap/heap-allocator.cc:110:7 (libv8.so+0x1ff0f00) (BuildId: d54a84ebb5882d6c)
+    #15 AllocateRawWith<(v8::internal::HeapAllocator::AllocationRetryMode)1> src/heap/heap-allocator-inl.h:237:16 (libv8.so+0x2bb2cca) (BuildId: d54a84ebb5882d6c)
+    #16 AllocateRawOrFail src/heap/heap-inl.h:219:8 (libv8.so+0x2bb2cca)
+    #17 v8::internal::Deserializer<v8::internal::Isolate>::Allocate(v8::internal::AllocationType, int, v8::internal::AllocationAlignment) src/snapshot/deserializer.cc:1418:63 (libv8.so+0x2bb2cca)
+    #18 v8::internal::Deserializer<v8::internal::Isolate>::ReadObject(v8::internal::SnapshotSpace) src/snapshot/deserializer.cc:635:7 (libv8.so+0x2baf811) (BuildId: d54a84ebb5882d6c)
+    #19 ReadNewObject<v8::internal::SlotAccessorForRootSlots> src/snapshot/deserializer.cc:990:36 (libv8.so+0x2bb2643) (BuildId: d54a84ebb5882d6c)
+    #20 int v8::internal::Deserializer<v8::internal::Isolate>::ReadSingleBytecodeData<v8::internal::SlotAccessorForRootSlots>(unsigned char, v8::internal::SlotAccessorForRootSlots) src/snapshot/deserializer.cc:903:14 (libv8.so+0x2bb2643)
+    #21 v8::internal::Deserializer<v8::internal::Isolate>::ReadData(v8::internal::FullMaybeObjectSlot, v8::internal::FullMaybeObjectSlot) src/snapshot/deserializer.cc:892:16 (libv8.so+0x2bb1b2a) (BuildId: d54a84ebb5882d6c)
+    #22 v8::internal::Deserializer<v8::internal::Isolate>::VisitRootPointers(v8::internal::Root, char const*, v8::internal::FullObjectSlot, v8::internal::FullObjectSlot) src/snapshot/deserializer.cc:245:3 (libv8.so+0x2bb1a14) (BuildId: d54a84ebb5882d6c)
+    #23 v8::internal::RootVisitor::VisitRootPointer(v8::internal::Root, char const*, v8::internal::FullObjectSlot) src/objects/visitors.h:77:5 (libv8.so+0x1ea59c9) (BuildId: d54a84ebb5882d6c)
+    #24 v8::internal::(anonymous namespace)::IterateObjectCache(v8::internal::Isolate*, std::Cr::vector<v8::internal::Object, std::Cr::allocator<v8::internal::Object>>*, v8::internal::Root, v8::internal::RootVisitor*) src/snapshot/serializer-deserializer.cc:21:14 (libv8.so+0x2bd4288) (BuildId: d54a84ebb5882d6c)
+    #25 v8::internal::SerializerDeserializer::IterateSharedHeapObjectCache(v8::internal::Isolate*, v8::internal::RootVisitor*) src/snapshot/serializer-deserializer.cc:40:3 (libv8.so+0x2bd43b1) (BuildId: d54a84ebb5882d6c)
+    #26 v8::internal::SharedHeapDeserializer::DeserializeIntoIsolate() src/snapshot/shared-heap-deserializer.cc:22:3 (libv8.so+0x2bf8a91) (BuildId: d54a84ebb5882d6c)
+    #27 v8::internal::Isolate::Init(v8::internal::SnapshotData*, v8::internal::SnapshotData*, v8::internal::SnapshotData*, bool) src/execution/isolate.cc:4497:32 (libv8.so+0x1e88d06) (BuildId: d54a84ebb5882d6c)
+    #28 v8::internal::Isolate::InitWithSnapshot(v8::internal::SnapshotData*, v8::internal::SnapshotData*, v8::internal::SnapshotData*, bool) src/execution/isolate.cc:4048:10 (libv8.so+0x1e8a569) (BuildId: d54a84ebb5882d6c)
+    #29 v8::internal::Snapshot::Initialize(v8::internal::Isolate*) src/snapshot/snapshot.cc:182:27 (libv8.so+0x2bfcdf8) (BuildId: d54a84ebb5882d6c)
+    #30 v8::Isolate::Initialize(v8::Isolate*, v8::Isolate::CreateParams const&) src/api/api.cc:9048:8 (libv8.so+0x19a3933) (BuildId: d54a84ebb5882d6c)
+    #31 v8::Isolate::New(v8::Isolate::CreateParams const&) src/api/api.cc:9084:3 (libv8.so+0x19a4005) (BuildId: d54a84ebb5882d6c)
+    #32 v8::Shell::Main(int, char**) src/d8/d8.cc:5920:22 (d8+0x171369) (BuildId: 2f29a8d5e9fef599)
+    #33 main src/d8/d8.cc:6128:43 (d8+0x172260) (BuildId: 2f29a8d5e9fef599)
+
+  Mutex M1 (0x559db3a97808) created at:
+    #0 pthread_mutex_init /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1331:3 (d8+0xae700) (BuildId: 2f29a8d5e9fef599)
+    #1 InitializeNativeHandle src/base/platform/mutex.cc:94:12 (libv8_libbase.so+0x41f34) (BuildId: c965a046f7d0084e)
+    #2 v8::base::Mutex::Mutex() src/base/platform/mutex.cc:152:3 (libv8_libbase.so+0x41f34)
+    #3 Construct src/base/lazy-instance.h:129:68 (d8+0x182c29) (BuildId: 2f29a8d5e9fef599)
+    #4 InitStorageUsingTrait<v8::base::DefaultConstructTrait<v8::base::Mutex> > src/base/lazy-instance.h:106:5 (d8+0x182c29)
+    #5 v8::base::LazyInstanceImpl<v8::base::Mutex, v8::base::StaticallyAllocatedInstanceTrait<v8::base::Mutex>, v8::base::DefaultConstructTrait<v8::base::Mutex>, v8::base::ThreadSafeInitOnceTrait, v8::base::LeakyInstanceTrait<v8::base::Mutex>>::InitInstance(void*) src/base/lazy-instance.h:170:5 (d8+0x182c29)
+    #6 operator() src/base/once.h:101:32 (d8+0x182c6d) (BuildId: 2f29a8d5e9fef599)
+    #7 __invoke<(lambda at ../../src/base/once.h:101:24) &> buildtools/third_party/libc++/trunk/include/__functional/invoke.h:394:23 (d8+0x182c6d)
+    #8 __call<(lambda at ../../src/base/once.h:101:24) &> buildtools/third_party/libc++/trunk/include/__functional/invoke.h:487:9 (d8+0x182c6d)
+    #9 operator() buildtools/third_party/libc++/trunk/include/__functional/function.h:232:12 (d8+0x182c6d)
+    #10 void std::Cr::__function::__policy_invoker<void ()>::__call_impl<std::Cr::__function::__default_alloc_func<void v8::base::CallOnce<void*, void>(std::Cr::atomic<unsigned char>*, v8::base::FunctionWithArgs<void*>::type, void*)::'lambda'(), void ()>>(std::Cr::__function::__policy_storage const*) buildtools/third_party/libc++/trunk/include/__functional/function.h:711:16 (d8+0x182c6d)
+    #11 operator() buildtools/third_party/libc++/trunk/include/__functional/function.h:842:16 (libv8_libbase.so+0x3f367) (BuildId: c965a046f7d0084e)
+    #12 operator() buildtools/third_party/libc++/trunk/include/__functional/function.h:1152:12 (libv8_libbase.so+0x3f367)
+    #13 v8::base::CallOnceImpl(std::Cr::atomic<unsigned char>*, std::Cr::function<void ()>) src/base/once.cc:36:5 (libv8_libbase.so+0x3f367)
+    #14 CallOnce<void *, void> src/base/once.h:101:5 (d8+0x168578) (BuildId: 2f29a8d5e9fef599)
+    #15 Init<void (*)(void *), void *> src/base/lazy-instance.h:144:5 (d8+0x168578)
+    #16 Init src/base/lazy-instance.h:175:5 (d8+0x168578)
+    #17 Pointer src/base/lazy-instance.h:180:5 (d8+0x168578)
+    #18 v8::Shell::CreateEvaluationContext(v8::Isolate*) src/d8/d8.cc:3803:22 (d8+0x168578)
+    #19 v8::Shell::RunMain(v8::Isolate*, bool) src/d8/d8.cc:5224:30 (d8+0x16f131) (BuildId: 2f29a8d5e9fef599)
+    #20 v8::Shell::Main(int, char**) src/d8/d8.cc:6036:18 (d8+0x171bff) (BuildId: 2f29a8d5e9fef599)
+    #21 main src/d8/d8.cc:6128:43 (d8+0x172260) (BuildId: 2f29a8d5e9fef599)
+
+  Thread T6 'V8 DefaultWorke' (tid=23911, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1038:3 (d8+0xacd8b) (BuildId: 2f29a8d5e9fef599)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1155:14 (libv8_libbase.so+0x5691a) (BuildId: c965a046f7d0084e)
+    #2 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::WorkerThread(v8::platform::DefaultWorkerThreadsTaskRunner*) src/libplatform/default-worker-threads-task-runner.cc:66:3 (libv8_libplatform.so+0x1ecdf) (BuildId: 7b008cb550e67426)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (libv8_libplatform.so+0x1e6ff) (BuildId: 7b008cb550e67426)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)()) src/libplatform/default-worker-threads-task-runner.cc:16:28 (libv8_libplatform.so+0x1e6ff)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/construct_at.h:38:48 (libv8_libplatform.so+0x1c051) (BuildId: 7b008cb550e67426)
+    #6 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void, void> buildtools/third_party/libc++/trunk/include/__memory/allocator_traits.h:304:9 (libv8_libplatform.so+0x1c051)
+    #7 __shared_ptr_emplace<const int &, double (*)()> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:275:9 (libv8_libplatform.so+0x1c051)
+    #8 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:936:55 (libv8_libplatform.so+0x1c051)
+    #9 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:945:12 (libv8_libplatform.so+0x1c051)
+    #10 v8::platform::DefaultPlatform::EnsureBackgroundTaskRunnerInitialized() src/libplatform/default-platform.cc:132:7 (libv8_libplatform.so+0x1c051)
+    #11 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::Cr::unique_ptr<v8::TracingController, std::Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:108:5 (libv8_libplatform.so+0x1bf94) (BuildId: 7b008cb550e67426)
+    #12 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::Cr::unique_ptr<v8::TracingController, std::Cr::default_delete<v8::TracingController> > > buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (libv8_libplatform.so+0x1b3f4) (BuildId: 7b008cb550e67426)
+    #13 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::Cr::unique_ptr<v8::TracingController, std::Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:53:19 (libv8_libplatform.so+0x1b3f4)
+    #14 v8::Shell::Main(int, char**) src/d8/d8.cc:5823:16 (d8+0x170e8e) (BuildId: 2f29a8d5e9fef599)
+    #15 main src/d8/d8.cc:6128:43 (d8+0x172260) (BuildId: 2f29a8d5e9fef599)
+
+  Thread T8 'WorkerThread' (tid=23964, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1038:3 (d8+0xacd8b) (BuildId: 2f29a8d5e9fef599)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1155:14 (libv8_libbase.so+0x5691a) (BuildId: c965a046f7d0084e)
+    #2 v8::Worker::StartWorkerThread(v8::Isolate*, std::Cr::shared_ptr<v8::Worker>) src/d8/d8.cc:4624:16 (d8+0x1632ef) (BuildId: 2f29a8d5e9fef599)
+    #3 v8::Shell::WorkerNew(v8::FunctionCallbackInfo<v8::Value> const&) src/d8/d8.cc:2958:10 (d8+0x162fba) (BuildId: 2f29a8d5e9fef599)
+    #4 v8::internal::FunctionCallbackArguments::Call(v8::internal::CallHandlerInfo) src/api/api-arguments-inl.h:146:3 (libv8.so+0x1a7e887) (BuildId: d54a84ebb5882d6c)
+    #5 v8::internal::MaybeHandle<v8::internal::Object> v8::internal::(anonymous namespace)::HandleApiCallHelper<true>(v8::internal::Isolate*, v8::internal::Handle<v8::internal::HeapObject>, v8::internal::Handle<v8::internal::FunctionTemplateInfo>, v8::internal::Handle<v8::internal::Object>, unsigned long*, int) src/builtins/builtins-api.cc:113:36 (libv8.so+0x1a7bb7c) (BuildId: d54a84ebb5882d6c)
+    #6 v8::internal::Builtin_Impl_HandleApiCall(v8::internal::BuiltinArguments, v8::internal::Isolate*) src/builtins/builtins-api.cc:144:5 (libv8.so+0x1a7aa6f) (BuildId: d54a84ebb5882d6c)
+    #7 v8::internal::Builtin_HandleApiCall(int, unsigned long*, v8::internal::Isolate*) src/builtins/builtins-api.cc:135:1 (libv8.so+0x1a7a121) (BuildId: d54a84ebb5882d6c)
+    #8 Builtins_AsyncFromSyncIteratorPrototypeReturn setup-isolate-deserialize.cc (libv8.so+0x11ab9fe)
+    #9 v8::internal::Execution::CallScript(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSFunction>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>) src/execution/execution.cc:538:10 (libv8.so+0x1e40c5c) (BuildId: d54a84ebb5882d6c)
+    #10 v8::Script::Run(v8::Local<v8::Context>, v8::Local<v8::Data>) src/api/api.cc:2271:7 (libv8.so+0x191c1cb) (BuildId: d54a84ebb5882d6c)
+    #11 v8::Script::Run(v8::Local<v8::Context>) src/api/api.cc:2198:10 (libv8.so+0x191b8e0) (BuildId: d54a84ebb5882d6c)
+    #12 v8::Shell::ExecuteString(v8::Isolate*, v8::Local<v8::String>, v8::Local<v8::String>, v8::Shell::PrintResult, v8::Shell::ReportExceptions, v8::Shell::ProcessMessageQueue) src/d8/d8.cc:877:28 (d8+0x14e4cb) (BuildId: 2f29a8d5e9fef599)
+    #13 v8::SourceGroup::Execute(v8::Isolate*) src/d8/d8.cc:4501:10 (d8+0x16aab3) (BuildId: 2f29a8d5e9fef599)
+    #14 v8::Shell::RunMain(v8::Isolate*, bool) src/d8/d8.cc:5235:39 (d8+0x16f242) (BuildId: 2f29a8d5e9fef599)
+    #15 v8::Shell::Main(int, char**) src/d8/d8.cc:6036:18 (d8+0x171bff) (BuildId: 2f29a8d5e9fef599)
+    #16 main src/d8/d8.cc:6128:43 (d8+0x172260) (BuildId: 2f29a8d5e9fef599)
+
+SUMMARY: ThreadSanitizer: data race src/heap/marking.h:209:16 in ClearCellRangeRelaxed
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=23904)
+  Write of size 8 at 0x7e9b00200248 by thread T4 (mutexes: write M0):
+    #0 __tsan_memset /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:3113:3 (d8+0xf13ad) (BuildId: 2f29a8d5e9fef599)
+    #1 ClearCellRangeRelaxed src/heap/marking.h:209:16 (libv8.so+0x21689bf) (BuildId: d54a84ebb5882d6c)
+    #2 Clear src/heap/marking.h:232:3 (libv8.so+0x21689bf)
+    #3 ClearMarkBitsAndHandleLivenessStatistics src/heap/sweeper.cc:508:33 (libv8.so+0x21689bf)
+    #4 v8::internal::Sweeper::RawSweep(v8::internal::Page*, v8::internal::FreeSpaceTreatmentMode, v8::internal::Sweeper::SweepingMode, v8::base::LockGuard<v8::base::Mutex, (v8::base::NullBehavior)0> const&, std::Cr::unordered_map<v8::internal::AllocationSite, unsigned long, v8::internal::Object::Hasher, std::Cr::equal_to<v8::internal::AllocationSite>, std::Cr::allocator<std::Cr::pair<v8::internal::AllocationSite const, unsigned long>>>*) src/heap/sweeper.cc:636:3 (libv8.so+0x21689bf)
+    #5 v8::internal::Sweeper::ParallelSweepPage(v8::internal::Page*, v8::internal::AllocationSpace, std::Cr::unordered_map<v8::internal::AllocationSite, unsigned long, v8::internal::Object::Hasher, std::Cr::equal_to<v8::internal::AllocationSite>, std::Cr::allocator<std::Cr::pair<v8::internal::AllocationSite const, unsigned long>>>*, v8::internal::Sweeper::SweepingMode) src/heap/sweeper.cc:958:17 (libv8.so+0x216ae35) (BuildId: d54a84ebb5882d6c)
+    #6 ConcurrentSweepSpace src/heap/sweeper.cc:51:17 (libv8.so+0x2178e0b) (BuildId: d54a84ebb5882d6c)
+    #7 v8::internal::Sweeper::SweeperJob::SweepNonNewSpaces(v8::internal::Sweeper::ConcurrentSweeper&, v8::JobDelegate*, bool, int, int) src/heap/sweeper.cc:144:31 (libv8.so+0x2178e0b)
+    #8 v8::internal::Sweeper::SweeperJob::RunImpl(v8::JobDelegate*, bool) src/heap/sweeper.cc:117:12 (libv8.so+0x21783a7) (BuildId: d54a84ebb5882d6c)
+    #9 v8::internal::Sweeper::SweeperJob::Run(v8::JobDelegate*) src/heap/sweeper.cc:98:5 (libv8.so+0x21781ef) (BuildId: d54a84ebb5882d6c)
+    #10 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (libv8_libplatform.so+0x1b2fb) (BuildId: 7b008cb550e67426)
+    #11 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:73:11 (libv8_libplatform.so+0x1ee10) (BuildId: 7b008cb550e67426)
+    #12 NotifyStartedAndRun src/base/platform/platform.h:596:5 (libv8_libbase.so+0x56a88) (BuildId: c965a046f7d0084e)
+    #13 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1123:11 (libv8_libbase.so+0x56a88)
+
+  Previous atomic read of size 4 at 0x7e9b0020024c by thread T8 (mutexes: write M1):
+    #0 __cxx_atomic_load<int> buildtools/third_party/libc++/trunk/include/atomic:948:12 (libv8.so+0x2039666) (BuildId: d54a84ebb5882d6c)
+    #1 load buildtools/third_party/libc++/trunk/include/atomic:1537:17 (libv8.so+0x2039666)
+    #2 atomic_load_explicit<int> buildtools/third_party/libc++/trunk/include/atomic:1916:17 (libv8.so+0x2039666)
+    #3 Acquire_Load src/base/atomicops.h:247:10 (libv8.so+0x2039666)
+    #4 Acquire_Load<unsigned int> src/base/atomic-utils.h:80:9 (libv8.so+0x2039666)
+    #5 Get<(v8::internal::AccessMode)0> src/heap/marking.h:78:11 (libv8.so+0x2039666)
+    #6 IsImpossible<(v8::internal::AccessMode)0> src/heap/marking.h:369:36 (libv8.so+0x2039666)
+    #7 IsImpossible src/heap/marking-state-inl.h:36:10 (libv8.so+0x2039666)
+    #8 v8::internal::MarkingBarrier::MarkValue(v8::internal::HeapObject, v8::internal::HeapObject) src/heap/marking-barrier-inl.h:19:3 (libv8.so+0x2039666)
+    #9 v8::internal::MarkingBarrier::Write(v8::internal::HeapObject, v8::internal::CompressedHeapObjectSlot, v8::internal::HeapObject) src/heap/marking-barrier.cc:44:3 (libv8.so+0x20ca02f) (BuildId: d54a84ebb5882d6c)
+    #10 v8::internal::WriteBarrier::MarkingSlow(v8::internal::HeapObject, v8::internal::CompressedHeapObjectSlot, v8::internal::HeapObject) src/heap/heap-write-barrier.cc:49:20 (libv8.so+0x1ff2894) (BuildId: d54a84ebb5882d6c)
+    #11 CombinedWriteBarrierInternal src/heap/heap-write-barrier-inl.h:124:5 (libv8.so+0x1b569c3) (BuildId: d54a84ebb5882d6c)
+    #12 CombinedWriteBarrier src/heap/heap-write-barrier-inl.h:158:3 (libv8.so+0x1b569c3)
+    #13 v8::internal::DescriptorArray::SetKey(v8::internal::InternalIndex, v8::internal::Name) src/objects/descriptor-array-inl.h:143:3 (libv8.so+0x1b569c3)
+    #14 Set src/objects/descriptor-array-inl.h:228:3 (libv8.so+0x2772b13) (BuildId: d54a84ebb5882d6c)
+    #15 CopyFrom src/objects/objects.cc:4465:3 (libv8.so+0x2772b13)
+    #16 v8::internal::DescriptorArray::CopyUpToAddAttributes(v8::internal::Isolate*, v8::internal::Handle<v8::internal::DescriptorArray>, int, v8::internal::PropertyAttributes, int) src/objects/objects.cc:3894:12 (libv8.so+0x2772b13)
+    #17 v8::internal::DescriptorArray::CopyUpTo(v8::internal::Isolate*, v8::internal::Handle<v8::internal::DescriptorArray>, int, int) src/objects/objects.cc:3853:10 (libv8.so+0x27726c1) (BuildId: d54a84ebb5882d6c)
+    #18 v8::internal::Map::CopyAddDescriptor(v8::internal::Isolate*, v8::internal::Handle<v8::internal::Map>, v8::internal::Descriptor*, v8::internal::TransitionFlag) src/objects/map.cc:2043:7 (libv8.so+0x26cfd58) (BuildId: d54a84ebb5882d6c)
+    #19 v8::internal::Map::CopyWithField(v8::internal::Isolate*, v8::internal::Handle<v8::internal::Map>, v8::internal::Handle<v8::internal::Name>, v8::internal::Handle<v8::internal::FieldType>, v8::internal::PropertyAttributes, v8::internal::PropertyConstness, v8::internal::Representation, v8::internal::TransitionFlag) src/objects/map.cc:478:25 (libv8.so+0x26cfa17) (BuildId: d54a84ebb5882d6c)
+    #20 v8::internal::Map::TransitionToDataProperty(v8::internal::Isolate*, v8::internal::Handle<v8::internal::Map>, v8::internal::Handle<v8::internal::Name>, v8::internal::Handle<v8::internal::Object>, v8::internal::PropertyAttributes, v8::internal::PropertyConstness, v8::internal::StoreOrigin) src/objects/map.cc:1868:17 (libv8.so+0x26dbfe9) (BuildId: d54a84ebb5882d6c)
+    #21 v8::internal::LookupIterator::PrepareTransitionToDataProperty(v8::internal::Handle<v8::internal::JSReceiver>, v8::internal::Handle<v8::internal::Object>, v8::internal::PropertyAttributes, v8::internal::StoreOrigin) src/objects/lookup.cc:599:7 (libv8.so+0x26b0748) (BuildId: d54a84ebb5882d6c)
+    #22 v8::internal::Object::TransitionAndWriteDataProperty(v8::internal::LookupIterator*, v8::internal::Handle<v8::internal::Object>, v8::internal::PropertyAttributes, v8::Maybe<v8::internal::ShouldThrow>, v8::internal::StoreOrigin) src/objects/objects.cc:2916:7 (libv8.so+0x276b139) (BuildId: d54a84ebb5882d6c)
+    #23 v8::internal::Object::AddDataProperty(v8::internal::LookupIterator*, v8::internal::Handle<v8::internal::Object>, v8::internal::PropertyAttributes, v8::Maybe<v8::internal::ShouldThrow>, v8::internal::StoreOrigin, v8::internal::EnforceDefineSemantics) src/objects/objects.cc:2904:10 (libv8.so+0x276a6a2) (BuildId: d54a84ebb5882d6c)
+    #24 v8::internal::JSObject::AddProperty(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSObject>, v8::internal::Handle<v8::internal::Name>, v8::internal::Handle<v8::internal::Object>, v8::internal::PropertyAttributes) src/objects/js-objects.cc:3567:3 (libv8.so+0x25bf2dc) (BuildId: d54a84ebb5882d6c)
+    #25 v8::internal::SimpleInstallFunction(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSObject>, char const*, v8::internal::Builtin, int, bool, v8::internal::PropertyAttributes) src/init/bootstrapper.cc:941:3 (libv8.so+0x21c5562) (BuildId: d54a84ebb5882d6c)
+    #26 v8::internal::Genesis::InitializeGlobal_harmony_change_array_by_copy() src/init/bootstrapper.cc:4565:5 (libv8.so+0x21edbdc) (BuildId: d54a84ebb5882d6c)
+    #27 v8::internal::Genesis::InitializeExperimentalGlobal() src/init/bootstrapper.cc:4147:3 (libv8.so+0x21ed737) (BuildId: d54a84ebb5882d6c)
+    #28 v8::internal::Genesis::Genesis(v8::internal::Isolate*, v8::internal::MaybeHandle<v8::internal::JSGlobalProxy>, v8::Local<v8::ObjectTemplate>, unsigned long, v8::DeserializeInternalFieldsCallback, v8::MicrotaskQueue*) src/init/bootstrapper.cc:6654:5 (libv8.so+0x2208f18) (BuildId: d54a84ebb5882d6c)
+    #29 v8::internal::Bootstrapper::CreateEnvironment(v8::internal::MaybeHandle<v8::internal::JSGlobalProxy>, v8::Local<v8::ObjectTemplate>, v8::ExtensionConfiguration*, unsigned long, v8::DeserializeInternalFieldsCallback, v8::MicrotaskQueue*) src/init/bootstrapper.cc:339:13 (libv8.so+0x21c1a62) (BuildId: d54a84ebb5882d6c)
+    #30 Invoke src/api/api.cc:6507:39 (libv8.so+0x196f2e0) (BuildId: d54a84ebb5882d6c)
+    #31 CreateEnvironment<v8::internal::Context> src/api/api.cc:6611:21 (libv8.so+0x196f2e0)
+    #32 v8::NewContext(v8::Isolate*, v8::ExtensionConfiguration*, v8::MaybeLocal<v8::ObjectTemplate>, v8::MaybeLocal<v8::Value>, unsigned long, v8::DeserializeInternalFieldsCallback, v8::MicrotaskQueue*) src/api/api.cc:6652:31 (libv8.so+0x196f2e0)
+    #33 v8::Context::New(v8::Isolate*, v8::ExtensionConfiguration*, v8::MaybeLocal<v8::ObjectTemplate>, v8::MaybeLocal<v8::Value>, v8::DeserializeInternalFieldsCallback, v8::MicrotaskQueue*) src/api/api.cc:6669:10 (libv8.so+0x196fb55) (BuildId: d54a84ebb5882d6c)
+    #34 v8::Shell::CreateEvaluationContext(v8::Isolate*) src/d8/d8.cc:3807:28 (d8+0x1685eb) (BuildId: 2f29a8d5e9fef599)
+    #35 v8::Worker::ExecuteInThread() src/d8/d8.cc:4784:32 (d8+0x16c59d) (BuildId: 2f29a8d5e9fef599)
+    #36 v8::Worker::WorkerThread::Run() src/d8/d8.cc:4640:11 (d8+0x16c314) (BuildId: 2f29a8d5e9fef599)
+    #37 NotifyStartedAndRun src/base/platform/platform.h:596:5 (libv8_libbase.so+0x56a88) (BuildId: c965a046f7d0084e)
+    #38 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1123:11 (libv8_libbase.so+0x56a88)
+
+  Mutex M0 (0x7b0c000008d0) created at:
+    #0 pthread_mutex_init /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1331:3 (d8+0xae700) (BuildId: 2f29a8d5e9fef599)
+    #1 InitializeNativeHandle src/base/platform/mutex.cc:94:12 (libv8_libbase.so+0x41f34) (BuildId: c965a046f7d0084e)
+    #2 v8::base::Mutex::Mutex() src/base/platform/mutex.cc:152:3 (libv8_libbase.so+0x41f34)
+    #3 v8::internal::MemoryChunk::MemoryChunk(v8::internal::Heap*, v8::internal::BaseSpace*, unsigned long, unsigned long, unsigned long, v8::internal::VirtualMemory, v8::internal::Executability, v8::internal::PageSize) src/heap/memory-chunk.cc:154:16 (libv8.so+0x20fb88d) (BuildId: d54a84ebb5882d6c)
+    #4 v8::internal::Page::Page(v8::internal::Heap*, v8::internal::BaseSpace*, unsigned long, unsigned long, unsigned long, v8::internal::VirtualMemory, v8::internal::Executability) src/heap/spaces.cc:53:7 (libv8.so+0x215f07f) (BuildId: d54a84ebb5882d6c)
+    #5 v8::internal::MemoryAllocator::AllocatePage(v8::internal::MemoryAllocator::AllocationMode, v8::internal::Space*, v8::internal::Executability) src/heap/memory-allocator.cc:579:40 (libv8.so+0x20f6c1d) (BuildId: d54a84ebb5882d6c)
+    #6 v8::internal::PagedSpaceBase::TryExpandBackground(unsigned long) src/heap/paged-spaces.cc:406:44 (libv8.so+0x2129121) (BuildId: d54a84ebb5882d6c)
+    #7 v8::internal::ConcurrentAllocator::AllocateFromSpaceFreeList(unsigned long, unsigned long, v8::internal::AllocationOrigin) src/heap/concurrent-allocator.cc:238:22 (libv8.so+0x1ef7f8b) (BuildId: d54a84ebb5882d6c)
+    #8 v8::internal::ConcurrentAllocator::AllocateLab(v8::internal::AllocationOrigin) src/heap/concurrent-allocator.cc:160:17 (libv8.so+0x1ef7bea) (BuildId: d54a84ebb5882d6c)
+    #9 v8::internal::ConcurrentAllocator::AllocateInLabSlow(int, v8::internal::AllocationAlignment, v8::internal::AllocationOrigin) src/heap/concurrent-allocator.cc:150:8 (libv8.so+0x1ef7adc) (BuildId: d54a84ebb5882d6c)
+    #10 v8::internal::ConcurrentAllocator::AllocateRaw(int, v8::internal::AllocationAlignment, v8::internal::AllocationOrigin) src/heap/concurrent-allocator-inl.h:43:16 (libv8.so+0x1ef8e02) (BuildId: d54a84ebb5882d6c)
+    #11 v8::internal::AllocationResult v8::internal::HeapAllocator::AllocateRaw<(v8::internal::AllocationType)5>(int, v8::internal::AllocationOrigin, v8::internal::AllocationAlignment) src/heap/heap-allocator-inl.h:125:47 (libv8.so+0x1fd54e5) (BuildId: d54a84ebb5882d6c)
+    #12 v8::internal::HeapAllocator::AllocateRaw(int, v8::internal::AllocationType, v8::internal::AllocationOrigin, v8::internal::AllocationAlignment) src/heap/heap-allocator-inl.h:186:14 (libv8.so+0x1fd3c2c) (BuildId: d54a84ebb5882d6c)
+    #13 v8::internal::HeapAllocator::AllocateRawWithLightRetrySlowPath(int, v8::internal::AllocationType, v8::internal::AllocationOrigin, v8::internal::AllocationAlignment) src/heap/heap-allocator.cc:78:29 (libv8.so+0x1ff0d2f) (BuildId: d54a84ebb5882d6c)
+    #14 v8::internal::HeapAllocator::AllocateRawWithRetryOrFailSlowPath(int, v8::internal::AllocationType, v8::internal::AllocationOrigin, v8::internal::AllocationAlignment) src/heap/heap-allocator.cc:110:7 (libv8.so+0x1ff0f00) (BuildId: d54a84ebb5882d6c)
+    #15 AllocateRawWith<(v8::internal::HeapAllocator::AllocationRetryMode)1> src/heap/heap-allocator-inl.h:237:16 (libv8.so+0x2bb2cca) (BuildId: d54a84ebb5882d6c)
+    #16 AllocateRawOrFail src/heap/heap-inl.h:219:8 (libv8.so+0x2bb2cca)
+    #17 v8::internal::Deserializer<v8::internal::Isolate>::Allocate(v8::internal::AllocationType, int, v8::internal::AllocationAlignment) src/snapshot/deserializer.cc:1418:63 (libv8.so+0x2bb2cca)
+    #18 v8::internal::Deserializer<v8::internal::Isolate>::ReadObject(v8::internal::SnapshotSpace) src/snapshot/deserializer.cc:635:7 (libv8.so+0x2baf811) (BuildId: d54a84ebb5882d6c)
+    #19 ReadNewObject<v8::internal::SlotAccessorForRootSlots> src/snapshot/deserializer.cc:990:36 (libv8.so+0x2bb2643) (BuildId: d54a84ebb5882d6c)
+    #20 int v8::internal::Deserializer<v8::internal::Isolate>::ReadSingleBytecodeData<v8::internal::SlotAccessorForRootSlots>(unsigned char, v8::internal::SlotAccessorForRootSlots) src/snapshot/deserializer.cc:903:14 (libv8.so+0x2bb2643)
+    #21 v8::internal::Deserializer<v8::internal::Isolate>::ReadData(v8::internal::FullMaybeObjectSlot, v8::internal::FullMaybeObjectSlot) src/snapshot/deserializer.cc:892:16 (libv8.so+0x2bb1b2a) (BuildId: d54a84ebb5882d6c)
+    #22 v8::internal::Deserializer<v8::internal::Isolate>::VisitRootPointers(v8::internal::Root, char const*, v8::internal::FullObjectSlot, v8::internal::FullObjectSlot) src/snapshot/deserializer.cc:245:3 (libv8.so+0x2bb1a14) (BuildId: d54a84ebb5882d6c)
+    #23 v8::internal::RootVisitor::VisitRootPointer(v8::internal::Root, char const*, v8::internal::FullObjectSlot) src/objects/visitors.h:77:5 (libv8.so+0x1ea59c9) (BuildId: d54a84ebb5882d6c)
+    #24 v8::internal::(anonymous namespace)::IterateObjectCache(v8::internal::Isolate*, std::Cr::vector<v8::internal::Object, std::Cr::allocator<v8::internal::Object>>*, v8::internal::Root, v8::internal::RootVisitor*) src/snapshot/serializer-deserializer.cc:21:14 (libv8.so+0x2bd4288) (BuildId: d54a84ebb5882d6c)
+    #25 v8::internal::SerializerDeserializer::IterateSharedHeapObjectCache(v8::internal::Isolate*, v8::internal::RootVisitor*) src/snapshot/serializer-deserializer.cc:40:3 (libv8.so+0x2bd43b1) (BuildId: d54a84ebb5882d6c)
+    #26 v8::internal::SharedHeapDeserializer::DeserializeIntoIsolate() src/snapshot/shared-heap-deserializer.cc:22:3 (libv8.so+0x2bf8a91) (BuildId: d54a84ebb5882d6c)
+    #27 v8::internal::Isolate::Init(v8::internal::SnapshotData*, v8::internal::SnapshotData*, v8::internal::SnapshotData*, bool) src/execution/isolate.cc:4497:32 (libv8.so+0x1e88d06) (BuildId: d54a84ebb5882d6c)
+    #28 v8::internal::Isolate::InitWithSnapshot(v8::internal::SnapshotData*, v8::internal::SnapshotData*, v8::internal::SnapshotData*, bool) src/execution/isolate.cc:4048:10 (libv8.so+0x1e8a569) (BuildId: d54a84ebb5882d6c)
+    #29 v8::internal::Snapshot::Initialize(v8::internal::Isolate*) src/snapshot/snapshot.cc:182:27 (libv8.so+0x2bfcdf8) (BuildId: d54a84ebb5882d6c)
+    #30 v8::Isolate::Initialize(v8::Isolate*, v8::Isolate::CreateParams const&) src/api/api.cc:9048:8 (libv8.so+0x19a3933) (BuildId: d54a84ebb5882d6c)
+    #31 v8::Isolate::New(v8::Isolate::CreateParams const&) src/api/api.cc:9084:3 (libv8.so+0x19a4005) (BuildId: d54a84ebb5882d6c)
+    #32 v8::Shell::Main(int, char**) src/d8/d8.cc:5920:22 (d8+0x171369) (BuildId: 2f29a8d5e9fef599)
+    #33 main src/d8/d8.cc:6128:43 (d8+0x172260) (BuildId: 2f29a8d5e9fef599)
+
+  Mutex M1 (0x559db3a97808) created at:
+    #0 pthread_mutex_init /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1331:3 (d8+0xae700) (BuildId: 2f29a8d5e9fef599)
+    #1 InitializeNativeHandle src/base/platform/mutex.cc:94:12 (libv8_libbase.so+0x41f34) (BuildId: c965a046f7d0084e)
+    #2 v8::base::Mutex::Mutex() src/base/platform/mutex.cc:152:3 (libv8_libbase.so+0x41f34)
+    #3 Construct src/base/lazy-instance.h:129:68 (d8+0x182c29) (BuildId: 2f29a8d5e9fef599)
+    #4 InitStorageUsingTrait<v8::base::DefaultConstructTrait<v8::base::Mutex> > src/base/lazy-instance.h:106:5 (d8+0x182c29)
+    #5 v8::base::LazyInstanceImpl<v8::base::Mutex, v8::base::StaticallyAllocatedInstanceTrait<v8::base::Mutex>, v8::base::DefaultConstructTrait<v8::base::Mutex>, v8::base::ThreadSafeInitOnceTrait, v8::base::LeakyInstanceTrait<v8::base::Mutex>>::InitInstance(void*) src/base/lazy-instance.h:170:5 (d8+0x182c29)
+    #6 operator() src/base/once.h:101:32 (d8+0x182c6d) (BuildId: 2f29a8d5e9fef599)
+    #7 __invoke<(lambda at ../../src/base/once.h:101:24) &> buildtools/third_party/libc++/trunk/include/__functional/invoke.h:394:23 (d8+0x182c6d)
+    #8 __call<(lambda at ../../src/base/once.h:101:24) &> buildtools/third_party/libc++/trunk/include/__functional/invoke.h:487:9 (d8+0x182c6d)
+    #9 operator() buildtools/third_party/libc++/trunk/include/__functional/function.h:232:12 (d8+0x182c6d)
+    #10 void std::Cr::__function::__policy_invoker<void ()>::__call_impl<std::Cr::__function::__default_alloc_func<void v8::base::CallOnce<void*, void>(std::Cr::atomic<unsigned char>*, v8::base::FunctionWithArgs<void*>::type, void*)::'lambda'(), void ()>>(std::Cr::__function::__policy_storage const*) buildtools/third_party/libc++/trunk/include/__functional/function.h:711:16 (d8+0x182c6d)
+    #11 operator() buildtools/third_party/libc++/trunk/include/__functional/function.h:842:16 (libv8_libbase.so+0x3f367) (BuildId: c965a046f7d0084e)
+    #12 operator() buildtools/third_party/libc++/trunk/include/__functional/function.h:1152:12 (libv8_libbase.so+0x3f367)
+    #13 v8::base::CallOnceImpl(std::Cr::atomic<unsigned char>*, std::Cr::function<void ()>) src/base/once.cc:36:5 (libv8_libbase.so+0x3f367)
+    #14 CallOnce<void *, void> src/base/once.h:101:5 (d8+0x168578) (BuildId: 2f29a8d5e9fef599)
+    #15 Init<void (*)(void *), void *> src/base/lazy-instance.h:144:5 (d8+0x168578)
+    #16 Init src/base/lazy-instance.h:175:5 (d8+0x168578)
+    #17 Pointer src/base/lazy-instance.h:180:5 (d8+0x168578)
+    #18 v8::Shell::CreateEvaluationContext(v8::Isolate*) src/d8/d8.cc:3803:22 (d8+0x168578)
+    #19 v8::Shell::RunMain(v8::Isolate*, bool) src/d8/d8.cc:5224:30 (d8+0x16f131) (BuildId: 2f29a8d5e9fef599)
+    #20 v8::Shell::Main(int, char**) src/d8/d8.cc:6036:18 (d8+0x171bff) (BuildId: 2f29a8d5e9fef599)
+    #21 main src/d8/d8.cc:6128:43 (d8+0x172260) (BuildId: 2f29a8d5e9fef599)
+
+  Thread T4 'V8 DefaultWorke' (tid=23909, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1038:3 (d8+0xacd8b) (BuildId: 2f29a8d5e9fef599)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1155:14 (libv8_libbase.so+0x5691a) (BuildId: c965a046f7d0084e)
+    #2 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::WorkerThread(v8::platform::DefaultWorkerThreadsTaskRunner*) src/libplatform/default-worker-threads-task-runner.cc:66:3 (libv8_libplatform.so+0x1ecdf) (BuildId: 7b008cb550e67426)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (libv8_libplatform.so+0x1e6ff) (BuildId: 7b008cb550e67426)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)()) src/libplatform/default-worker-threads-task-runner.cc:16:28 (libv8_libplatform.so+0x1e6ff)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/construct_at.h:38:48 (libv8_libplatform.so+0x1c051) (BuildId: 7b008cb550e67426)
+    #6 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void, void> buildtools/third_party/libc++/trunk/include/__memory/allocator_traits.h:304:9 (libv8_libplatform.so+0x1c051)
+    #7 __shared_ptr_emplace<const int &, double (*)()> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:275:9 (libv8_libplatform.so+0x1c051)
+    #8 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:936:55 (libv8_libplatform.so+0x1c051)
+    #9 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:945:12 (libv8_libplatform.so+0x1c051)
+    #10 v8::platform::DefaultPlatform::EnsureBackgroundTaskRunnerInitialized() src/libplatform/default-platform.cc:132:7 (libv8_libplatform.so+0x1c051)
+    #11 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::Cr::unique_ptr<v8::TracingController, std::Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:108:5 (libv8_libplatform.so+0x1bf94) (BuildId: 7b008cb550e67426)
+    #12 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::Cr::unique_ptr<v8::TracingController, std::Cr::default_delete<v8::TracingController> > > buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (libv8_libplatform.so+0x1b3f4) (BuildId: 7b008cb550e67426)
+    #13 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::Cr::unique_ptr<v8::TracingController, std::Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:53:19 (libv8_libplatform.so+0x1b3f4)
+    #14 v8::Shell::Main(int, char**) src/d8/d8.cc:5823:16 (d8+0x170e8e) (BuildId: 2f29a8d5e9fef599)
+    #15 main src/d8/d8.cc:6128:43 (d8+0x172260) (BuildId: 2f29a8d5e9fef599)
+
+  Thread T8 'WorkerThread' (tid=23964, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1038:3 (d8+0xacd8b) (BuildId: 2f29a8d5e9fef599)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1155:14 (libv8_libbase.so+0x5691a) (BuildId: c965a046f7d0084e)
+    #2 v8::Worker::StartWorkerThread(v8::Isolate*, std::Cr::shared_ptr<v8::Worker>) src/d8/d8.cc:4624:16 (d8+0x1632ef) (BuildId: 2f29a8d5e9fef599)
+    #3 v8::Shell::WorkerNew(v8::FunctionCallbackInfo<v8::Value> const&) src/d8/d8.cc:2958:10 (d8+0x162fba) (BuildId: 2f29a8d5e9fef599)
+    #4 v8::internal::FunctionCallbackArguments::Call(v8::internal::CallHandlerInfo) src/api/api-arguments-inl.h:146:3 (libv8.so+0x1a7e887) (BuildId: d54a84ebb5882d6c)
+    #5 v8::internal::MaybeHandle<v8::internal::Object> v8::internal::(anonymous namespace)::HandleApiCallHelper<true>(v8::internal::Isolate*, v8::internal::Handle<v8::internal::HeapObject>, v8::internal::Handle<v8::internal::FunctionTemplateInfo>, v8::internal::Handle<v8::internal::Object>, unsigned long*, int) src/builtins/builtins-api.cc:113:36 (libv8.so+0x1a7bb7c) (BuildId: d54a84ebb5882d6c)
+    #6 v8::internal::Builtin_Impl_HandleApiCall(v8::internal::BuiltinArguments, v8::internal::Isolate*) src/builtins/builtins-api.cc:144:5 (libv8.so+0x1a7aa6f) (BuildId: d54a84ebb5882d6c)
+    #7 v8::internal::Builtin_HandleApiCall(int, unsigned long*, v8::internal::Isolate*) src/builtins/builtins-api.cc:135:1 (libv8.so+0x1a7a121) (BuildId: d54a84ebb5882d6c)
+    #8 Builtins_AsyncFromSyncIteratorPrototypeReturn setup-isolate-deserialize.cc (libv8.so+0x11ab9fe)
+    #9 v8::internal::Execution::CallScript(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSFunction>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>) src/execution/execution.cc:538:10 (libv8.so+0x1e40c5c) (BuildId: d54a84ebb5882d6c)
+    #10 v8::Script::Run(v8::Local<v8::Context>, v8::Local<v8::Data>) src/api/api.cc:2271:7 (libv8.so+0x191c1cb) (BuildId: d54a84ebb5882d6c)
+    #11 v8::Script::Run(v8::Local<v8::Context>) src/api/api.cc:2198:10 (libv8.so+0x191b8e0) (BuildId: d54a84ebb5882d6c)
+    #12 v8::Shell::ExecuteString(v8::Isolate*, v8::Local<v8::String>, v8::Local<v8::String>, v8::Shell::PrintResult, v8::Shell::ReportExceptions, v8::Shell::ProcessMessageQueue) src/d8/d8.cc:877:28 (d8+0x14e4cb) (BuildId: 2f29a8d5e9fef599)
+    #13 v8::SourceGroup::Execute(v8::Isolate*) src/d8/d8.cc:4501:10 (d8+0x16aab3) (BuildId: 2f29a8d5e9fef599)
+    #14 v8::Shell::RunMain(v8::Isolate*, bool) src/d8/d8.cc:5235:39 (d8+0x16f242) (BuildId: 2f29a8d5e9fef599)
+    #15 v8::Shell::Main(int, char**) src/d8/d8.cc:6036:18 (d8+0x171bff) (BuildId: 2f29a8d5e9fef599)
+    #16 main src/d8/d8.cc:6128:43 (d8+0x172260) (BuildId: 2f29a8d5e9fef599)
+
+SUMMARY: ThreadSanitizer: data race src/heap/marking.h:209:16 in ClearCellRangeRelaxed
+==================
+ThreadSanitizer: reported 2 warnings
+
+Run #2
+Exit code: 0 [0x00]
+Result: PASS
+Expected outcomes: PASS
+Duration: 00:01:821
+

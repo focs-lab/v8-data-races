@@ -1,0 +1,244 @@
+Test: unittests/YoungUnifiedHeapTest.FindingV8ToCppGCReference (flaky in a repeated run)
+Flags: --random-seed=59642693 --nohard-abort --testing-d8-test-runner --gtest_filter=YoungUnifiedHeapTest.FindingV8ToCppGCReference --gtest_random_seed=59642693 --gtest_print_time=0
+Command: out/build/v8_unittests --random-seed=59642693 --nohard-abort --testing-d8-test-runner --gtest_filter=YoungUnifiedHeapTest.FindingV8ToCppGCReference --gtest_random_seed=59642693 --gtest_print_time=0
+Variant: default
+Shard: 2:12
+
+GN arguments:
+dcheck_always_on = true
+is_component_build = true
+is_debug = true
+is_tsan = true
+symbol_level = 1
+target_cpu = "x64"
+use_goma = false
+use_remoteexec = true
+v8_enable_backtrace = true
+v8_enable_fast_mksnapshot = true
+v8_enable_google_benchmark = true
+v8_enable_slow_dchecks = false
+v8_enable_test_features = true
+v8_enable_verify_heap = false
+
+Trigger flake bisect on command line:
+bb add v8/try.triggered/v8_flako -p 'bisect_builder_group="client.v8"' -p 'bisect_buildername="V8 Linux64 TSAN - debug builder"' -p 'revision="becdb484385119f0f4f5b1aef097ed41ab585e4b"' -p 'swarming_dimensions=["cpu:x86-64", "pool:chromium.tests", "os:Ubuntu-22.04"]' -p 'isolated_name="bot_default"' -p 'test_name="unittests/YoungUnifiedHeapTest.FindingV8ToCppGCReference"' -p 'timeout_sec=60' -p 'total_timeout_sec=120' -p 'variant="default"' -p 'extra_args=[]'
+
+Local flake reproduction on command line:
+tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1 unittests/YoungUnifiedHeapTest.FindingV8ToCppGCReference
+
+Run #1
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS
+Duration: 00:02:224
+
+Crash Type:
+Data race
+ATOMIC WRITE 8
+
+Crash State:
+__cxx_atomic_compare_exchange_strong<long>
+compare_exchange_strong
+atomic_compare_exchange_strong_explicit<long>
+
+Stdout:
+Note: Google Test filter = YoungUnifiedHeapTest.FindingV8ToCppGCReference
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from YoungUnifiedHeapTest
+[ RUN      ] YoungUnifiedHeapTest.FindingV8ToCppGCReference
+[       OK ] YoungUnifiedHeapTest.FindingV8ToCppGCReference
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran.
+[  PASSED  ] 1 test.
+
+Stderr:
+==================
+WARNING: ThreadSanitizer: data race (pid=762726)
+  Atomic write of size 8 at 0x557800080460 by thread T7:
+    #0 __cxx_atomic_compare_exchange_strong<long> third_party/libc++/src/include/__atomic/cxx_atomic_impl.h:390:10 (v8_unittests+0x1643337) (BuildId: c0ad410123ceba1f)
+    #1 compare_exchange_strong third_party/libc++/src/include/__atomic/atomic_base.h:84:14 (v8_unittests+0x1643337)
+    #2 atomic_compare_exchange_strong_explicit<long> third_party/libc++/src/include/__atomic/atomic.h:356:17 (v8_unittests+0x1643337)
+    #3 Release_CompareAndSwap src/base/atomicops.h:308:3 (v8_unittests+0x1643337)
+    #4 Release_CompareAndSwap<unsigned long> src/base/atomic-utils.h:127:43 (v8_unittests+0x1643337)
+    #5 bool v8::base::AsAtomicImpl<long>::SetBits<unsigned long>(unsigned long*, unsigned long, unsigned long) src/base/atomic-utils.h:174:19 (v8_unittests+0x1643337)
+    #6 Set<(v8::internal::AccessMode)0> src/heap/marking.h:70:10 (libv8_for_testing.so+0x2d34dc7) (BuildId: 692defe9e113cb86)
+    #7 TryMark src/heap/young-generation-marking-visitor.h:101:31 (libv8_for_testing.so+0x2d34dc7)
+    #8 bool v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>::VisitObjectViaSlot<(v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>::ObjectVisitationMode)0, (v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>::SlotTreatmentMode)1, v8::internal::CompressedMaybeObjectSlot>(v8::internal::CompressedMaybeObjectSlot) src/heap/young-generation-marking-visitor-inl.h:207:8 (libv8_for_testing.so+0x2d34dc7)
+    #9 VisitObjectViaSlotInRememberedSet<v8::internal::CompressedMaybeObjectSlot> src/heap/young-generation-marking-visitor-inl.h:165:12 (libv8_for_testing.so+0x2d34aec) (BuildId: 692defe9e113cb86)
+    #10 CheckAndMarkObject<v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>, v8::internal::CompressedMaybeObjectSlot> src/heap/minor-mark-sweep-inl.h:210:19 (libv8_for_testing.so+0x2d34aec)
+    #11 void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>>(v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>*)::'lambda'(v8::internal::CompressedMaybeObjectSlot)::operator()(v8::internal::CompressedMaybeObjectSlot) const src/heap/minor-mark-sweep-inl.h:133:33 (libv8_for_testing.so+0x2d34aec)
+    #12 operator() src/heap/slot-set.h:156:44 (libv8_for_testing.so+0x2d349c1) (BuildId: 692defe9e113cb86)
+    #13 unsigned long heap::base::BasicSlotSet<4ul>::Iterate<(heap::base::BasicSlotSet<4ul>::AccessMode)1, unsigned long v8::internal::SlotSet::Iterate<(v8::internal::AccessMode)1, void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>>(v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>*)::'lambda'(v8::internal::CompressedMaybeObjectSlot)>(unsigned long, unsigned long, unsigned long, void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>>(v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>*)::'lambda'(v8::internal::CompressedMaybeObjectSlot), heap::base::BasicSlotSet<4ul>::EmptyBucketMode)::'lambda'(unsigned long), unsigned long v8::internal::SlotSet::Iterate<(v8::internal::AccessMode)1, void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>>(v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>*)::'lambda'(v8::internal::CompressedMaybeObjectSlot)>(unsigned long, unsigned long, unsigned long, void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>>(v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>*)::'lambda'(v8::internal::CompressedMaybeObjectSlot), heap::base::BasicSlotSet<4ul>::EmptyBucketMode)::'lambda0'(unsigned long)>(unsigned long, unsigned long, unsigned long, void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>>(v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>*)::'lambda'(v8::internal::CompressedMaybeObjectSlot), unsigned long v8::internal::SlotSet::Iterate<(v8::internal::AccessMode)1, void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>>(v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>*)::'lambda'(v8::internal::CompressedMaybeObjectSlot)>(unsigned long, unsigned long, unsigned long, void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>>(v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>*)::'lambda'(v8::internal::CompressedMaybeObjectSlot), heap::base::BasicSlotSet<4ul>::EmptyBucketMode)::'lambda0'(unsigned long)) src/heap/base/basic-slot-set.h:352:19 (libv8_for_testing.so+0x2d349c1)
+    #14 Iterate<(v8::internal::AccessMode)1, (lambda at ../../src/heap/minor-mark-sweep-inl.h:131:19)> src/heap/slot-set.h:154:26 (libv8_for_testing.so+0x2d3414e) (BuildId: 692defe9e113cb86)
+    #15 Iterate<(v8::internal::AccessMode)1, (lambda at ../../src/heap/minor-mark-sweep-inl.h:131:19)> src/heap/remembered-set.h:44:26 (libv8_for_testing.so+0x2d3414e)
+    #16 Iterate<(v8::internal::AccessMode)1, (lambda at ../../src/heap/minor-mark-sweep-inl.h:131:19)> src/heap/remembered-set.h:199:12 (libv8_for_testing.so+0x2d3414e)
+    #17 void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>>(v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>*) src/heap/minor-mark-sweep-inl.h:147:9 (libv8_for_testing.so+0x2d3414e)
+    #18 Process<v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0> > src/heap/minor-mark-sweep-inl.h:87:5 (libv8_for_testing.so+0x2d33e59) (BuildId: 692defe9e113cb86)
+    #19 bool v8::internal::YoungGenerationRememberedSetsMarkingWorklist::ProcessNextItem<v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>>(v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0>*, v8::base::Optional<unsigned long>&) src/heap/minor-mark-sweep-inl.h:71:19 (libv8_for_testing.so+0x2d33e59)
+    #20 ProcessNextItem<v8::internal::YoungGenerationMarkingVisitor<(v8::internal::YoungGenerationMarkingVisitationMode)0> > src/heap/minor-mark-sweep.h:41:24 (libv8_for_testing.so+0x2cf5d45) (BuildId: 692defe9e113cb86)
+    #21 MinorMarkingLoopImpl<(v8::internal::YoungGenerationMarkingVisitationMode)0> src/heap/concurrent-marking.cc:426:28 (libv8_for_testing.so+0x2cf5d45)
+    #22 v8::internal::ConcurrentMarking::RunMinor(v8::JobDelegate*) src/heap/concurrent-marking.cc:450:11 (libv8_for_testing.so+0x2cf5d45)
+    #23 v8::internal::ConcurrentMarking::JobTaskMinor::Run(v8::JobDelegate*) src/heap/concurrent-marking.cc:196:28 (libv8_for_testing.so+0x2d4c31c) (BuildId: 692defe9e113cb86)
+    #24 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (libv8_libplatform.so+0x1ce6b) (BuildId: 881a1e366f0694d6)
+    #25 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:93:25 (libv8_libplatform.so+0x215bc) (BuildId: 881a1e366f0694d6)
+    #26 NotifyStartedAndRun src/base/platform/platform.h:609:5 (libv8_libbase.so+0x55d8d) (BuildId: 2726caed2c98a433)
+    #27 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1166:11 (libv8_libbase.so+0x55d8d)
+
+  Previous read of size 8 at 0x557800080460 by main thread (mutexes: write M0, write M1):
+    #0 Get<(v8::internal::AccessMode)1> src/heap/marking.h:75:11 (libv8_for_testing.so+0x2f32bc4) (BuildId: 692defe9e113cb86)
+    #1 IsMarked src/heap/marking-state-inl.h:18:38 (libv8_for_testing.so+0x2f32bc4)
+    #2 IsUnmarked src/heap/marking-state-inl.h:24:11 (libv8_for_testing.so+0x2f32bc4)
+    #3 v8::internal::MinorMarkSweepCollector::DrainMarkingWorklist() src/heap/minor-mark-sweep.cc:690:7 (libv8_for_testing.so+0x2f32bc4)
+    #4 v8::internal::MinorMarkSweepCollector::MarkLiveObjects() src/heap/minor-mark-sweep.cc:638:5 (libv8_for_testing.so+0x2f2edb6) (BuildId: 692defe9e113cb86)
+    #5 v8::internal::MinorMarkSweepCollector::CollectGarbage() src/heap/minor-mark-sweep.cc:369:3 (libv8_for_testing.so+0x2f2e44e) (BuildId: 692defe9e113cb86)
+    #6 v8::internal::Heap::MinorMarkSweep() src/heap/heap.cc:2691:32 (libv8_for_testing.so+0x2e37862) (BuildId: 692defe9e113cb86)
+    #7 v8::internal::Heap::PerformGarbageCollection(v8::internal::GarbageCollector, v8::internal::GarbageCollectionReason, char const*) src/heap/heap.cc:2392:5 (libv8_for_testing.so+0x2e33489) (BuildId: 692defe9e113cb86)
+    #8 v8::internal::Heap::CollectGarbage(v8::internal::AllocationSpace, v8::internal::GarbageCollectionReason, v8::GCCallbackFlags) src/heap/heap.cc:1862:9 (libv8_for_testing.so+0x2e2f448) (BuildId: 692defe9e113cb86)
+    #9 InvokeMinorGC test/unittests/heap/heap-utils.h:38:20 (v8_unittests+0x18589a5) (BuildId: c0ad410123ceba1f)
+    #10 InvokeMinorGC test/unittests/heap/heap-utils.h:78:26 (v8_unittests+0x18589a5)
+    #11 v8::internal::UnifiedHeapTest::CollectYoungGarbageWithoutEmbedderStack(cppgc::Heap::SweepingType) test/unittests/heap/cppgc-js/unified-heap-utils.cc:71:3 (v8_unittests+0x18589a5)
+    #12 v8::internal::YoungUnifiedHeapTest_FindingV8ToCppGCReference_Test::TestBody() test/unittests/heap/cppgc-js/young-unified-heap-unittest.cc:201:3 (v8_unittests+0x18596d4) (BuildId: c0ad410123ceba1f)
+    #13 void testing::internal::HandleExceptionsInMethodIfSupported<testing::Test, void>(testing::Test*, void (testing::Test::*)(), char const*) third_party/googletest/src/googletest/src/gtest.cc:2653:12 (v8_unittests+0x2890043) (BuildId: c0ad410123ceba1f)
+    #14 testing::Test::Run() third_party/googletest/src/googletest/src/gtest.cc:2670:5 (v8_unittests+0x28798bd) (BuildId: c0ad410123ceba1f)
+    #15 testing::TestInfo::Run() third_party/googletest/src/googletest/src/gtest.cc:2849:11 (v8_unittests+0x287a22d) (BuildId: c0ad410123ceba1f)
+    #16 testing::TestSuite::Run() third_party/googletest/src/googletest/src/gtest.cc:3008:30 (v8_unittests+0x287aabc) (BuildId: c0ad410123ceba1f)
+    #17 testing::internal::UnitTestImpl::RunAllTests() third_party/googletest/src/googletest/src/gtest.cc:5866:44 (v8_unittests+0x2886072) (BuildId: c0ad410123ceba1f)
+    #18 bool testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::UnitTestImpl, bool>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*) third_party/googletest/src/googletest/src/gtest.cc:2653:12 (v8_unittests+0x2892e88) (BuildId: c0ad410123ceba1f)
+    #19 testing::UnitTest::Run() third_party/googletest/src/googletest/src/gtest.cc:5440:10 (v8_unittests+0x2885ac1) (BuildId: c0ad410123ceba1f)
+    #20 RUN_ALL_TESTS third_party/googletest/src/googletest/include/gtest/gtest.h:2284:73 (v8_unittests+0x1c8582b) (BuildId: c0ad410123ceba1f)
+    #21 main test/unittests/run-all-unittests.cc:55:10 (v8_unittests+0x1c8582b)
+
+  Mutex M0 (0x7b3c000000a8) created at:
+    #0 pthread_mutex_init /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1313:3 (v8_unittests+0x154b670) (BuildId: c0ad410123ceba1f)
+    #1 InitializeRecursiveNativeHandle src/base/platform/mutex.cc:112:12 (libv8_libbase.so+0x418c4) (BuildId: 2726caed2c98a433)
+    #2 v8::base::RecursiveMutex::RecursiveMutex() src/base/platform/mutex.cc:187:3 (libv8_libbase.so+0x418c4)
+    #3 v8::internal::IsolateSafepoint::IsolateSafepoint(v8::internal::Heap*) src/heap/safepoint.cc:29:19 (libv8_for_testing.so+0x2f75ee8) (BuildId: 692defe9e113cb86)
+    #4 make_unique<v8::internal::IsolateSafepoint, v8::internal::Heap *> third_party/libc++/src/include/__memory/unique_ptr.h:686:30 (libv8_for_testing.so+0x2e218e6) (BuildId: 692defe9e113cb86)
+    #5 v8::internal::Heap::Heap() src/heap/heap.cc:257:18 (libv8_for_testing.so+0x2e218e6)
+    #6 v8::internal::Isolate::Isolate(std::__Cr::unique_ptr<v8::internal::IsolateAllocator, std::__Cr::default_delete<v8::internal::IsolateAllocator>>) src/execution/isolate.cc:3492:10 (libv8_for_testing.so+0x2c6b692) (BuildId: 692defe9e113cb86)
+    #7 Allocate src/execution/isolate.cc:3431:40 (libv8_for_testing.so+0x2c69b74) (BuildId: 692defe9e113cb86)
+    #8 v8::internal::Isolate::New() src/execution/isolate.cc:3419:34 (libv8_for_testing.so+0x2c69b74)
+    #9 Allocate src/api/api.cc:9274:37 (libv8_for_testing.so+0x278ddb7) (BuildId: 692defe9e113cb86)
+    #10 v8::Isolate::New(v8::Isolate::CreateParams const&) src/api/api.cc:9382:25 (libv8_for_testing.so+0x278ddb7)
+    #11 v8::IsolateWrapper::IsolateWrapper(v8::CountersMode) test/unittests/test-utils.cc:51:14 (v8_unittests+0x1cccc71) (BuildId: c0ad410123ceba1f)
+    #12 WithIsolateMixin test/unittests/test-utils.h:122:24 (v8_unittests+0x185835b) (BuildId: c0ad410123ceba1f)
+    #13 WithIsolateScopeMixin test/unittests/test-utils.h:145:3 (v8_unittests+0x185835b)
+    #14 WithInternalIsolateMixin test/unittests/test-utils.h:377:3 (v8_unittests+0x185835b)
+    #15 WithHeapInternals test/unittests/heap/heap-utils.h:68:3 (v8_unittests+0x185835b)
+    #16 WithContextMixin test/unittests/test-utils.h:259:3 (v8_unittests+0x185835b)
+    #17 v8::internal::UnifiedHeapTest::UnifiedHeapTest(std::__Cr::vector<std::__Cr::unique_ptr<cppgc::CustomSpaceBase, std::__Cr::default_delete<cppgc::CustomSpaceBase>>, std::__Cr::allocator<std::__Cr::unique_ptr<cppgc::CustomSpaceBase, std::__Cr::default_delete<cppgc::CustomSpaceBase>>>>) test/unittests/heap/cppgc-js/unified-heap-utils.cc:22:18 (v8_unittests+0x185835b)
+    #18 v8::internal::UnifiedHeapTest::UnifiedHeapTest() test/unittests/heap/cppgc-js/unified-heap-utils.cc:20:7 (v8_unittests+0x1858276) (BuildId: c0ad410123ceba1f)
+    #19 YoungUnifiedHeapTest test/unittests/heap/cppgc-js/young-unified-heap-unittest.cc:164:3 (v8_unittests+0x185eeaa) (BuildId: c0ad410123ceba1f)
+    #20 YoungUnifiedHeapTest_FindingV8ToCppGCReference_Test test/unittests/heap/cppgc-js/young-unified-heap-unittest.cc:188:1 (v8_unittests+0x185eeaa)
+    #21 testing::internal::TestFactoryImpl<v8::internal::YoungUnifiedHeapTest_FindingV8ToCppGCReference_Test>::CreateTest() third_party/googletest/src/googletest/include/gtest/internal/gtest-internal.h:476:44 (v8_unittests+0x185eeaa)
+    #22 testing::Test* testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::TestFactoryBase, testing::Test*>(testing::internal::TestFactoryBase*, testing::Test* (testing::internal::TestFactoryBase::*)(), char const*) third_party/googletest/src/googletest/src/gtest.cc:2653:12 (v8_unittests+0x2890557) (BuildId: c0ad410123ceba1f)
+    #23 testing::TestInfo::Run() third_party/googletest/src/googletest/src/gtest.cc:2839:22 (v8_unittests+0x287a206) (BuildId: c0ad410123ceba1f)
+    #24 testing::TestSuite::Run() third_party/googletest/src/googletest/src/gtest.cc:3008:30 (v8_unittests+0x287aabc) (BuildId: c0ad410123ceba1f)
+    #25 testing::internal::UnitTestImpl::RunAllTests() third_party/googletest/src/googletest/src/gtest.cc:5866:44 (v8_unittests+0x2886072) (BuildId: c0ad410123ceba1f)
+    #26 bool testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::UnitTestImpl, bool>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*) third_party/googletest/src/googletest/src/gtest.cc:2653:12 (v8_unittests+0x2892e88) (BuildId: c0ad410123ceba1f)
+    #27 testing::UnitTest::Run() third_party/googletest/src/googletest/src/gtest.cc:5440:10 (v8_unittests+0x2885ac1) (BuildId: c0ad410123ceba1f)
+    #28 RUN_ALL_TESTS third_party/googletest/src/googletest/include/gtest/gtest.h:2284:73 (v8_unittests+0x1c8582b) (BuildId: c0ad410123ceba1f)
+    #29 main test/unittests/run-all-unittests.cc:55:10 (v8_unittests+0x1c8582b)
+
+  Mutex M1 (0x7fb6429bfb18) created at:
+    #0 pthread_mutex_init /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1313:3 (v8_unittests+0x154b670) (BuildId: c0ad410123ceba1f)
+    #1 InitializeNativeHandle src/base/platform/mutex.cc:94:12 (libv8_libbase.so+0x41104) (BuildId: 2726caed2c98a433)
+    #2 v8::base::Mutex::Mutex() src/base/platform/mutex.cc:152:3 (libv8_libbase.so+0x41104)
+    #3 Construct src/base/lazy-instance.h:129:68 (v8_unittests+0x1752609) (BuildId: c0ad410123ceba1f)
+    #4 InitStorageUsingTrait<v8::base::DefaultConstructTrait<v8::base::Mutex> > src/base/lazy-instance.h:106:5 (v8_unittests+0x1752609)
+    #5 v8::base::LazyInstanceImpl<v8::base::Mutex, v8::base::StaticallyAllocatedInstanceTrait<v8::base::Mutex>, v8::base::DefaultConstructTrait<v8::base::Mutex>, v8::base::ThreadSafeInitOnceTrait, v8::base::LeakyInstanceTrait<v8::base::Mutex>>::InitInstance(void*) src/base/lazy-instance.h:170:5 (v8_unittests+0x1752609)
+    #6 operator() src/base/once.h:101:32 (v8_unittests+0x175264d) (BuildId: c0ad410123ceba1f)
+    #7 __invoke<(lambda at ../../src/base/once.h:101:24) &> third_party/libc++/src/include/__type_traits/invoke.h:340:25 (v8_unittests+0x175264d)
+    #8 __call<(lambda at ../../src/base/once.h:101:24) &> third_party/libc++/src/include/__type_traits/invoke.h:415:5 (v8_unittests+0x175264d)
+    #9 operator() third_party/libc++/src/include/__functional/function.h:239:12 (v8_unittests+0x175264d)
+    #10 void std::__Cr::__function::__policy_invoker<void ()>::__call_impl<std::__Cr::__function::__default_alloc_func<void v8::base::CallOnce<void*, void>(std::__Cr::atomic<unsigned char>*, v8::base::FunctionWithArgs<void*>::type, void*)::'lambda'(), void ()>>(std::__Cr::__function::__policy_storage const*) third_party/libc++/src/include/__functional/function.h:723:16 (v8_unittests+0x175264d)
+    #11 operator() third_party/libc++/src/include/__functional/function.h:854:16 (libv8_libbase.so+0x3eb17) (BuildId: 2726caed2c98a433)
+    #12 operator() third_party/libc++/src/include/__functional/function.h:1168:12 (libv8_libbase.so+0x3eb17)
+    #13 v8::base::CallOnceImpl(std::__Cr::atomic<unsigned char>*, std::__Cr::function<void ()>) src/base/once.cc:36:5 (libv8_libbase.so+0x3eb17)
+    #14 CallOnce<void *, void> src/base/once.h:101:5 (libv8_for_testing.so+0x447ba71) (BuildId: 692defe9e113cb86)
+    #15 Init<void (*)(void *), void *> src/base/lazy-instance.h:144:5 (libv8_for_testing.so+0x447ba71)
+    #16 Init src/base/lazy-instance.h:175:5 (libv8_for_testing.so+0x447ba71)
+    #17 Pointer src/base/lazy-instance.h:180:5 (libv8_for_testing.so+0x447ba71)
+    #18 cppgc::internal::MarkerBase::VisitCrossThreadPersistentsIfNeeded() src/heap/cppgc/marker.cc:510:19 (libv8_for_testing.so+0x447ba71)
+    #19 cppgc::internal::MarkerBase::AdvanceMarkingWithLimits(v8::base::TimeDelta, unsigned long) src/heap/cppgc/marker.cc:581:20 (libv8_for_testing.so+0x447b0f5) (BuildId: 692defe9e113cb86)
+    #20 v8::internal::CppHeap::AdvanceTracing(v8::base::TimeDelta) src/heap/cppgc-js/cpp-heap.cc:794:16 (libv8_for_testing.so+0x2d501ff) (BuildId: 692defe9e113cb86)
+    #21 v8::internal::MarkCompactCollector::PerformWrapperTracing() src/heap/mark-compact.cc:2122:13 (libv8_for_testing.so+0x2e918c3) (BuildId: 692defe9e113cb86)
+    #22 v8::internal::MarkCompactCollector::MarkTransitiveClosureUntilFixpoint() src/heap/mark-compact.cc:1949:5 (libv8_for_testing.so+0x2e910c1) (BuildId: 692defe9e113cb86)
+    #23 v8::internal::MarkCompactCollector::MarkTransitiveClosure() src/heap/mark-compact.cc:2248:8 (libv8_for_testing.so+0x2e94cc4) (BuildId: 692defe9e113cb86)
+    #24 v8::internal::MarkCompactCollector::MarkLiveObjects() src/heap/mark-compact.cc:2419:5 (libv8_for_testing.so+0x2e8585f) (BuildId: 692defe9e113cb86)
+    #25 v8::internal::MarkCompactCollector::CollectGarbage() src/heap/mark-compact.cc:388:3 (libv8_for_testing.so+0x2e84580) (BuildId: 692defe9e113cb86)
+    #26 v8::internal::Heap::MarkCompact() src/heap/heap.cc:2664:29 (libv8_for_testing.so+0x2e3734e) (BuildId: 692defe9e113cb86)
+    #27 v8::internal::Heap::PerformGarbageCollection(v8::internal::GarbageCollector, v8::internal::GarbageCollectionReason, char const*) src/heap/heap.cc:2390:5 (libv8_for_testing.so+0x2e33479) (BuildId: 692defe9e113cb86)
+    #28 v8::internal::Heap::CollectGarbage(v8::internal::AllocationSpace, v8::internal::GarbageCollectionReason, v8::GCCallbackFlags) src/heap/heap.cc:1862:9 (libv8_for_testing.so+0x2e2f448) (BuildId: 692defe9e113cb86)
+    #29 InvokeMajorGC test/unittests/heap/heap-utils.h:29:20 (v8_unittests+0x18587d5) (BuildId: c0ad410123ceba1f)
+    #30 InvokeMajorGC test/unittests/heap/heap-utils.h:72:26 (v8_unittests+0x18587d5)
+    #31 v8::internal::UnifiedHeapTest::CollectGarbageWithoutEmbedderStack(cppgc::Heap::SweepingType) test/unittests/heap/cppgc-js/unified-heap-utils.cc:50:3 (v8_unittests+0x18587d5)
+    #32 YoungUnifiedHeapTest test/unittests/heap/cppgc-js/young-unified-heap-unittest.cc:167:5 (v8_unittests+0x185eecd) (BuildId: c0ad410123ceba1f)
+    #33 YoungUnifiedHeapTest_FindingV8ToCppGCReference_Test test/unittests/heap/cppgc-js/young-unified-heap-unittest.cc:188:1 (v8_unittests+0x185eecd)
+    #34 testing::internal::TestFactoryImpl<v8::internal::YoungUnifiedHeapTest_FindingV8ToCppGCReference_Test>::CreateTest() third_party/googletest/src/googletest/include/gtest/internal/gtest-internal.h:476:44 (v8_unittests+0x185eecd)
+    #35 testing::Test* testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::TestFactoryBase, testing::Test*>(testing::internal::TestFactoryBase*, testing::Test* (testing::internal::TestFactoryBase::*)(), char const*) third_party/googletest/src/googletest/src/gtest.cc:2653:12 (v8_unittests+0x2890557) (BuildId: c0ad410123ceba1f)
+    #36 testing::TestInfo::Run() third_party/googletest/src/googletest/src/gtest.cc:2839:22 (v8_unittests+0x287a206) (BuildId: c0ad410123ceba1f)
+    #37 testing::TestSuite::Run() third_party/googletest/src/googletest/src/gtest.cc:3008:30 (v8_unittests+0x287aabc) (BuildId: c0ad410123ceba1f)
+    #38 testing::internal::UnitTestImpl::RunAllTests() third_party/googletest/src/googletest/src/gtest.cc:5866:44 (v8_unittests+0x2886072) (BuildId: c0ad410123ceba1f)
+    #39 bool testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::UnitTestImpl, bool>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*) third_party/googletest/src/googletest/src/gtest.cc:2653:12 (v8_unittests+0x2892e88) (BuildId: c0ad410123ceba1f)
+    #40 testing::UnitTest::Run() third_party/googletest/src/googletest/src/gtest.cc:5440:10 (v8_unittests+0x2885ac1) (BuildId: c0ad410123ceba1f)
+    #41 RUN_ALL_TESTS third_party/googletest/src/googletest/include/gtest/gtest.h:2284:73 (v8_unittests+0x1c8582b) (BuildId: c0ad410123ceba1f)
+    #42 main test/unittests/run-all-unittests.cc:55:10 (v8_unittests+0x1c8582b)
+
+  Thread T7 'V8 DefaultWorke' (tid=762802, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1020:3 (v8_unittests+0x1549c8b) (BuildId: c0ad410123ceba1f)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1198:14 (libv8_libbase.so+0x55c3b) (BuildId: 2726caed2c98a433)
+    #2 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::WorkerThread(v8::platform::DefaultWorkerThreadsTaskRunner*, v8::base::Thread::Priority) src/libplatform/default-worker-threads-task-runner.cc:78:3 (libv8_libplatform.so+0x21424) (BuildId: 881a1e366f0694d6)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *, v8::base::Thread::Priority &> third_party/libc++/src/include/__memory/unique_ptr.h:686:30 (libv8_libplatform.so+0x20c03) (BuildId: 881a1e366f0694d6)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)(), v8::base::Thread::Priority) src/libplatform/default-worker-threads-task-runner.cc:18:28 (libv8_libplatform.so+0x20c03)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, v8::platform::DefaultWorkerThreadsTaskRunner *> third_party/libc++/src/include/__memory/construct_at.h:38:46 (libv8_libplatform.so+0x1db14) (BuildId: 881a1e366f0694d6)
+    #6 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void, void> third_party/libc++/src/include/__memory/allocator_traits.h:304:9 (libv8_libplatform.so+0x1db14)
+    #7 __shared_ptr_emplace<const int &, double (*)(), v8::base::Thread::Priority> third_party/libc++/src/include/__memory/shared_ptr.h:299:13 (libv8_libplatform.so+0x1db14)
+    #8 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), v8::base::Thread::Priority, void> third_party/libc++/src/include/__memory/shared_ptr.h:1010:55 (libv8_libplatform.so+0x1db14)
+    #9 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void> third_party/libc++/src/include/__memory/shared_ptr.h:1019:12 (libv8_libplatform.so+0x1db14)
+    #10 v8::platform::DefaultPlatform::EnsureBackgroundTaskRunnerInitialized() src/libplatform/default-platform.cc:141:9 (libv8_libplatform.so+0x1db14)
+    #11 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:112:5 (libv8_libplatform.so+0x1da19) (BuildId: 881a1e366f0694d6)
+    #12 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController> >, v8::platform::PriorityMode &> third_party/libc++/src/include/__memory/unique_ptr.h:686:30 (libv8_libplatform.so+0x1cf7e) (BuildId: 881a1e366f0694d6)
+    #13 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:54:19 (libv8_libplatform.so+0x1cf7e)
+    #14 v8::WithDefaultPlatformMixin<testing::Test>::WithDefaultPlatformMixin() test/unittests/test-utils.h:38:17 (v8_unittests+0x15d2fce) (BuildId: c0ad410123ceba1f)
+    #15 WithIsolateMixin test/unittests/test-utils.h:122:3 (v8_unittests+0x1858337) (BuildId: c0ad410123ceba1f)
+    #16 WithIsolateScopeMixin test/unittests/test-utils.h:145:3 (v8_unittests+0x1858337)
+    #17 WithInternalIsolateMixin test/unittests/test-utils.h:377:3 (v8_unittests+0x1858337)
+    #18 WithHeapInternals test/unittests/heap/heap-utils.h:68:3 (v8_unittests+0x1858337)
+    #19 WithContextMixin test/unittests/test-utils.h:259:3 (v8_unittests+0x1858337)
+    #20 v8::internal::UnifiedHeapTest::UnifiedHeapTest(std::__Cr::vector<std::__Cr::unique_ptr<cppgc::CustomSpaceBase, std::__Cr::default_delete<cppgc::CustomSpaceBase>>, std::__Cr::allocator<std::__Cr::unique_ptr<cppgc::CustomSpaceBase, std::__Cr::default_delete<cppgc::CustomSpaceBase>>>>) test/unittests/heap/cppgc-js/unified-heap-utils.cc:22:18 (v8_unittests+0x1858337)
+    #21 v8::internal::UnifiedHeapTest::UnifiedHeapTest() test/unittests/heap/cppgc-js/unified-heap-utils.cc:20:7 (v8_unittests+0x1858276) (BuildId: c0ad410123ceba1f)
+    #22 YoungUnifiedHeapTest test/unittests/heap/cppgc-js/young-unified-heap-unittest.cc:164:3 (v8_unittests+0x185eeaa) (BuildId: c0ad410123ceba1f)
+    #23 YoungUnifiedHeapTest_FindingV8ToCppGCReference_Test test/unittests/heap/cppgc-js/young-unified-heap-unittest.cc:188:1 (v8_unittests+0x185eeaa)
+    #24 testing::internal::TestFactoryImpl<v8::internal::YoungUnifiedHeapTest_FindingV8ToCppGCReference_Test>::CreateTest() third_party/googletest/src/googletest/include/gtest/internal/gtest-internal.h:476:44 (v8_unittests+0x185eeaa)
+    #25 testing::Test* testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::TestFactoryBase, testing::Test*>(testing::internal::TestFactoryBase*, testing::Test* (testing::internal::TestFactoryBase::*)(), char const*) third_party/googletest/src/googletest/src/gtest.cc:2653:12 (v8_unittests+0x2890557) (BuildId: c0ad410123ceba1f)
+    #26 testing::TestInfo::Run() third_party/googletest/src/googletest/src/gtest.cc:2839:22 (v8_unittests+0x287a206) (BuildId: c0ad410123ceba1f)
+    #27 testing::TestSuite::Run() third_party/googletest/src/googletest/src/gtest.cc:3008:30 (v8_unittests+0x287aabc) (BuildId: c0ad410123ceba1f)
+    #28 testing::internal::UnitTestImpl::RunAllTests() third_party/googletest/src/googletest/src/gtest.cc:5866:44 (v8_unittests+0x2886072) (BuildId: c0ad410123ceba1f)
+    #29 bool testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::UnitTestImpl, bool>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*) third_party/googletest/src/googletest/src/gtest.cc:2653:12 (v8_unittests+0x2892e88) (BuildId: c0ad410123ceba1f)
+    #30 testing::UnitTest::Run() third_party/googletest/src/googletest/src/gtest.cc:5440:10 (v8_unittests+0x2885ac1) (BuildId: c0ad410123ceba1f)
+    #31 RUN_ALL_TESTS third_party/googletest/src/googletest/include/gtest/gtest.h:2284:73 (v8_unittests+0x1c8582b) (BuildId: c0ad410123ceba1f)
+    #32 main test/unittests/run-all-unittests.cc:55:10 (v8_unittests+0x1c8582b)
+
+SUMMARY: ThreadSanitizer: data race third_party/libc++/src/include/__atomic/cxx_atomic_impl.h:390:10 in __cxx_atomic_compare_exchange_strong<long>
+==================
+ThreadSanitizer: reported 1 warnings
+
+Run #2
+Exit code: 0 [0x00]
+Result: PASS
+Expected outcomes: PASS
+Duration: 00:00:911
+
+Stdout:
+Note: Google Test filter = YoungUnifiedHeapTest.FindingV8ToCppGCReference
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from YoungUnifiedHeapTest
+[ RUN      ] YoungUnifiedHeapTest.FindingV8ToCppGCReference
+[       OK ] YoungUnifiedHeapTest.FindingV8ToCppGCReference
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran.
+[  PASSED  ] 1 test.
+

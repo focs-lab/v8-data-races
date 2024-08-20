@@ -1,0 +1,121 @@
+Test: mjsunit/es6/proxies-example-membrane (flaky in a repeated run)
+Flags: --test /b/s/w/ir/test/mjsunit/mjsunit.js /b/s/w/ir/test/mjsunit/mjsunit_numfuzz.js /b/s/w/ir/test/mjsunit/es6/proxies-example-membrane.js --random-seed=-977490241 --nohard-abort --exit-on-contradictory-flags --testing-d8-test-runner --no-fail --assert-types --future --interrupt-budget=100 --minor-mc --shared-string-table --stress-wasm-code-gc --turboshaft --random-gc-interval=1964 --stress-compaction-random --stress-scavenge=31 --fuzzer-random-seed=-836634684
+Command: out/build/d8 --test test/mjsunit/mjsunit.js test/mjsunit/mjsunit_numfuzz.js test/mjsunit/es6/proxies-example-membrane.js --random-seed=-977490241 --nohard-abort --exit-on-contradictory-flags --testing-d8-test-runner --no-fail --assert-types --future --interrupt-budget=100 --minor-mc --shared-string-table --stress-wasm-code-gc --turboshaft --random-gc-interval=1964 --stress-compaction-random --stress-scavenge=31 --fuzzer-random-seed=-836634684
+Variant: None
+Shard: 3:4
+
+GN arguments:
+dcheck_always_on = false
+is_component_build = false
+is_debug = false
+is_tsan = true
+target_cpu = "x64"
+use_goma = false
+use_remoteexec = true
+v8_enable_google_benchmark = true
+v8_enable_test_features = true
+
+Trigger flake bisect on command line:
+bb add v8/try.triggered/v8_flako -p 'bisect_builder_group="client.v8.clusterfuzz"' -p 'bisect_buildername="V8 Clusterfuzz Linux64 TSAN - release builder"' -p 'revision="5aae428f5763875db5fdd67959f58aef60b28f18"' -p 'swarming_dimensions=["cpu:x86-64", "pool:chromium.tests", "os:Ubuntu-18.04"]' -p 'isolated_name="run-num-fuzzer"' -p 'test_name="mjsunit/es6/proxies-example-membrane"' -p 'timeout_sec=60' -p 'total_timeout_sec=120' -p 'variant="default"' -p 'extra_args=["--extra-flags", "--assert-types", "--extra-flags", "--future", "--extra-flags", "--interrupt-budget=100", "--extra-flags", "--minor-mc", "--extra-flags", "--shared-string-table", "--extra-flags", "--stress-wasm-code-gc", "--extra-flags", "--turboshaft", "--extra-flags", "--random-gc-interval=1964", "--extra-flags", "--stress-compaction-random", "--extra-flags", "--stress-scavenge=31", "--extra-flags", "--fuzzer-random-seed=-836634684"]'
+
+Local flake reproduction on command line:
+tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1 --extra-flags --assert-types --extra-flags --future --extra-flags --interrupt-budget=100 --extra-flags --minor-mc --extra-flags --shared-string-table --extra-flags --stress-wasm-code-gc --extra-flags --turboshaft --extra-flags --random-gc-interval=1964 --extra-flags --stress-compaction-random --extra-flags --stress-scavenge=31 --extra-flags --fuzzer-random-seed=-836634684 mjsunit/es6/proxies-example-membrane
+
+Run #1
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS, TIMEOUT
+Duration: 01:04:836
+
+Crash Type:
+Data race
+READ 4
+
+Crash State:
+ToHeapObject
+v8::internal::EphemeronTableUpdatingItem::Process()
+UpdatePointers
+
+Stderr:
+V8 is running with experimental features enabled. Stability and security will suffer.
+==================
+WARNING: ThreadSanitizer: data race (pid=16718)
+  Read of size 4 at 0x7e8800082830 by thread T5:
+    #0 ToHeapObject src/objects/compressed-slots-inl.h:161:20 (d8+0xa164b8) (BuildId: ff08433d2eafe99f)
+    #1 v8::internal::EphemeronTableUpdatingItem::Process() src/heap/mark-compact.cc:5070:35 (d8+0xa164b8)
+    #2 UpdatePointers src/heap/mark-compact.cc:4675:20 (d8+0xa17245) (BuildId: ff08433d2eafe99f)
+    #3 v8::internal::PointersUpdatingJob::Run(v8::JobDelegate*) src/heap/mark-compact.cc:4664:7 (d8+0xa17245)
+    #4 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (d8+0x207039b) (BuildId: ff08433d2eafe99f)
+    #5 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:73:11 (d8+0x20765b0) (BuildId: ff08433d2eafe99f)
+    #6 NotifyStartedAndRun src/base/platform/platform.h:596:5 (d8+0x206a2e2) (BuildId: ff08433d2eafe99f)
+    #7 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1123:11 (d8+0x206a2e2)
+
+  Previous write of size 4 at 0x7e8800082830 by thread T3:
+    #0 store src/objects/compressed-slots-inl.h:157:15 (d8+0xa154ce) (BuildId: ff08433d2eafe99f)
+    #1 Update<v8::internal::CompressedHeapObjectSlot> src/objects/maybe-object-inl.h:111:8 (d8+0xa154ce)
+    #2 CheckAndUpdateOldToNewSlot<v8::internal::CompressedMaybeObjectSlot> src/heap/mark-compact.cc:4833:7 (d8+0xa154ce)
+    #3 operator() src/heap/mark-compact.cc:4864:13 (d8+0xa154ce)
+    #4 operator() src/heap/slot-set.h:148:44 (d8+0xa154ce)
+    #5 Iterate<(lambda at ../../src/heap/slot-set.h:148:9), (lambda at ../../src/heap/slot-set.h:149:9)> src/heap/base/basic-slot-set.h:353:19 (d8+0xa154ce)
+    #6 Iterate<(lambda at ../../src/heap/mark-compact.cc:4862:11)> src/heap/slot-set.h:146:26 (d8+0xa154ce)
+    #7 Iterate<(lambda at ../../src/heap/mark-compact.cc:4862:11)> src/heap/remembered-set.h:45:26 (d8+0xa154ce)
+    #8 Iterate<(lambda at ../../src/heap/mark-compact.cc:4862:11)> src/heap/remembered-set.h:190:12 (d8+0xa154ce)
+    #9 UpdateUntypedOldToNewPointers src/heap/mark-compact.cc:4860:7 (d8+0xa154ce)
+    #10 UpdateUntypedPointers src/heap/mark-compact.cc:4843:5 (d8+0xa154ce)
+    #11 v8::internal::(anonymous namespace)::RememberedSetUpdatingItem::Process() src/heap/mark-compact.cc:4772:5 (d8+0xa154ce)
+    #12 UpdatePointers src/heap/mark-compact.cc:4675:20 (d8+0xa17245) (BuildId: ff08433d2eafe99f)
+    #13 v8::internal::PointersUpdatingJob::Run(v8::JobDelegate*) src/heap/mark-compact.cc:4664:7 (d8+0xa17245)
+    #14 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (d8+0x207039b) (BuildId: ff08433d2eafe99f)
+    #15 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:73:11 (d8+0x20765b0) (BuildId: ff08433d2eafe99f)
+    #16 NotifyStartedAndRun src/base/platform/platform.h:596:5 (d8+0x206a2e2) (BuildId: ff08433d2eafe99f)
+    #17 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1123:11 (d8+0x206a2e2)
+
+  Thread T5 'V8 DefaultWorke' (tid=16724, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1048:3 (d8+0x53708b) (BuildId: ff08433d2eafe99f)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1155:14 (d8+0x206a1f6) (BuildId: ff08433d2eafe99f)
+    #2 WorkerThread src/libplatform/default-worker-threads-task-runner.cc:66:3 (d8+0x2075f77) (BuildId: ff08433d2eafe99f)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (d8+0x2075f77)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)()) src/libplatform/default-worker-threads-task-runner.cc:16:28 (d8+0x2075f77)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/construct_at.h:38:46 (d8+0x206cad0) (BuildId: ff08433d2eafe99f)
+    #6 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void, void> buildtools/third_party/libc++/trunk/include/__memory/allocator_traits.h:304:9 (d8+0x206cad0)
+    #7 __shared_ptr_emplace<const int &, double (*)()> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:298:13 (d8+0x206cad0)
+    #8 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1009:55 (d8+0x206cad0)
+    #9 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1018:12 (d8+0x206cad0)
+    #10 EnsureBackgroundTaskRunnerInitialized src/libplatform/default-platform.cc:132:7 (d8+0x206cad0)
+    #11 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::Cr::unique_ptr<v8::TracingController, std::Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:108:5 (d8+0x206cad0)
+    #12 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::Cr::unique_ptr<v8::TracingController, std::Cr::default_delete<v8::TracingController> > > buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (d8+0x206c142) (BuildId: ff08433d2eafe99f)
+    #13 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::Cr::unique_ptr<v8::TracingController, std::Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:53:19 (d8+0x206c142)
+    #14 v8::Shell::Main(int, char**) src/d8/d8.cc:5626:16 (d8+0x5f33a2) (BuildId: ff08433d2eafe99f)
+    #15 main src/d8/d8.cc:5939:43 (d8+0x5f4760) (BuildId: ff08433d2eafe99f)
+
+  Thread T3 'V8 DefaultWorke' (tid=16722, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1048:3 (d8+0x53708b) (BuildId: ff08433d2eafe99f)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1155:14 (d8+0x206a1f6) (BuildId: ff08433d2eafe99f)
+    #2 WorkerThread src/libplatform/default-worker-threads-task-runner.cc:66:3 (d8+0x2075f77) (BuildId: ff08433d2eafe99f)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (d8+0x2075f77)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)()) src/libplatform/default-worker-threads-task-runner.cc:16:28 (d8+0x2075f77)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/construct_at.h:38:46 (d8+0x206cad0) (BuildId: ff08433d2eafe99f)
+    #6 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void, void> buildtools/third_party/libc++/trunk/include/__memory/allocator_traits.h:304:9 (d8+0x206cad0)
+    #7 __shared_ptr_emplace<const int &, double (*)()> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:298:13 (d8+0x206cad0)
+    #8 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1009:55 (d8+0x206cad0)
+    #9 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1018:12 (d8+0x206cad0)
+    #10 EnsureBackgroundTaskRunnerInitialized src/libplatform/default-platform.cc:132:7 (d8+0x206cad0)
+    #11 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::Cr::unique_ptr<v8::TracingController, std::Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:108:5 (d8+0x206cad0)
+    #12 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::Cr::unique_ptr<v8::TracingController, std::Cr::default_delete<v8::TracingController> > > buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (d8+0x206c142) (BuildId: ff08433d2eafe99f)
+    #13 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::Cr::unique_ptr<v8::TracingController, std::Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:53:19 (d8+0x206c142)
+    #14 v8::Shell::Main(int, char**) src/d8/d8.cc:5626:16 (d8+0x5f33a2) (BuildId: ff08433d2eafe99f)
+    #15 main src/d8/d8.cc:5939:43 (d8+0x5f4760) (BuildId: ff08433d2eafe99f)
+
+SUMMARY: ThreadSanitizer: data race src/objects/compressed-slots-inl.h:161:20 in ToHeapObject
+==================
+ThreadSanitizer: reported 1 warnings
+
+Run #2
+Exit code: 0 [0x00]
+Result: PASS
+Expected outcomes: PASS, TIMEOUT
+Duration: 01:05:573
+
+Stderr:
+V8 is running with experimental features enabled. Stability and security will suffer.
+

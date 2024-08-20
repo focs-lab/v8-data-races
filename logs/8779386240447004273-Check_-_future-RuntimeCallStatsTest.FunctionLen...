@@ -1,0 +1,295 @@
+Test: unittests/RuntimeCallStatsTest.FunctionLengthGetter
+Flags: --random-seed=-2112458564 --nohard-abort --testing-d8-test-runner --future --gtest_filter=RuntimeCallStatsTest.FunctionLengthGetter --gtest_random_seed=-2112458564 --gtest_print_time=0
+Command: out/build/v8_unittests --random-seed=-2112458564 --nohard-abort --testing-d8-test-runner --future --gtest_filter=RuntimeCallStatsTest.FunctionLengthGetter --gtest_random_seed=-2112458564 --gtest_print_time=0
+Variant: default
+Shard: 4:6
+
+GN arguments:
+dcheck_always_on = false
+is_component_build = false
+is_debug = false
+is_tsan = true
+target_cpu = "x64"
+use_goma = false
+use_remoteexec = true
+v8_enable_atomic_object_field_writes = false
+v8_enable_concurrent_marking = false
+v8_enable_google_benchmark = true
+v8_enable_test_features = true
+
+Trigger flake bisect on command line:
+bb add v8/try.triggered/v8_flako -p 'bisect_builder_group="client.v8"' -p 'bisect_buildername="V8 Linux64 TSAN - no-concurrent-marking - builder"' -p 'revision="3419574f22aaf45e07a986ac5953170d32c18c1d"' -p 'swarming_dimensions=["cpu:x86-64", "pool:chromium.tests", "os:Ubuntu-22.04"]' -p 'isolated_name="bot_default"' -p 'test_name="unittests/RuntimeCallStatsTest.FunctionLengthGetter"' -p 'timeout_sec=60' -p 'total_timeout_sec=120' -p 'variant="default"' -p 'extra_args=["--extra-flags=--future"]'
+
+Local flake reproduction on command line:
+tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1 --extra-flags=--future unittests/RuntimeCallStatsTest.FunctionLengthGetter
+
+Run #1
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS
+Duration: 00:03:291
+
+Crash Type:
+Data race
+WRITE 8
+
+Crash State:
+~NativeTimeScope
+v8::internal::RuntimeCallStatsTest_FunctionLengthGetter_Test::TestBody()
+testing::Test::Run()
+
+Stdout:
+Note: Google Test filter = RuntimeCallStatsTest.FunctionLengthGetter
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from RuntimeCallStatsTest
+[ RUN      ] RuntimeCallStatsTest.FunctionLengthGetter
+[       OK ] RuntimeCallStatsTest.FunctionLengthGetter
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran.
+[  PASSED  ] 1 test.
+
+Stderr:
+==================
+WARNING: ThreadSanitizer: data race (pid=231974)
+  Write of size 8 at 0x55e597136a88 by main thread:
+    #0 ~NativeTimeScope test/unittests/logging/runtime-call-stats-unittest.cc:121:27 (v8_unittests+0x1f660ee) (BuildId: 87d2e28b9df20b82)
+    #1 v8::internal::RuntimeCallStatsTest_FunctionLengthGetter_Test::TestBody() test/unittests/logging/runtime-call-stats-unittest.cc:448:3 (v8_unittests+0x1f660ee)
+    #2 void testing::internal::HandleExceptionsInMethodIfSupported<testing::Test, void>(testing::Test*, void (testing::Test::*)(), char const*) third_party/googletest/src/googletest/src/gtest.cc (v8_unittests+0x40ae7c1) (BuildId: 87d2e28b9df20b82)
+    #3 testing::Test::Run() third_party/googletest/src/googletest/src/gtest.cc:2670:5 (v8_unittests+0x40ae63b) (BuildId: 87d2e28b9df20b82)
+    #4 testing::TestInfo::Run() third_party/googletest/src/googletest/src/gtest.cc:2849:11 (v8_unittests+0x40afeee) (BuildId: 87d2e28b9df20b82)
+    #5 testing::TestSuite::Run() third_party/googletest/src/googletest/src/gtest.cc:3008:30 (v8_unittests+0x40b1084) (BuildId: 87d2e28b9df20b82)
+    #6 testing::internal::UnitTestImpl::RunAllTests() third_party/googletest/src/googletest/src/gtest.cc:5866:44 (v8_unittests+0x40c6ca4) (BuildId: 87d2e28b9df20b82)
+    #7 bool testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::UnitTestImpl, bool>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*) third_party/googletest/src/googletest/src/gtest.cc (v8_unittests+0x40c6351) (BuildId: 87d2e28b9df20b82)
+    #8 testing::UnitTest::Run() third_party/googletest/src/googletest/src/gtest.cc:5440:10 (v8_unittests+0x40c6115) (BuildId: 87d2e28b9df20b82)
+    #9 RUN_ALL_TESTS third_party/googletest/src/googletest/include/gtest/gtest.h:2284:73 (v8_unittests+0x19fd31b) (BuildId: 87d2e28b9df20b82)
+    #10 main test/unittests/run-all-unittests.cc:55:10 (v8_unittests+0x19fd31b)
+
+  Previous read of size 8 at 0x55e597136a88 by thread T1:
+    #0 Stop src/logging/runtime-call-stats.h:86:27 (v8_unittests+0x2ba3634) (BuildId: 87d2e28b9df20b82)
+    #1 v8::internal::RuntimeCallStats::Leave(v8::internal::RuntimeCallTimer*) src/logging/runtime-call-stats.cc:214:34 (v8_unittests+0x2ba3634)
+    #2 ~RuntimeCallTimerScope src/logging/runtime-call-stats.h:766:15 (v8_unittests+0x31e0785) (BuildId: 87d2e28b9df20b82)
+    #3 v8::internal::maglev::MaglevConcurrentDispatcher::JobTask::Run(v8::JobDelegate*) src/maglev/maglev-concurrent-dispatcher.cc:197:5 (v8_unittests+0x31e0785)
+    #4 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (v8_unittests+0x41f119b) (BuildId: 87d2e28b9df20b82)
+    #5 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:73:11 (v8_unittests+0x41f9d90) (BuildId: 87d2e28b9df20b82)
+    #6 NotifyStartedAndRun src/base/platform/platform.h:596:5 (v8_unittests+0x41edb14) (BuildId: 87d2e28b9df20b82)
+    #7 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1130:11 (v8_unittests+0x41edb14)
+
+  Location is global 'v8::internal::RuntimeCallTimer::Now' of size 8 at 0x55e597136a88 (v8_unittests+0x4ddea88)
+
+  Thread T1 'V8 DefaultWorke' (tid=232015, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1048:3 (v8_unittests+0x13ed9fb) (BuildId: 87d2e28b9df20b82)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1162:14 (v8_unittests+0x41eda29) (BuildId: 87d2e28b9df20b82)
+    #2 WorkerThread src/libplatform/default-worker-threads-task-runner.cc:66:3 (v8_unittests+0x41f9747) (BuildId: 87d2e28b9df20b82)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (v8_unittests+0x41f9747)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)()) src/libplatform/default-worker-threads-task-runner.cc:16:28 (v8_unittests+0x41f9747)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/construct_at.h:38:46 (v8_unittests+0x41f1a82) (BuildId: 87d2e28b9df20b82)
+    #6 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void, void> buildtools/third_party/libc++/trunk/include/__memory/allocator_traits.h:304:9 (v8_unittests+0x41f1a82)
+    #7 __shared_ptr_emplace<const int &, double (*)()> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:299:13 (v8_unittests+0x41f1a82)
+    #8 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1010:55 (v8_unittests+0x41f1a82)
+    #9 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1019:12 (v8_unittests+0x41f1a82)
+    #10 EnsureBackgroundTaskRunnerInitialized src/libplatform/default-platform.cc:132:7 (v8_unittests+0x41f1a82)
+    #11 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:108:5 (v8_unittests+0x41f1a82)
+    #12 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController> > > buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (v8_unittests+0x41f12c2) (BuildId: 87d2e28b9df20b82)
+    #13 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:53:19 (v8_unittests+0x41f12c2)
+    #14 v8::WithDefaultPlatformMixin<testing::Test>::WithDefaultPlatformMixin() test/unittests/test-utils.h:38:17 (v8_unittests+0x1476f37) (BuildId: 87d2e28b9df20b82)
+    #15 WithIsolateMixin test/unittests/test-utils.h:122:3 (v8_unittests+0x1f6d2f2) (BuildId: 87d2e28b9df20b82)
+    #16 WithIsolateScopeMixin test/unittests/test-utils.h:145:3 (v8_unittests+0x1f6d2f2)
+    #17 WithContextMixin test/unittests/test-utils.h:252:3 (v8_unittests+0x1f6d2f2)
+    #18 WithInternalIsolateMixin test/unittests/test-utils.h:370:3 (v8_unittests+0x1f6d2f2)
+    #19 v8::internal::(anonymous namespace)::RuntimeCallStatsTest::RuntimeCallStatsTest() test/unittests/logging/runtime-call-stats-unittest.cc:36:3 (v8_unittests+0x1f6d2f2)
+    #20 RuntimeCallStatsTest_FunctionLengthGetter_Test test/unittests/logging/runtime-call-stats-unittest.cc:411:1 (v8_unittests+0x1f6d984) (BuildId: 87d2e28b9df20b82)
+    #21 testing::internal::TestFactoryImpl<v8::internal::RuntimeCallStatsTest_FunctionLengthGetter_Test>::CreateTest() third_party/googletest/src/googletest/include/gtest/internal/gtest-internal.h:476:44 (v8_unittests+0x1f6d984)
+    #22 testing::Test* testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::TestFactoryBase, testing::Test*>(testing::internal::TestFactoryBase*, testing::Test* (testing::internal::TestFactoryBase::*)(), char const*) third_party/googletest/src/googletest/src/gtest.cc (v8_unittests+0x40b0221) (BuildId: 87d2e28b9df20b82)
+    #23 testing::TestInfo::Run() third_party/googletest/src/googletest/src/gtest.cc:2839:22 (v8_unittests+0x40afed1) (BuildId: 87d2e28b9df20b82)
+    #24 testing::TestSuite::Run() third_party/googletest/src/googletest/src/gtest.cc:3008:30 (v8_unittests+0x40b1084) (BuildId: 87d2e28b9df20b82)
+    #25 testing::internal::UnitTestImpl::RunAllTests() third_party/googletest/src/googletest/src/gtest.cc:5866:44 (v8_unittests+0x40c6ca4) (BuildId: 87d2e28b9df20b82)
+    #26 bool testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::UnitTestImpl, bool>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*) third_party/googletest/src/googletest/src/gtest.cc (v8_unittests+0x40c6351) (BuildId: 87d2e28b9df20b82)
+    #27 testing::UnitTest::Run() third_party/googletest/src/googletest/src/gtest.cc:5440:10 (v8_unittests+0x40c6115) (BuildId: 87d2e28b9df20b82)
+    #28 RUN_ALL_TESTS third_party/googletest/src/googletest/include/gtest/gtest.h:2284:73 (v8_unittests+0x19fd31b) (BuildId: 87d2e28b9df20b82)
+    #29 main test/unittests/run-all-unittests.cc:55:10 (v8_unittests+0x19fd31b)
+
+SUMMARY: ThreadSanitizer: data race test/unittests/logging/runtime-call-stats-unittest.cc:121:27 in ~NativeTimeScope
+==================
+ThreadSanitizer: reported 1 warnings
+
+Run #2
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS
+Duration: 00:02:047
+
+Crash Type:
+Data race
+READ 8
+
+Crash State:
+Start
+v8::internal::RuntimeCallStats::Enter(v8::internal::RuntimeCallTimer*, v8::internal::RuntimeCallCounterId)
+RuntimeCallTimerScope
+
+Stdout:
+Note: Google Test filter = RuntimeCallStatsTest.FunctionLengthGetter
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from RuntimeCallStatsTest
+[ RUN      ] RuntimeCallStatsTest.FunctionLengthGetter
+[       OK ] RuntimeCallStatsTest.FunctionLengthGetter
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran.
+[  PASSED  ] 1 test.
+
+Stderr:
+==================
+WARNING: ThreadSanitizer: data race (pid=232961)
+  Read of size 8 at 0x56123f932a88 by thread T2:
+    #0 Start src/logging/runtime-call-stats.h:76:27 (v8_unittests+0x2ba3536) (BuildId: 87d2e28b9df20b82)
+    #1 v8::internal::RuntimeCallStats::Enter(v8::internal::RuntimeCallTimer*, v8::internal::RuntimeCallCounterId) src/logging/runtime-call-stats.cc:204:10 (v8_unittests+0x2ba3536)
+    #2 RuntimeCallTimerScope src/logging/runtime-call-stats-scope.h:44:11 (v8_unittests+0x2814972) (BuildId: 87d2e28b9df20b82)
+    #3 v8::internal::OptimizingCompileDispatcher::CompileTask::Run(v8::JobDelegate*) src/compiler-dispatcher/optimizing-compile-dispatcher.cc:39:7 (v8_unittests+0x2814972)
+    #4 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (v8_unittests+0x41f119b) (BuildId: 87d2e28b9df20b82)
+    #5 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:73:11 (v8_unittests+0x41f9d90) (BuildId: 87d2e28b9df20b82)
+    #6 NotifyStartedAndRun src/base/platform/platform.h:596:5 (v8_unittests+0x41edb14) (BuildId: 87d2e28b9df20b82)
+    #7 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1130:11 (v8_unittests+0x41edb14)
+
+  Previous write of size 8 at 0x56123f932a88 by main thread:
+    #0 ~NativeTimeScope test/unittests/logging/runtime-call-stats-unittest.cc:121:27 (v8_unittests+0x1f660ee) (BuildId: 87d2e28b9df20b82)
+    #1 v8::internal::RuntimeCallStatsTest_FunctionLengthGetter_Test::TestBody() test/unittests/logging/runtime-call-stats-unittest.cc:448:3 (v8_unittests+0x1f660ee)
+    #2 void testing::internal::HandleExceptionsInMethodIfSupported<testing::Test, void>(testing::Test*, void (testing::Test::*)(), char const*) third_party/googletest/src/googletest/src/gtest.cc (v8_unittests+0x40ae7c1) (BuildId: 87d2e28b9df20b82)
+    #3 testing::Test::Run() third_party/googletest/src/googletest/src/gtest.cc:2670:5 (v8_unittests+0x40ae63b) (BuildId: 87d2e28b9df20b82)
+    #4 testing::TestInfo::Run() third_party/googletest/src/googletest/src/gtest.cc:2849:11 (v8_unittests+0x40afeee) (BuildId: 87d2e28b9df20b82)
+    #5 testing::TestSuite::Run() third_party/googletest/src/googletest/src/gtest.cc:3008:30 (v8_unittests+0x40b1084) (BuildId: 87d2e28b9df20b82)
+    #6 testing::internal::UnitTestImpl::RunAllTests() third_party/googletest/src/googletest/src/gtest.cc:5866:44 (v8_unittests+0x40c6ca4) (BuildId: 87d2e28b9df20b82)
+    #7 bool testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::UnitTestImpl, bool>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*) third_party/googletest/src/googletest/src/gtest.cc (v8_unittests+0x40c6351) (BuildId: 87d2e28b9df20b82)
+    #8 testing::UnitTest::Run() third_party/googletest/src/googletest/src/gtest.cc:5440:10 (v8_unittests+0x40c6115) (BuildId: 87d2e28b9df20b82)
+    #9 RUN_ALL_TESTS third_party/googletest/src/googletest/include/gtest/gtest.h:2284:73 (v8_unittests+0x19fd31b) (BuildId: 87d2e28b9df20b82)
+    #10 main test/unittests/run-all-unittests.cc:55:10 (v8_unittests+0x19fd31b)
+
+  Location is global 'v8::internal::RuntimeCallTimer::Now' of size 8 at 0x56123f932a88 (v8_unittests+0x4ddea88)
+
+  Thread T2 'V8 DefaultWorke' (tid=233018, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1048:3 (v8_unittests+0x13ed9fb) (BuildId: 87d2e28b9df20b82)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1162:14 (v8_unittests+0x41eda29) (BuildId: 87d2e28b9df20b82)
+    #2 WorkerThread src/libplatform/default-worker-threads-task-runner.cc:66:3 (v8_unittests+0x41f9747) (BuildId: 87d2e28b9df20b82)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (v8_unittests+0x41f9747)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)()) src/libplatform/default-worker-threads-task-runner.cc:16:28 (v8_unittests+0x41f9747)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/construct_at.h:38:46 (v8_unittests+0x41f1a82) (BuildId: 87d2e28b9df20b82)
+    #6 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void, void> buildtools/third_party/libc++/trunk/include/__memory/allocator_traits.h:304:9 (v8_unittests+0x41f1a82)
+    #7 __shared_ptr_emplace<const int &, double (*)()> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:299:13 (v8_unittests+0x41f1a82)
+    #8 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1010:55 (v8_unittests+0x41f1a82)
+    #9 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1019:12 (v8_unittests+0x41f1a82)
+    #10 EnsureBackgroundTaskRunnerInitialized src/libplatform/default-platform.cc:132:7 (v8_unittests+0x41f1a82)
+    #11 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:108:5 (v8_unittests+0x41f1a82)
+    #12 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController> > > buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (v8_unittests+0x41f12c2) (BuildId: 87d2e28b9df20b82)
+    #13 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:53:19 (v8_unittests+0x41f12c2)
+    #14 v8::WithDefaultPlatformMixin<testing::Test>::WithDefaultPlatformMixin() test/unittests/test-utils.h:38:17 (v8_unittests+0x1476f37) (BuildId: 87d2e28b9df20b82)
+    #15 WithIsolateMixin test/unittests/test-utils.h:122:3 (v8_unittests+0x1f6d2f2) (BuildId: 87d2e28b9df20b82)
+    #16 WithIsolateScopeMixin test/unittests/test-utils.h:145:3 (v8_unittests+0x1f6d2f2)
+    #17 WithContextMixin test/unittests/test-utils.h:252:3 (v8_unittests+0x1f6d2f2)
+    #18 WithInternalIsolateMixin test/unittests/test-utils.h:370:3 (v8_unittests+0x1f6d2f2)
+    #19 v8::internal::(anonymous namespace)::RuntimeCallStatsTest::RuntimeCallStatsTest() test/unittests/logging/runtime-call-stats-unittest.cc:36:3 (v8_unittests+0x1f6d2f2)
+    #20 RuntimeCallStatsTest_FunctionLengthGetter_Test test/unittests/logging/runtime-call-stats-unittest.cc:411:1 (v8_unittests+0x1f6d984) (BuildId: 87d2e28b9df20b82)
+    #21 testing::internal::TestFactoryImpl<v8::internal::RuntimeCallStatsTest_FunctionLengthGetter_Test>::CreateTest() third_party/googletest/src/googletest/include/gtest/internal/gtest-internal.h:476:44 (v8_unittests+0x1f6d984)
+    #22 testing::Test* testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::TestFactoryBase, testing::Test*>(testing::internal::TestFactoryBase*, testing::Test* (testing::internal::TestFactoryBase::*)(), char const*) third_party/googletest/src/googletest/src/gtest.cc (v8_unittests+0x40b0221) (BuildId: 87d2e28b9df20b82)
+    #23 testing::TestInfo::Run() third_party/googletest/src/googletest/src/gtest.cc:2839:22 (v8_unittests+0x40afed1) (BuildId: 87d2e28b9df20b82)
+    #24 testing::TestSuite::Run() third_party/googletest/src/googletest/src/gtest.cc:3008:30 (v8_unittests+0x40b1084) (BuildId: 87d2e28b9df20b82)
+    #25 testing::internal::UnitTestImpl::RunAllTests() third_party/googletest/src/googletest/src/gtest.cc:5866:44 (v8_unittests+0x40c6ca4) (BuildId: 87d2e28b9df20b82)
+    #26 bool testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::UnitTestImpl, bool>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*) third_party/googletest/src/googletest/src/gtest.cc (v8_unittests+0x40c6351) (BuildId: 87d2e28b9df20b82)
+    #27 testing::UnitTest::Run() third_party/googletest/src/googletest/src/gtest.cc:5440:10 (v8_unittests+0x40c6115) (BuildId: 87d2e28b9df20b82)
+    #28 RUN_ALL_TESTS third_party/googletest/src/googletest/include/gtest/gtest.h:2284:73 (v8_unittests+0x19fd31b) (BuildId: 87d2e28b9df20b82)
+    #29 main test/unittests/run-all-unittests.cc:55:10 (v8_unittests+0x19fd31b)
+
+SUMMARY: ThreadSanitizer: data race src/logging/runtime-call-stats.h:76:27 in Start
+==================
+ThreadSanitizer: reported 1 warnings
+
+Run #3
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS
+Duration: 00:02:001
+
+Crash Type:
+Data race
+WRITE 8
+
+Crash State:
+~NativeTimeScope
+v8::internal::RuntimeCallStatsTest_FunctionLengthGetter_Test::TestBody()
+testing::Test::Run()
+
+Stdout:
+Note: Google Test filter = RuntimeCallStatsTest.FunctionLengthGetter
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from RuntimeCallStatsTest
+[ RUN      ] RuntimeCallStatsTest.FunctionLengthGetter
+[       OK ] RuntimeCallStatsTest.FunctionLengthGetter
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran.
+[  PASSED  ] 1 test.
+
+Stderr:
+==================
+WARNING: ThreadSanitizer: data race (pid=233814)
+  Write of size 8 at 0x559812712a88 by main thread:
+    #0 ~NativeTimeScope test/unittests/logging/runtime-call-stats-unittest.cc:121:27 (v8_unittests+0x1f660ee) (BuildId: 87d2e28b9df20b82)
+    #1 v8::internal::RuntimeCallStatsTest_FunctionLengthGetter_Test::TestBody() test/unittests/logging/runtime-call-stats-unittest.cc:448:3 (v8_unittests+0x1f660ee)
+    #2 void testing::internal::HandleExceptionsInMethodIfSupported<testing::Test, void>(testing::Test*, void (testing::Test::*)(), char const*) third_party/googletest/src/googletest/src/gtest.cc (v8_unittests+0x40ae7c1) (BuildId: 87d2e28b9df20b82)
+    #3 testing::Test::Run() third_party/googletest/src/googletest/src/gtest.cc:2670:5 (v8_unittests+0x40ae63b) (BuildId: 87d2e28b9df20b82)
+    #4 testing::TestInfo::Run() third_party/googletest/src/googletest/src/gtest.cc:2849:11 (v8_unittests+0x40afeee) (BuildId: 87d2e28b9df20b82)
+    #5 testing::TestSuite::Run() third_party/googletest/src/googletest/src/gtest.cc:3008:30 (v8_unittests+0x40b1084) (BuildId: 87d2e28b9df20b82)
+    #6 testing::internal::UnitTestImpl::RunAllTests() third_party/googletest/src/googletest/src/gtest.cc:5866:44 (v8_unittests+0x40c6ca4) (BuildId: 87d2e28b9df20b82)
+    #7 bool testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::UnitTestImpl, bool>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*) third_party/googletest/src/googletest/src/gtest.cc (v8_unittests+0x40c6351) (BuildId: 87d2e28b9df20b82)
+    #8 testing::UnitTest::Run() third_party/googletest/src/googletest/src/gtest.cc:5440:10 (v8_unittests+0x40c6115) (BuildId: 87d2e28b9df20b82)
+    #9 RUN_ALL_TESTS third_party/googletest/src/googletest/include/gtest/gtest.h:2284:73 (v8_unittests+0x19fd31b) (BuildId: 87d2e28b9df20b82)
+    #10 main test/unittests/run-all-unittests.cc:55:10 (v8_unittests+0x19fd31b)
+
+  Previous read of size 8 at 0x559812712a88 by thread T1:
+    #0 Stop src/logging/runtime-call-stats.h:86:27 (v8_unittests+0x2ba3634) (BuildId: 87d2e28b9df20b82)
+    #1 v8::internal::RuntimeCallStats::Leave(v8::internal::RuntimeCallTimer*) src/logging/runtime-call-stats.cc:214:34 (v8_unittests+0x2ba3634)
+    #2 ~RuntimeCallTimerScope src/logging/runtime-call-stats.h:766:15 (v8_unittests+0x31e0785) (BuildId: 87d2e28b9df20b82)
+    #3 v8::internal::maglev::MaglevConcurrentDispatcher::JobTask::Run(v8::JobDelegate*) src/maglev/maglev-concurrent-dispatcher.cc:197:5 (v8_unittests+0x31e0785)
+    #4 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (v8_unittests+0x41f119b) (BuildId: 87d2e28b9df20b82)
+    #5 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:73:11 (v8_unittests+0x41f9d90) (BuildId: 87d2e28b9df20b82)
+    #6 NotifyStartedAndRun src/base/platform/platform.h:596:5 (v8_unittests+0x41edb14) (BuildId: 87d2e28b9df20b82)
+    #7 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1130:11 (v8_unittests+0x41edb14)
+
+  Location is global 'v8::internal::RuntimeCallTimer::Now' of size 8 at 0x559812712a88 (v8_unittests+0x4ddea88)
+
+  Thread T1 'V8 DefaultWorke' (tid=233836, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1048:3 (v8_unittests+0x13ed9fb) (BuildId: 87d2e28b9df20b82)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1162:14 (v8_unittests+0x41eda29) (BuildId: 87d2e28b9df20b82)
+    #2 WorkerThread src/libplatform/default-worker-threads-task-runner.cc:66:3 (v8_unittests+0x41f9747) (BuildId: 87d2e28b9df20b82)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (v8_unittests+0x41f9747)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)()) src/libplatform/default-worker-threads-task-runner.cc:16:28 (v8_unittests+0x41f9747)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/construct_at.h:38:46 (v8_unittests+0x41f1a82) (BuildId: 87d2e28b9df20b82)
+    #6 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void, void> buildtools/third_party/libc++/trunk/include/__memory/allocator_traits.h:304:9 (v8_unittests+0x41f1a82)
+    #7 __shared_ptr_emplace<const int &, double (*)()> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:299:13 (v8_unittests+0x41f1a82)
+    #8 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1010:55 (v8_unittests+0x41f1a82)
+    #9 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1019:12 (v8_unittests+0x41f1a82)
+    #10 EnsureBackgroundTaskRunnerInitialized src/libplatform/default-platform.cc:132:7 (v8_unittests+0x41f1a82)
+    #11 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:108:5 (v8_unittests+0x41f1a82)
+    #12 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController> > > buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (v8_unittests+0x41f12c2) (BuildId: 87d2e28b9df20b82)
+    #13 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:53:19 (v8_unittests+0x41f12c2)
+    #14 v8::WithDefaultPlatformMixin<testing::Test>::WithDefaultPlatformMixin() test/unittests/test-utils.h:38:17 (v8_unittests+0x1476f37) (BuildId: 87d2e28b9df20b82)
+    #15 WithIsolateMixin test/unittests/test-utils.h:122:3 (v8_unittests+0x1f6d2f2) (BuildId: 87d2e28b9df20b82)
+    #16 WithIsolateScopeMixin test/unittests/test-utils.h:145:3 (v8_unittests+0x1f6d2f2)
+    #17 WithContextMixin test/unittests/test-utils.h:252:3 (v8_unittests+0x1f6d2f2)
+    #18 WithInternalIsolateMixin test/unittests/test-utils.h:370:3 (v8_unittests+0x1f6d2f2)
+    #19 v8::internal::(anonymous namespace)::RuntimeCallStatsTest::RuntimeCallStatsTest() test/unittests/logging/runtime-call-stats-unittest.cc:36:3 (v8_unittests+0x1f6d2f2)
+    #20 RuntimeCallStatsTest_FunctionLengthGetter_Test test/unittests/logging/runtime-call-stats-unittest.cc:411:1 (v8_unittests+0x1f6d984) (BuildId: 87d2e28b9df20b82)
+    #21 testing::internal::TestFactoryImpl<v8::internal::RuntimeCallStatsTest_FunctionLengthGetter_Test>::CreateTest() third_party/googletest/src/googletest/include/gtest/internal/gtest-internal.h:476:44 (v8_unittests+0x1f6d984)
+    #22 testing::Test* testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::TestFactoryBase, testing::Test*>(testing::internal::TestFactoryBase*, testing::Test* (testing::internal::TestFactoryBase::*)(), char const*) third_party/googletest/src/googletest/src/gtest.cc (v8_unittests+0x40b0221) (BuildId: 87d2e28b9df20b82)
+    #23 testing::TestInfo::Run() third_party/googletest/src/googletest/src/gtest.cc:2839:22 (v8_unittests+0x40afed1) (BuildId: 87d2e28b9df20b82)
+    #24 testing::TestSuite::Run() third_party/googletest/src/googletest/src/gtest.cc:3008:30 (v8_unittests+0x40b1084) (BuildId: 87d2e28b9df20b82)
+    #25 testing::internal::UnitTestImpl::RunAllTests() third_party/googletest/src/googletest/src/gtest.cc:5866:44 (v8_unittests+0x40c6ca4) (BuildId: 87d2e28b9df20b82)
+    #26 bool testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::UnitTestImpl, bool>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*) third_party/googletest/src/googletest/src/gtest.cc (v8_unittests+0x40c6351) (BuildId: 87d2e28b9df20b82)
+    #27 testing::UnitTest::Run() third_party/googletest/src/googletest/src/gtest.cc:5440:10 (v8_unittests+0x40c6115) (BuildId: 87d2e28b9df20b82)
+    #28 RUN_ALL_TESTS third_party/googletest/src/googletest/include/gtest/gtest.h:2284:73 (v8_unittests+0x19fd31b) (BuildId: 87d2e28b9df20b82)
+    #29 main test/unittests/run-all-unittests.cc:55:10 (v8_unittests+0x19fd31b)
+
+SUMMARY: ThreadSanitizer: data race test/unittests/logging/runtime-call-stats-unittest.cc:121:27 in ~NativeTimeScope
+==================
+ThreadSanitizer: reported 1 warnings
+

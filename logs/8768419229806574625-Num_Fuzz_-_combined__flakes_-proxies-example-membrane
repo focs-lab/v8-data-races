@@ -1,0 +1,244 @@
+Test: mjsunit/es6/proxies-example-membrane (flaky in a repeated run)
+Flags: --test /b/s/w/ir/test/mjsunit/mjsunit.js /b/s/w/ir/test/mjsunit/mjsunit_numfuzz.js /b/s/w/ir/test/mjsunit/es6/proxies-example-membrane.js --random-seed=-569815857 --nohard-abort --exit-on-contradictory-flags --testing-d8-test-runner --no-fail --always-turbofan --maglev-future --no-enable-popcnt --no-regexp-tier-up --optimize-on-next-call-optimizes-to-maglev --stress-background-compile --stress-flush-code --stress-lazy-source-positions --stress-maglev --stress-scavenge=22 --stress-compaction-random --stress-delay-tasks --deopt-every-n-times=78 --fuzzer-random-seed=500331866
+Command: out/build/d8 --test test/mjsunit/mjsunit.js test/mjsunit/mjsunit_numfuzz.js test/mjsunit/es6/proxies-example-membrane.js --random-seed=-569815857 --nohard-abort --exit-on-contradictory-flags --testing-d8-test-runner --no-fail --always-turbofan --maglev-future --no-enable-popcnt --no-regexp-tier-up --optimize-on-next-call-optimizes-to-maglev --stress-background-compile --stress-flush-code --stress-lazy-source-positions --stress-maglev --stress-scavenge=22 --stress-compaction-random --stress-delay-tasks --deopt-every-n-times=78 --fuzzer-random-seed=500331866
+Variant: None
+Shard: 3:4
+
+GN arguments:
+dcheck_always_on = false
+is_component_build = false
+is_debug = false
+is_tsan = true
+target_cpu = "x64"
+use_goma = false
+use_remoteexec = true
+v8_enable_google_benchmark = true
+v8_enable_test_features = true
+
+Trigger flake bisect on command line:
+bb add v8/try.triggered/v8_flako -p 'bisect_builder_group="client.v8.clusterfuzz"' -p 'bisect_buildername="V8 Clusterfuzz Linux64 TSAN - release builder"' -p 'revision="95c855348dc99f87e3a2430671895e476dc84a91"' -p 'swarming_dimensions=["cpu:x86-64", "pool:chromium.tests", "os:Ubuntu-22.04"]' -p 'isolated_name="run-num-fuzzer"' -p 'test_name="mjsunit/es6/proxies-example-membrane"' -p 'timeout_sec=60' -p 'total_timeout_sec=120' -p 'variant="default"' -p 'extra_args=["--extra-flags", "--always-turbofan", "--extra-flags", "--maglev-future", "--extra-flags", "--no-enable-popcnt", "--extra-flags", "--no-regexp-tier-up", "--extra-flags", "--optimize-on-next-call-optimizes-to-maglev", "--extra-flags", "--stress-background-compile", "--extra-flags", "--stress-flush-code", "--extra-flags", "--stress-lazy-source-positions", "--extra-flags", "--stress-maglev", "--extra-flags", "--stress-scavenge=22", "--extra-flags", "--stress-compaction-random", "--extra-flags", "--stress-delay-tasks", "--extra-flags", "--deopt-every-n-times=78", "--extra-flags", "--fuzzer-random-seed=500331866"]'
+
+Local flake reproduction on command line:
+tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1 --extra-flags --always-turbofan --extra-flags --maglev-future --extra-flags --no-enable-popcnt --extra-flags --no-regexp-tier-up --extra-flags --optimize-on-next-call-optimizes-to-maglev --extra-flags --stress-background-compile --extra-flags --stress-flush-code --extra-flags --stress-lazy-source-positions --extra-flags --stress-maglev --extra-flags --stress-scavenge=22 --extra-flags --stress-compaction-random --extra-flags --stress-delay-tasks --extra-flags --deopt-every-n-times=78 --extra-flags --fuzzer-random-seed=500331866 mjsunit/es6/proxies-example-membrane
+
+Run #1
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS, TIMEOUT
+Duration: 00:16:352
+
+Crash Type:
+Data race
+ATOMIC READ 4
+
+Crash State:
+__cxx_atomic_load<int>
+load
+atomic_load_explicit<int>
+
+Stderr:
+V8 is running with experimental features enabled. Stability and security will suffer.
+==================
+WARNING: ThreadSanitizer: data race (pid=1014126)
+  Atomic read of size 4 at 0x7ea200202164 by thread T20:
+    #0 __cxx_atomic_load<int> third_party/libc++/src/include/__atomic/cxx_atomic_impl.h:354:12 (d8+0xaae955) (BuildId: 7fc0c851c23d26ca)
+    #1 load third_party/libc++/src/include/__atomic/atomic_base.h:56:14 (d8+0xaae955)
+    #2 atomic_load_explicit<int> third_party/libc++/src/include/__atomic/atomic.h:239:17 (d8+0xaae955)
+    #3 Relaxed_Load src/base/atomicops.h:245:10 (d8+0xaae955)
+    #4 Relaxed_Load<unsigned int> src/base/atomic-utils.h:87:9 (d8+0xaae955)
+    #5 Relaxed_Load src/objects/compressed-slots-inl.h:71:26 (d8+0xaae955)
+    #6 v8::internal::EphemeronTableUpdatingItem::Process() src/heap/mark-compact.cc:4808:46 (d8+0xaae955)
+    #7 UpdatePointers src/heap/mark-compact.cc:4501:20 (d8+0xaaf535) (BuildId: 7fc0c851c23d26ca)
+    #8 v8::internal::PointersUpdatingJob::Run(v8::JobDelegate*) src/heap/mark-compact.cc:4490:7 (d8+0xaaf535)
+    #9 v8::DelayedTasksPlatform::DelayedJob::Run(v8::JobDelegate*) src/d8/d8-platforms.cc:309:18 (d8+0x669258) (BuildId: 7fc0c851c23d26ca)
+    #10 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (d8+0x25181db) (BuildId: 7fc0c851c23d26ca)
+    #11 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:93:25 (d8+0x251ef14) (BuildId: 7fc0c851c23d26ca)
+    #12 NotifyStartedAndRun src/base/platform/platform.h:612:5 (d8+0x2511bca) (BuildId: 7fc0c851c23d26ca)
+    #13 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1185:11 (d8+0x2511bca)
+
+  Previous write of size 4 at 0x7ea200202164 by thread T16:
+    #0 store src/objects/compressed-slots-inl.h:160:15 (d8+0xaadab5) (BuildId: 7fc0c851c23d26ca)
+    #1 Update<v8::internal::CompressedHeapObjectSlot> src/objects/maybe-object-inl.h:112:8 (d8+0xaadab5)
+    #2 CheckAndUpdateOldToNewSlot<v8::internal::CompressedMaybeObjectSlot> src/heap/mark-compact.cc:4611:7 (d8+0xaadab5)
+    #3 operator() src/heap/mark-compact.cc:4637:13 (d8+0xaadab5)
+    #4 operator() src/heap/slot-set.h:156:44 (d8+0xaadab5)
+    #5 Iterate<(heap::base::BasicSlotSet<4UL>::AccessMode)0, (lambda at ../../src/heap/slot-set.h:156:9), (lambda at ../../src/heap/slot-set.h:157:9)> src/heap/base/basic-slot-set.h:352:19 (d8+0xaadab5)
+    #6 Iterate<(v8::internal::AccessMode)0, (lambda at ../../src/heap/mark-compact.cc:4636:11)> src/heap/slot-set.h:154:26 (d8+0xaadab5)
+    #7 Iterate<(v8::internal::AccessMode)0, (lambda at ../../src/heap/mark-compact.cc:4636:11)> src/heap/remembered-set.h:44:26 (d8+0xaadab5)
+    #8 Iterate<(v8::internal::AccessMode)0, (lambda at ../../src/heap/mark-compact.cc:4636:11)> src/heap/remembered-set.h:199:12 (d8+0xaadab5)
+    #9 Iterate<(v8::internal::AccessMode)0, (lambda at ../../src/heap/mark-compact.cc:4636:11)> src/heap/remembered-set.h:193:12 (d8+0xaadab5)
+    #10 UpdateUntypedOldToNewPointers<(v8::internal::RememberedSetType)0> src/heap/mark-compact.cc:4634:7 (d8+0xaadab5)
+    #11 UpdateUntypedPointers src/heap/mark-compact.cc:4621:5 (d8+0xaadab5)
+    #12 v8::internal::(anonymous namespace)::RememberedSetUpdatingItem::Process() src/heap/mark-compact.cc:4550:5 (d8+0xaadab5)
+    #13 UpdatePointers src/heap/mark-compact.cc:4501:20 (d8+0xaaf535) (BuildId: 7fc0c851c23d26ca)
+    #14 v8::internal::PointersUpdatingJob::Run(v8::JobDelegate*) src/heap/mark-compact.cc:4490:7 (d8+0xaaf535)
+    #15 v8::DelayedTasksPlatform::DelayedJob::Run(v8::JobDelegate*) src/d8/d8-platforms.cc:309:18 (d8+0x669258) (BuildId: 7fc0c851c23d26ca)
+    #16 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (d8+0x25181db) (BuildId: 7fc0c851c23d26ca)
+    #17 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:93:25 (d8+0x251ef14) (BuildId: 7fc0c851c23d26ca)
+    #18 NotifyStartedAndRun src/base/platform/platform.h:612:5 (d8+0x2511bca) (BuildId: 7fc0c851c23d26ca)
+    #19 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1185:11 (d8+0x2511bca)
+
+  As if synchronized via sleep:
+    #0 usleep /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:388:3 (d8+0x5d6097) (BuildId: 7fc0c851c23d26ca)
+    #1 v8::base::OS::Sleep(v8::base::TimeDelta) src/base/platform/platform-posix.cc:692:3 (d8+0x2510885) (BuildId: 7fc0c851c23d26ca)
+    #2 v8::DelayedTasksPlatform::DelayedJob::Run(v8::JobDelegate*) src/d8/d8-platforms.cc:308:7 (d8+0x669237) (BuildId: 7fc0c851c23d26ca)
+    #3 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (d8+0x25181db) (BuildId: 7fc0c851c23d26ca)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:93:25 (d8+0x251ef14) (BuildId: 7fc0c851c23d26ca)
+    #5 NotifyStartedAndRun src/base/platform/platform.h:612:5 (d8+0x2511bca) (BuildId: 7fc0c851c23d26ca)
+    #6 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1185:11 (d8+0x2511bca)
+
+  Thread T20 'V8 DefaultWorke' (tid=1014150, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1020:3 (d8+0x5d904b) (BuildId: 7fc0c851c23d26ca)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1217:14 (d8+0x2511ab9) (BuildId: 7fc0c851c23d26ca)
+    #2 WorkerThread src/libplatform/default-worker-threads-task-runner.cc:78:3 (d8+0x251e6c7) (BuildId: 7fc0c851c23d26ca)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *, v8::base::Thread::Priority &> third_party/libc++/src/include/__memory/unique_ptr.h:685:30 (d8+0x251e6c7)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)(), v8::base::Thread::Priority) src/libplatform/default-worker-threads-task-runner.cc:18:28 (d8+0x251e6c7)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, v8::platform::DefaultWorkerThreadsTaskRunner *> third_party/libc++/src/include/__memory/construct_at.h:41:46 (d8+0x251473e) (BuildId: 7fc0c851c23d26ca)
+    #6 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void, void> third_party/libc++/src/include/__memory/allocator_traits.h:304:9 (d8+0x251473e)
+    #7 __shared_ptr_emplace<const int &, double (*)(), v8::base::Thread::Priority, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, 0> third_party/libc++/src/include/__memory/shared_ptr.h:304:9 (d8+0x251473e)
+    #8 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), v8::base::Thread::Priority, void> third_party/libc++/src/include/__memory/shared_ptr.h:1025:55 (d8+0x251473e)
+    #9 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void> third_party/libc++/src/include/__memory/shared_ptr.h:1034:12 (d8+0x251473e)
+    #10 v8::platform::DefaultPlatform::EnsureBackgroundTaskRunnerInitialized() src/libplatform/default-platform.cc:141:9 (d8+0x251473e)
+    #11 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:112:5 (d8+0x2514565) (BuildId: 7fc0c851c23d26ca)
+    #12 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController> >, v8::platform::PriorityMode &> third_party/libc++/src/include/__memory/unique_ptr.h:685:30 (d8+0x2513c5c) (BuildId: 7fc0c851c23d26ca)
+    #13 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:54:19 (d8+0x2513c5c)
+    #14 v8::Shell::Main(int, char**) src/d8/d8.cc:5811:18 (d8+0x696c29) (BuildId: 7fc0c851c23d26ca)
+    #15 main src/d8/d8.cc:6127:43 (d8+0x697e20) (BuildId: 7fc0c851c23d26ca)
+
+  Thread T16 'V8 DefaultWorke' (tid=1014146, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1020:3 (d8+0x5d904b) (BuildId: 7fc0c851c23d26ca)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1217:14 (d8+0x2511ab9) (BuildId: 7fc0c851c23d26ca)
+    #2 WorkerThread src/libplatform/default-worker-threads-task-runner.cc:78:3 (d8+0x251e6c7) (BuildId: 7fc0c851c23d26ca)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *, v8::base::Thread::Priority &> third_party/libc++/src/include/__memory/unique_ptr.h:685:30 (d8+0x251e6c7)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)(), v8::base::Thread::Priority) src/libplatform/default-worker-threads-task-runner.cc:18:28 (d8+0x251e6c7)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, v8::platform::DefaultWorkerThreadsTaskRunner *> third_party/libc++/src/include/__memory/construct_at.h:41:46 (d8+0x251473e) (BuildId: 7fc0c851c23d26ca)
+    #6 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void, void> third_party/libc++/src/include/__memory/allocator_traits.h:304:9 (d8+0x251473e)
+    #7 __shared_ptr_emplace<const int &, double (*)(), v8::base::Thread::Priority, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, 0> third_party/libc++/src/include/__memory/shared_ptr.h:304:9 (d8+0x251473e)
+    #8 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), v8::base::Thread::Priority, void> third_party/libc++/src/include/__memory/shared_ptr.h:1025:55 (d8+0x251473e)
+    #9 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void> third_party/libc++/src/include/__memory/shared_ptr.h:1034:12 (d8+0x251473e)
+    #10 v8::platform::DefaultPlatform::EnsureBackgroundTaskRunnerInitialized() src/libplatform/default-platform.cc:141:9 (d8+0x251473e)
+    #11 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:112:5 (d8+0x2514565) (BuildId: 7fc0c851c23d26ca)
+    #12 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController> >, v8::platform::PriorityMode &> third_party/libc++/src/include/__memory/unique_ptr.h:685:30 (d8+0x2513c5c) (BuildId: 7fc0c851c23d26ca)
+    #13 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:54:19 (d8+0x2513c5c)
+    #14 v8::Shell::Main(int, char**) src/d8/d8.cc:5811:18 (d8+0x696c29) (BuildId: 7fc0c851c23d26ca)
+    #15 main src/d8/d8.cc:6127:43 (d8+0x697e20) (BuildId: 7fc0c851c23d26ca)
+
+SUMMARY: ThreadSanitizer: data race third_party/libc++/src/include/__atomic/cxx_atomic_impl.h:354:12 in __cxx_atomic_load<int>
+==================
+ThreadSanitizer: reported 1 warnings
+
+Run #2
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS, TIMEOUT
+Duration: 00:11:373
+
+Crash Type:
+Data race
+ATOMIC READ 4
+
+Crash State:
+__cxx_atomic_load<int>
+load
+atomic_load_explicit<int>
+
+Stderr:
+V8 is running with experimental features enabled. Stability and security will suffer.
+==================
+WARNING: ThreadSanitizer: data race (pid=1052463)
+  Atomic read of size 4 at 0x7eb100183628 by thread T16:
+    #0 __cxx_atomic_load<int> third_party/libc++/src/include/__atomic/cxx_atomic_impl.h:354:12 (d8+0xaae955) (BuildId: 7fc0c851c23d26ca)
+    #1 load third_party/libc++/src/include/__atomic/atomic_base.h:56:14 (d8+0xaae955)
+    #2 atomic_load_explicit<int> third_party/libc++/src/include/__atomic/atomic.h:239:17 (d8+0xaae955)
+    #3 Relaxed_Load src/base/atomicops.h:245:10 (d8+0xaae955)
+    #4 Relaxed_Load<unsigned int> src/base/atomic-utils.h:87:9 (d8+0xaae955)
+    #5 Relaxed_Load src/objects/compressed-slots-inl.h:71:26 (d8+0xaae955)
+    #6 v8::internal::EphemeronTableUpdatingItem::Process() src/heap/mark-compact.cc:4808:46 (d8+0xaae955)
+    #7 UpdatePointers src/heap/mark-compact.cc:4501:20 (d8+0xaaf535) (BuildId: 7fc0c851c23d26ca)
+    #8 v8::internal::PointersUpdatingJob::Run(v8::JobDelegate*) src/heap/mark-compact.cc:4490:7 (d8+0xaaf535)
+    #9 v8::DelayedTasksPlatform::DelayedJob::Run(v8::JobDelegate*) src/d8/d8-platforms.cc:309:18 (d8+0x669258) (BuildId: 7fc0c851c23d26ca)
+    #10 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (d8+0x25181db) (BuildId: 7fc0c851c23d26ca)
+    #11 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:93:25 (d8+0x251ef14) (BuildId: 7fc0c851c23d26ca)
+    #12 NotifyStartedAndRun src/base/platform/platform.h:612:5 (d8+0x2511bca) (BuildId: 7fc0c851c23d26ca)
+    #13 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1185:11 (d8+0x2511bca)
+
+  Previous write of size 4 at 0x7eb100183628 by thread T15:
+    #0 store src/objects/compressed-slots-inl.h:160:15 (d8+0xaadab5) (BuildId: 7fc0c851c23d26ca)
+    #1 Update<v8::internal::CompressedHeapObjectSlot> src/objects/maybe-object-inl.h:112:8 (d8+0xaadab5)
+    #2 CheckAndUpdateOldToNewSlot<v8::internal::CompressedMaybeObjectSlot> src/heap/mark-compact.cc:4611:7 (d8+0xaadab5)
+    #3 operator() src/heap/mark-compact.cc:4637:13 (d8+0xaadab5)
+    #4 operator() src/heap/slot-set.h:156:44 (d8+0xaadab5)
+    #5 Iterate<(heap::base::BasicSlotSet<4UL>::AccessMode)0, (lambda at ../../src/heap/slot-set.h:156:9), (lambda at ../../src/heap/slot-set.h:157:9)> src/heap/base/basic-slot-set.h:352:19 (d8+0xaadab5)
+    #6 Iterate<(v8::internal::AccessMode)0, (lambda at ../../src/heap/mark-compact.cc:4636:11)> src/heap/slot-set.h:154:26 (d8+0xaadab5)
+    #7 Iterate<(v8::internal::AccessMode)0, (lambda at ../../src/heap/mark-compact.cc:4636:11)> src/heap/remembered-set.h:44:26 (d8+0xaadab5)
+    #8 Iterate<(v8::internal::AccessMode)0, (lambda at ../../src/heap/mark-compact.cc:4636:11)> src/heap/remembered-set.h:199:12 (d8+0xaadab5)
+    #9 Iterate<(v8::internal::AccessMode)0, (lambda at ../../src/heap/mark-compact.cc:4636:11)> src/heap/remembered-set.h:193:12 (d8+0xaadab5)
+    #10 UpdateUntypedOldToNewPointers<(v8::internal::RememberedSetType)0> src/heap/mark-compact.cc:4634:7 (d8+0xaadab5)
+    #11 UpdateUntypedPointers src/heap/mark-compact.cc:4621:5 (d8+0xaadab5)
+    #12 v8::internal::(anonymous namespace)::RememberedSetUpdatingItem::Process() src/heap/mark-compact.cc:4550:5 (d8+0xaadab5)
+    #13 UpdatePointers src/heap/mark-compact.cc:4501:20 (d8+0xaaf535) (BuildId: 7fc0c851c23d26ca)
+    #14 v8::internal::PointersUpdatingJob::Run(v8::JobDelegate*) src/heap/mark-compact.cc:4490:7 (d8+0xaaf535)
+    #15 v8::DelayedTasksPlatform::DelayedJob::Run(v8::JobDelegate*) src/d8/d8-platforms.cc:309:18 (d8+0x669258) (BuildId: 7fc0c851c23d26ca)
+    #16 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (d8+0x25181db) (BuildId: 7fc0c851c23d26ca)
+    #17 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:93:25 (d8+0x251ef14) (BuildId: 7fc0c851c23d26ca)
+    #18 NotifyStartedAndRun src/base/platform/platform.h:612:5 (d8+0x2511bca) (BuildId: 7fc0c851c23d26ca)
+    #19 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1185:11 (d8+0x2511bca)
+
+  As if synchronized via sleep:
+    #0 usleep /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:388:3 (d8+0x5d6097) (BuildId: 7fc0c851c23d26ca)
+    #1 v8::base::OS::Sleep(v8::base::TimeDelta) src/base/platform/platform-posix.cc:692:3 (d8+0x2510885) (BuildId: 7fc0c851c23d26ca)
+    #2 v8::DelayedTasksPlatform::DelayedJob::Run(v8::JobDelegate*) src/d8/d8-platforms.cc:308:7 (d8+0x669237) (BuildId: 7fc0c851c23d26ca)
+    #3 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (d8+0x25181db) (BuildId: 7fc0c851c23d26ca)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:93:25 (d8+0x251ef14) (BuildId: 7fc0c851c23d26ca)
+    #5 NotifyStartedAndRun src/base/platform/platform.h:612:5 (d8+0x2511bca) (BuildId: 7fc0c851c23d26ca)
+    #6 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1185:11 (d8+0x2511bca)
+
+  Thread T16 'V8 DefaultWorke' (tid=1052502, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1020:3 (d8+0x5d904b) (BuildId: 7fc0c851c23d26ca)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1217:14 (d8+0x2511ab9) (BuildId: 7fc0c851c23d26ca)
+    #2 WorkerThread src/libplatform/default-worker-threads-task-runner.cc:78:3 (d8+0x251e6c7) (BuildId: 7fc0c851c23d26ca)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *, v8::base::Thread::Priority &> third_party/libc++/src/include/__memory/unique_ptr.h:685:30 (d8+0x251e6c7)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)(), v8::base::Thread::Priority) src/libplatform/default-worker-threads-task-runner.cc:18:28 (d8+0x251e6c7)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, v8::platform::DefaultWorkerThreadsTaskRunner *> third_party/libc++/src/include/__memory/construct_at.h:41:46 (d8+0x251473e) (BuildId: 7fc0c851c23d26ca)
+    #6 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void, void> third_party/libc++/src/include/__memory/allocator_traits.h:304:9 (d8+0x251473e)
+    #7 __shared_ptr_emplace<const int &, double (*)(), v8::base::Thread::Priority, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, 0> third_party/libc++/src/include/__memory/shared_ptr.h:304:9 (d8+0x251473e)
+    #8 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), v8::base::Thread::Priority, void> third_party/libc++/src/include/__memory/shared_ptr.h:1025:55 (d8+0x251473e)
+    #9 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void> third_party/libc++/src/include/__memory/shared_ptr.h:1034:12 (d8+0x251473e)
+    #10 v8::platform::DefaultPlatform::EnsureBackgroundTaskRunnerInitialized() src/libplatform/default-platform.cc:141:9 (d8+0x251473e)
+    #11 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:112:5 (d8+0x2514565) (BuildId: 7fc0c851c23d26ca)
+    #12 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController> >, v8::platform::PriorityMode &> third_party/libc++/src/include/__memory/unique_ptr.h:685:30 (d8+0x2513c5c) (BuildId: 7fc0c851c23d26ca)
+    #13 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:54:19 (d8+0x2513c5c)
+    #14 v8::Shell::Main(int, char**) src/d8/d8.cc:5811:18 (d8+0x696c29) (BuildId: 7fc0c851c23d26ca)
+    #15 main src/d8/d8.cc:6127:43 (d8+0x697e20) (BuildId: 7fc0c851c23d26ca)
+
+  Thread T15 'V8 DefaultWorke' (tid=1052501, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1020:3 (d8+0x5d904b) (BuildId: 7fc0c851c23d26ca)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1217:14 (d8+0x2511ab9) (BuildId: 7fc0c851c23d26ca)
+    #2 WorkerThread src/libplatform/default-worker-threads-task-runner.cc:78:3 (d8+0x251e6c7) (BuildId: 7fc0c851c23d26ca)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *, v8::base::Thread::Priority &> third_party/libc++/src/include/__memory/unique_ptr.h:685:30 (d8+0x251e6c7)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)(), v8::base::Thread::Priority) src/libplatform/default-worker-threads-task-runner.cc:18:28 (d8+0x251e6c7)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, v8::platform::DefaultWorkerThreadsTaskRunner *> third_party/libc++/src/include/__memory/construct_at.h:41:46 (d8+0x251473e) (BuildId: 7fc0c851c23d26ca)
+    #6 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void, void> third_party/libc++/src/include/__memory/allocator_traits.h:304:9 (d8+0x251473e)
+    #7 __shared_ptr_emplace<const int &, double (*)(), v8::base::Thread::Priority, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, 0> third_party/libc++/src/include/__memory/shared_ptr.h:304:9 (d8+0x251473e)
+    #8 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), v8::base::Thread::Priority, void> third_party/libc++/src/include/__memory/shared_ptr.h:1025:55 (d8+0x251473e)
+    #9 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void> third_party/libc++/src/include/__memory/shared_ptr.h:1034:12 (d8+0x251473e)
+    #10 v8::platform::DefaultPlatform::EnsureBackgroundTaskRunnerInitialized() src/libplatform/default-platform.cc:141:9 (d8+0x251473e)
+    #11 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:112:5 (d8+0x2514565) (BuildId: 7fc0c851c23d26ca)
+    #12 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController> >, v8::platform::PriorityMode &> third_party/libc++/src/include/__memory/unique_ptr.h:685:30 (d8+0x2513c5c) (BuildId: 7fc0c851c23d26ca)
+    #13 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:54:19 (d8+0x2513c5c)
+    #14 v8::Shell::Main(int, char**) src/d8/d8.cc:5811:18 (d8+0x696c29) (BuildId: 7fc0c851c23d26ca)
+    #15 main src/d8/d8.cc:6127:43 (d8+0x697e20) (BuildId: 7fc0c851c23d26ca)
+
+SUMMARY: ThreadSanitizer: data race third_party/libc++/src/include/__atomic/cxx_atomic_impl.h:354:12 in __cxx_atomic_load<int>
+==================
+ThreadSanitizer: reported 1 warnings
+
+Run #3
+Exit code: 0 [0x00]
+Result: PASS
+Expected outcomes: PASS, TIMEOUT
+Duration: 00:12:535
+
+Stderr:
+V8 is running with experimental features enabled. Stability and security will suffer.
+

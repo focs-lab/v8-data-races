@@ -1,0 +1,404 @@
+Test: mjsunit/wasm/atomics
+Flags: --test /b/s/w/ir/test/mjsunit/mjsunit.js /b/s/w/ir/test/mjsunit/wasm/atomics.js --random-seed=-1461189304 --nohard-abort --testing-d8-test-runner
+Command: out/build/d8 --test test/mjsunit/mjsunit.js test/mjsunit/wasm/atomics.js --random-seed=-1461189304 --nohard-abort --testing-d8-test-runner
+Variant: default
+Shard: 0:6
+
+GN arguments:
+dcheck_always_on = false
+is_component_build = false
+is_debug = false
+is_tsan = true
+target_cpu = "x64"
+use_goma = false
+use_remoteexec = true
+v8_enable_google_benchmark = true
+v8_enable_test_features = true
+
+Trigger flake bisect on command line:
+bb add v8/try.triggered/v8_flako -p 'bisect_builder_group="client.v8"' -p 'bisect_buildername="V8 Linux64 TSAN - builder"' -p 'revision="e70138196420755a503ea02dbd376d672a90eab4"' -p 'swarming_dimensions=["cpu:x86-64", "pool:chromium.tests", "os:Ubuntu-22.04"]' -p 'isolated_name="bot_default"' -p 'test_name="mjsunit/wasm/atomics"' -p 'timeout_sec=60' -p 'total_timeout_sec=120' -p 'variant="default"' -p 'extra_args=[]'
+
+Local flake reproduction on command line:
+tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1 mjsunit/wasm/atomics
+
+Run #1
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS
+Duration: 00:03:086
+
+Crash Type:
+Data race
+ATOMIC WRITE 4
+
+Crash State:
+__cxx_atomic_store<int>
+store
+atomic_store_explicit<int>
+
+Stdout:
+TestAtomicAdd
+TestAtomicAdd16U
+TestAtomicAdd8U
+TestAtomicSub
+TestAtomicSub16U
+TestAtomicSub8U
+TestAtomicAnd
+TestAtomicAnd16U
+TestAtomicAnd8U
+TestAtomicOr
+TestAtomicOr16U
+TestAtomicOr8U
+TestAtomicXor
+TestAtomicXor16U
+TestAtomicXor8U
+TestAtomicExchange
+TestAtomicExchange16U
+TestAtomicExchange8U
+TestAtomicCompareExchange
+TestAtomicCompareExchange16U
+TestAtomicCompareExchange8U
+TestAtomicLoad
+TestAtomicLoad16U
+TestAtomicLoad8U
+TestAtomicStore
+TestAtomicStore16U
+TestAtomicStore8U
+TestAtomicLoadStoreOffset
+TestAtomicOpinLoop
+TestUnalignedAtomicAccesses
+TestI64AtomicCompareExchangeLoop3
+TestI64AtomicCompareExchangeLoop2
+TestI64AtomicCompareExchangeLoop1
+TestI64AtomicCompareExchangeLoop0
+TestIllegalAtomicOp
+
+Stderr:
+==================
+WARNING: ThreadSanitizer: data race (pid=486710)
+  Atomic write of size 4 at 0x7ed6001ce504 by main thread:
+    #0 __cxx_atomic_store<int> buildtools/third_party/libc++/trunk/include/__atomic/cxx_atomic_impl.h:344:5 (d8+0x140609c) (BuildId: 8b22ba2f7546fadf)
+    #1 store buildtools/third_party/libc++/trunk/include/__atomic/atomic_base.h:48:7 (d8+0x140609c)
+    #2 atomic_store_explicit<int> buildtools/third_party/libc++/trunk/include/__atomic/atomic.h:201:10 (d8+0x140609c)
+    #3 Relaxed_Store src/base/atomicops.h:192:3 (d8+0x140609c)
+    #4 Relaxed_Store<unsigned int> src/base/atomic-utils.h:110:5 (d8+0x140609c)
+    #5 Relaxed_Store src/objects/tagged-field-inl.h:153:3 (d8+0x140609c)
+    #6 store src/objects/tagged-field-inl.h:97:3 (d8+0x140609c)
+    #7 set_wrapper_code gen/torque-generated/src/wasm/wasm-objects-tq-inl.inc:448:3 (d8+0x140609c)
+    #8 v8::internal::(anonymous namespace)::ReplaceWrapper(v8::internal::Isolate*, v8::internal::Handle<v8::internal::WasmInstanceObject>, int, v8::internal::Handle<v8::internal::Code>) src/runtime/runtime-wasm.cc:371:18 (d8+0x140609c)
+    #9 __RT_impl_Runtime_WasmCompileWrapper src/runtime/runtime-wasm.cc:409:3 (d8+0x13e855e) (BuildId: 8b22ba2f7546fadf)
+    #10 v8::internal::Runtime_WasmCompileWrapper(int, unsigned long*, v8::internal::Isolate*) src/runtime/runtime-wasm.cc:375:1 (d8+0x13e855e)
+    #11 Builtins_WasmCEntry setup-isolate-deserialize.cc (d8+0x2025e9b) (BuildId: 8b22ba2f7546fadf)
+    #12 v8::internal::Execution::CallScript(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSFunction>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>) src/execution/execution.cc:540:10 (d8+0x8dd40f) (BuildId: 8b22ba2f7546fadf)
+    #13 v8::Script::Run(v8::Local<v8::Context>, v8::Local<v8::Data>) src/api/api.cc:2131:7 (d8+0x67b57c) (BuildId: 8b22ba2f7546fadf)
+    #14 v8::Script::Run(v8::Local<v8::Context>) src/api/api.cc:2094:10 (d8+0x67b030) (BuildId: 8b22ba2f7546fadf)
+    #15 v8::Shell::ExecuteString(v8::Isolate*, v8::Local<v8::String>, v8::Local<v8::String>, v8::Shell::PrintResult, v8::Shell::ReportExceptions, v8::Shell::ProcessMessageQueue) src/d8/d8.cc:958:28 (d8+0x63b030) (BuildId: 8b22ba2f7546fadf)
+    #16 v8::SourceGroup::Execute(v8::Isolate*) src/d8/d8.cc:4443:10 (d8+0x65346e) (BuildId: 8b22ba2f7546fadf)
+    #17 v8::Shell::RunMainIsolate(v8::Isolate*, bool) src/d8/d8.cc:5248:37 (d8+0x65772e) (BuildId: 8b22ba2f7546fadf)
+    #18 v8::Shell::RunMain(v8::Isolate*, bool) src/d8/d8.cc:5169:18 (d8+0x657196) (BuildId: 8b22ba2f7546fadf)
+    #19 v8::Shell::Main(int, char**) src/d8/d8.cc:6025:18 (d8+0x659510) (BuildId: 8b22ba2f7546fadf)
+    #20 main src/d8/d8.cc:6117:43 (d8+0x659b40) (BuildId: 8b22ba2f7546fadf)
+
+  Previous read of size 4 at 0x7ed6001ce504 by thread T14:
+    #0 load src/objects/tagged-field-inl.h:73:20 (d8+0x199828b) (BuildId: 8b22ba2f7546fadf)
+    #1 wrapper_code gen/torque-generated/src/wasm/wasm-objects-tq-inl.inc:439:11 (d8+0x199828b)
+    #2 wrapper_code gen/torque-generated/src/wasm/wasm-objects-tq-inl.inc:432:43 (d8+0x199828b)
+    #3 is_promising_wasm_export src/objects/shared-function-info-inl.h:773:24 (d8+0x199828b)
+    #4 v8::internal::compiler::SharedFunctionInfoRef::is_promising_wasm_export() const src/compiler/heap-refs.cc:1632:1 (d8+0x199828b)
+    #5 v8::internal::compiler::JSCallReducer::ReduceJSCall(v8::internal::compiler::Node*, v8::internal::compiler::SharedFunctionInfoRef) src/compiler/js-call-reducer.cc:5115:15 (d8+0x19c7ce8) (BuildId: 8b22ba2f7546fadf)
+    #6 v8::internal::compiler::JSCallReducer::ReduceJSCall(v8::internal::compiler::Node*) src/compiler/js-call-reducer.cc (d8+0x19b75e6) (BuildId: 8b22ba2f7546fadf)
+    #7 v8::internal::compiler::JSCallReducer::ReduceJSCall(v8::internal::compiler::Node*) src/compiler/js-call-reducer.cc (d8+0x19b83b8) (BuildId: 8b22ba2f7546fadf)
+    #8 v8::internal::compiler::JSCallReducer::Reduce(v8::internal::compiler::Node*) src/compiler/js-call-reducer.cc:2657:14 (d8+0x19b4eb9) (BuildId: 8b22ba2f7546fadf)
+    #9 Reduce src/compiler/graph-reducer.cc:34:25 (d8+0x197201a) (BuildId: 8b22ba2f7546fadf)
+    #10 v8::internal::compiler::GraphReducer::Reduce(v8::internal::compiler::Node*) src/compiler/graph-reducer.cc:105:35 (d8+0x197201a)
+    #11 v8::internal::compiler::GraphReducer::ReduceTop() src/compiler/graph-reducer.cc:178:25 (d8+0x19719a0) (BuildId: 8b22ba2f7546fadf)
+    #12 v8::internal::compiler::GraphReducer::ReduceNode(v8::internal::compiler::Node*) src/compiler/graph-reducer.cc:75:7 (d8+0x19711b8) (BuildId: 8b22ba2f7546fadf)
+    #13 v8::internal::compiler::GraphReducer::ReduceGraph() src/compiler/graph-reducer.cc:97:36 (d8+0x1971ef4) (BuildId: 8b22ba2f7546fadf)
+    #14 v8::internal::compiler::InliningPhase::Run(v8::internal::compiler::PipelineData*, v8::internal::Zone*) src/compiler/pipeline.cc:1495:19 (d8+0x1b1d3b9) (BuildId: 8b22ba2f7546fadf)
+    #15 auto v8::internal::compiler::PipelineImpl::Run<v8::internal::compiler::InliningPhase>() src/compiler/pipeline.cc:1380:18 (d8+0x1b07ea3) (BuildId: 8b22ba2f7546fadf)
+    #16 v8::internal::compiler::PipelineImpl::CreateGraph() src/compiler/pipeline.cc:2918:3 (d8+0x1b0327a) (BuildId: 8b22ba2f7546fadf)
+    #17 v8::internal::compiler::PipelineCompilationJob::ExecuteJobImpl(v8::internal::RuntimeCallStats*, v8::internal::LocalIsolate*) src/compiler/pipeline.cc:1304:18 (d8+0x1b03088) (BuildId: 8b22ba2f7546fadf)
+    #18 v8::internal::OptimizedCompilationJob::ExecuteJob(v8::internal::RuntimeCallStats*, v8::internal::LocalIsolate*) src/codegen/compiler.cc:490:22 (d8+0x7eea1e) (BuildId: 8b22ba2f7546fadf)
+    #19 v8::internal::OptimizingCompileDispatcher::CompileNext(v8::internal::TurbofanCompilationJob*, v8::internal::LocalIsolate*) src/compiler-dispatcher/optimizing-compile-dispatcher.cc:103:12 (d8+0x84355d) (BuildId: 8b22ba2f7546fadf)
+    #20 v8::internal::OptimizingCompileDispatcher::CompileTask::Run(v8::JobDelegate*) src/compiler-dispatcher/optimizing-compile-dispatcher.cc:56:22 (d8+0x845ef5) (BuildId: 8b22ba2f7546fadf)
+    #21 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (d8+0x2296ddb) (BuildId: 8b22ba2f7546fadf)
+    #22 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:93:25 (d8+0x229da84) (BuildId: 8b22ba2f7546fadf)
+    #23 NotifyStartedAndRun src/base/platform/platform.h:609:5 (d8+0x229081a) (BuildId: 8b22ba2f7546fadf)
+    #24 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1166:11 (d8+0x229081a)
+
+  Thread T14 'V8 DefaultWorke' (tid=486729, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1020:3 (d8+0x59aebb) (BuildId: 8b22ba2f7546fadf)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1198:14 (d8+0x2290709) (BuildId: 8b22ba2f7546fadf)
+    #2 WorkerThread src/libplatform/default-worker-threads-task-runner.cc:78:3 (d8+0x229d237) (BuildId: 8b22ba2f7546fadf)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *, v8::base::Thread::Priority &> buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (d8+0x229d237)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)(), v8::base::Thread::Priority) src/libplatform/default-worker-threads-task-runner.cc:18:28 (d8+0x229d237)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/construct_at.h:38:46 (d8+0x22933be) (BuildId: 8b22ba2f7546fadf)
+    #6 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void, void> buildtools/third_party/libc++/trunk/include/__memory/allocator_traits.h:304:9 (d8+0x22933be)
+    #7 __shared_ptr_emplace<const int &, double (*)(), v8::base::Thread::Priority> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:299:13 (d8+0x22933be)
+    #8 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), v8::base::Thread::Priority, void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1010:55 (d8+0x22933be)
+    #9 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1019:12 (d8+0x22933be)
+    #10 v8::platform::DefaultPlatform::EnsureBackgroundTaskRunnerInitialized() src/libplatform/default-platform.cc:141:9 (d8+0x22933be)
+    #11 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:112:5 (d8+0x22931e5) (BuildId: 8b22ba2f7546fadf)
+    #12 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController> >, v8::platform::PriorityMode &> buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (d8+0x229293c) (BuildId: 8b22ba2f7546fadf)
+    #13 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:54:19 (d8+0x229293c)
+    #14 v8::Shell::Main(int, char**) src/d8/d8.cc:5802:16 (d8+0x658993) (BuildId: 8b22ba2f7546fadf)
+    #15 main src/d8/d8.cc:6117:43 (d8+0x659b40) (BuildId: 8b22ba2f7546fadf)
+
+SUMMARY: ThreadSanitizer: data race buildtools/third_party/libc++/trunk/include/__atomic/cxx_atomic_impl.h:344:5 in __cxx_atomic_store<int>
+==================
+ThreadSanitizer: reported 1 warnings
+
+Run #2
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS
+Duration: 00:01:665
+
+Crash Type:
+Data race
+ATOMIC WRITE 4
+
+Crash State:
+__cxx_atomic_store<int>
+store
+atomic_store_explicit<int>
+
+Stdout:
+TestAtomicAdd
+TestAtomicAdd16U
+TestAtomicAdd8U
+TestAtomicSub
+TestAtomicSub16U
+TestAtomicSub8U
+TestAtomicAnd
+TestAtomicAnd16U
+TestAtomicAnd8U
+TestAtomicOr
+TestAtomicOr16U
+TestAtomicOr8U
+TestAtomicXor
+TestAtomicXor16U
+TestAtomicXor8U
+TestAtomicExchange
+TestAtomicExchange16U
+TestAtomicExchange8U
+TestAtomicCompareExchange
+TestAtomicCompareExchange16U
+TestAtomicCompareExchange8U
+TestAtomicLoad
+TestAtomicLoad16U
+TestAtomicLoad8U
+TestAtomicStore
+TestAtomicStore16U
+TestAtomicStore8U
+TestAtomicLoadStoreOffset
+TestAtomicOpinLoop
+TestUnalignedAtomicAccesses
+TestI64AtomicCompareExchangeLoop3
+TestI64AtomicCompareExchangeLoop2
+TestI64AtomicCompareExchangeLoop1
+TestI64AtomicCompareExchangeLoop0
+TestIllegalAtomicOp
+
+Stderr:
+==================
+WARNING: ThreadSanitizer: data race (pid=488415)
+  Atomic write of size 4 at 0x5600001ce504 by main thread:
+    #0 __cxx_atomic_store<int> buildtools/third_party/libc++/trunk/include/__atomic/cxx_atomic_impl.h:344:5 (d8+0x140609c) (BuildId: 8b22ba2f7546fadf)
+    #1 store buildtools/third_party/libc++/trunk/include/__atomic/atomic_base.h:48:7 (d8+0x140609c)
+    #2 atomic_store_explicit<int> buildtools/third_party/libc++/trunk/include/__atomic/atomic.h:201:10 (d8+0x140609c)
+    #3 Relaxed_Store src/base/atomicops.h:192:3 (d8+0x140609c)
+    #4 Relaxed_Store<unsigned int> src/base/atomic-utils.h:110:5 (d8+0x140609c)
+    #5 Relaxed_Store src/objects/tagged-field-inl.h:153:3 (d8+0x140609c)
+    #6 store src/objects/tagged-field-inl.h:97:3 (d8+0x140609c)
+    #7 set_wrapper_code gen/torque-generated/src/wasm/wasm-objects-tq-inl.inc:448:3 (d8+0x140609c)
+    #8 v8::internal::(anonymous namespace)::ReplaceWrapper(v8::internal::Isolate*, v8::internal::Handle<v8::internal::WasmInstanceObject>, int, v8::internal::Handle<v8::internal::Code>) src/runtime/runtime-wasm.cc:371:18 (d8+0x140609c)
+    #9 __RT_impl_Runtime_WasmCompileWrapper src/runtime/runtime-wasm.cc:409:3 (d8+0x13e855e) (BuildId: 8b22ba2f7546fadf)
+    #10 v8::internal::Runtime_WasmCompileWrapper(int, unsigned long*, v8::internal::Isolate*) src/runtime/runtime-wasm.cc:375:1 (d8+0x13e855e)
+    #11 Builtins_WasmCEntry setup-isolate-deserialize.cc (d8+0x2025e9b) (BuildId: 8b22ba2f7546fadf)
+    #12 v8::internal::Execution::CallScript(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSFunction>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>) src/execution/execution.cc:540:10 (d8+0x8dd40f) (BuildId: 8b22ba2f7546fadf)
+    #13 v8::Script::Run(v8::Local<v8::Context>, v8::Local<v8::Data>) src/api/api.cc:2131:7 (d8+0x67b57c) (BuildId: 8b22ba2f7546fadf)
+    #14 v8::Script::Run(v8::Local<v8::Context>) src/api/api.cc:2094:10 (d8+0x67b030) (BuildId: 8b22ba2f7546fadf)
+    #15 v8::Shell::ExecuteString(v8::Isolate*, v8::Local<v8::String>, v8::Local<v8::String>, v8::Shell::PrintResult, v8::Shell::ReportExceptions, v8::Shell::ProcessMessageQueue) src/d8/d8.cc:958:28 (d8+0x63b030) (BuildId: 8b22ba2f7546fadf)
+    #16 v8::SourceGroup::Execute(v8::Isolate*) src/d8/d8.cc:4443:10 (d8+0x65346e) (BuildId: 8b22ba2f7546fadf)
+    #17 v8::Shell::RunMainIsolate(v8::Isolate*, bool) src/d8/d8.cc:5248:37 (d8+0x65772e) (BuildId: 8b22ba2f7546fadf)
+    #18 v8::Shell::RunMain(v8::Isolate*, bool) src/d8/d8.cc:5169:18 (d8+0x657196) (BuildId: 8b22ba2f7546fadf)
+    #19 v8::Shell::Main(int, char**) src/d8/d8.cc:6025:18 (d8+0x659510) (BuildId: 8b22ba2f7546fadf)
+    #20 main src/d8/d8.cc:6117:43 (d8+0x659b40) (BuildId: 8b22ba2f7546fadf)
+
+  Previous read of size 4 at 0x5600001ce504 by thread T13:
+    #0 load src/objects/tagged-field-inl.h:73:20 (d8+0x199828b) (BuildId: 8b22ba2f7546fadf)
+    #1 wrapper_code gen/torque-generated/src/wasm/wasm-objects-tq-inl.inc:439:11 (d8+0x199828b)
+    #2 wrapper_code gen/torque-generated/src/wasm/wasm-objects-tq-inl.inc:432:43 (d8+0x199828b)
+    #3 is_promising_wasm_export src/objects/shared-function-info-inl.h:773:24 (d8+0x199828b)
+    #4 v8::internal::compiler::SharedFunctionInfoRef::is_promising_wasm_export() const src/compiler/heap-refs.cc:1632:1 (d8+0x199828b)
+    #5 v8::internal::compiler::JSCallReducer::ReduceJSCall(v8::internal::compiler::Node*, v8::internal::compiler::SharedFunctionInfoRef) src/compiler/js-call-reducer.cc:5115:15 (d8+0x19c7ce8) (BuildId: 8b22ba2f7546fadf)
+    #6 v8::internal::compiler::JSCallReducer::ReduceJSCall(v8::internal::compiler::Node*) src/compiler/js-call-reducer.cc (d8+0x19b75e6) (BuildId: 8b22ba2f7546fadf)
+    #7 v8::internal::compiler::JSCallReducer::ReduceJSCall(v8::internal::compiler::Node*) src/compiler/js-call-reducer.cc (d8+0x19b83b8) (BuildId: 8b22ba2f7546fadf)
+    #8 v8::internal::compiler::JSCallReducer::Reduce(v8::internal::compiler::Node*) src/compiler/js-call-reducer.cc:2657:14 (d8+0x19b4eb9) (BuildId: 8b22ba2f7546fadf)
+    #9 Reduce src/compiler/graph-reducer.cc:34:25 (d8+0x197201a) (BuildId: 8b22ba2f7546fadf)
+    #10 v8::internal::compiler::GraphReducer::Reduce(v8::internal::compiler::Node*) src/compiler/graph-reducer.cc:105:35 (d8+0x197201a)
+    #11 v8::internal::compiler::GraphReducer::ReduceTop() src/compiler/graph-reducer.cc:178:25 (d8+0x19719a0) (BuildId: 8b22ba2f7546fadf)
+    #12 v8::internal::compiler::GraphReducer::ReduceNode(v8::internal::compiler::Node*) src/compiler/graph-reducer.cc:75:7 (d8+0x19711b8) (BuildId: 8b22ba2f7546fadf)
+    #13 v8::internal::compiler::GraphReducer::ReduceGraph() src/compiler/graph-reducer.cc:97:36 (d8+0x1971ef4) (BuildId: 8b22ba2f7546fadf)
+    #14 v8::internal::compiler::InliningPhase::Run(v8::internal::compiler::PipelineData*, v8::internal::Zone*) src/compiler/pipeline.cc:1495:19 (d8+0x1b1d3b9) (BuildId: 8b22ba2f7546fadf)
+    #15 auto v8::internal::compiler::PipelineImpl::Run<v8::internal::compiler::InliningPhase>() src/compiler/pipeline.cc:1380:18 (d8+0x1b07ea3) (BuildId: 8b22ba2f7546fadf)
+    #16 v8::internal::compiler::PipelineImpl::CreateGraph() src/compiler/pipeline.cc:2918:3 (d8+0x1b0327a) (BuildId: 8b22ba2f7546fadf)
+    #17 v8::internal::compiler::PipelineCompilationJob::ExecuteJobImpl(v8::internal::RuntimeCallStats*, v8::internal::LocalIsolate*) src/compiler/pipeline.cc:1304:18 (d8+0x1b03088) (BuildId: 8b22ba2f7546fadf)
+    #18 v8::internal::OptimizedCompilationJob::ExecuteJob(v8::internal::RuntimeCallStats*, v8::internal::LocalIsolate*) src/codegen/compiler.cc:490:22 (d8+0x7eea1e) (BuildId: 8b22ba2f7546fadf)
+    #19 v8::internal::OptimizingCompileDispatcher::CompileNext(v8::internal::TurbofanCompilationJob*, v8::internal::LocalIsolate*) src/compiler-dispatcher/optimizing-compile-dispatcher.cc:103:12 (d8+0x84355d) (BuildId: 8b22ba2f7546fadf)
+    #20 v8::internal::OptimizingCompileDispatcher::CompileTask::Run(v8::JobDelegate*) src/compiler-dispatcher/optimizing-compile-dispatcher.cc:56:22 (d8+0x845ef5) (BuildId: 8b22ba2f7546fadf)
+    #21 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (d8+0x2296ddb) (BuildId: 8b22ba2f7546fadf)
+    #22 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:93:25 (d8+0x229da84) (BuildId: 8b22ba2f7546fadf)
+    #23 NotifyStartedAndRun src/base/platform/platform.h:609:5 (d8+0x229081a) (BuildId: 8b22ba2f7546fadf)
+    #24 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1166:11 (d8+0x229081a)
+
+  Thread T13 'V8 DefaultWorke' (tid=488468, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1020:3 (d8+0x59aebb) (BuildId: 8b22ba2f7546fadf)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1198:14 (d8+0x2290709) (BuildId: 8b22ba2f7546fadf)
+    #2 WorkerThread src/libplatform/default-worker-threads-task-runner.cc:78:3 (d8+0x229d237) (BuildId: 8b22ba2f7546fadf)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *, v8::base::Thread::Priority &> buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (d8+0x229d237)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)(), v8::base::Thread::Priority) src/libplatform/default-worker-threads-task-runner.cc:18:28 (d8+0x229d237)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/construct_at.h:38:46 (d8+0x22933be) (BuildId: 8b22ba2f7546fadf)
+    #6 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void, void> buildtools/third_party/libc++/trunk/include/__memory/allocator_traits.h:304:9 (d8+0x22933be)
+    #7 __shared_ptr_emplace<const int &, double (*)(), v8::base::Thread::Priority> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:299:13 (d8+0x22933be)
+    #8 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), v8::base::Thread::Priority, void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1010:55 (d8+0x22933be)
+    #9 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1019:12 (d8+0x22933be)
+    #10 v8::platform::DefaultPlatform::EnsureBackgroundTaskRunnerInitialized() src/libplatform/default-platform.cc:141:9 (d8+0x22933be)
+    #11 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:112:5 (d8+0x22931e5) (BuildId: 8b22ba2f7546fadf)
+    #12 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController> >, v8::platform::PriorityMode &> buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (d8+0x229293c) (BuildId: 8b22ba2f7546fadf)
+    #13 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:54:19 (d8+0x229293c)
+    #14 v8::Shell::Main(int, char**) src/d8/d8.cc:5802:16 (d8+0x658993) (BuildId: 8b22ba2f7546fadf)
+    #15 main src/d8/d8.cc:6117:43 (d8+0x659b40) (BuildId: 8b22ba2f7546fadf)
+
+SUMMARY: ThreadSanitizer: data race buildtools/third_party/libc++/trunk/include/__atomic/cxx_atomic_impl.h:344:5 in __cxx_atomic_store<int>
+==================
+ThreadSanitizer: reported 1 warnings
+
+Run #3
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS
+Duration: 00:01:772
+
+Crash Type:
+Data race
+ATOMIC WRITE 4
+
+Crash State:
+__cxx_atomic_store<int>
+store
+atomic_store_explicit<int>
+
+Stdout:
+TestAtomicAdd
+TestAtomicAdd16U
+TestAtomicAdd8U
+TestAtomicSub
+TestAtomicSub16U
+TestAtomicSub8U
+TestAtomicAnd
+TestAtomicAnd16U
+TestAtomicAnd8U
+TestAtomicOr
+TestAtomicOr16U
+TestAtomicOr8U
+TestAtomicXor
+TestAtomicXor16U
+TestAtomicXor8U
+TestAtomicExchange
+TestAtomicExchange16U
+TestAtomicExchange8U
+TestAtomicCompareExchange
+TestAtomicCompareExchange16U
+TestAtomicCompareExchange8U
+TestAtomicLoad
+TestAtomicLoad16U
+TestAtomicLoad8U
+TestAtomicStore
+TestAtomicStore16U
+TestAtomicStore8U
+TestAtomicLoadStoreOffset
+TestAtomicOpinLoop
+TestUnalignedAtomicAccesses
+TestI64AtomicCompareExchangeLoop3
+TestI64AtomicCompareExchangeLoop2
+TestI64AtomicCompareExchangeLoop1
+TestI64AtomicCompareExchangeLoop0
+TestIllegalAtomicOp
+
+Stderr:
+==================
+WARNING: ThreadSanitizer: data race (pid=489844)
+  Atomic write of size 4 at 0x7ec0001ce504 by main thread:
+    #0 __cxx_atomic_store<int> buildtools/third_party/libc++/trunk/include/__atomic/cxx_atomic_impl.h:344:5 (d8+0x140609c) (BuildId: 8b22ba2f7546fadf)
+    #1 store buildtools/third_party/libc++/trunk/include/__atomic/atomic_base.h:48:7 (d8+0x140609c)
+    #2 atomic_store_explicit<int> buildtools/third_party/libc++/trunk/include/__atomic/atomic.h:201:10 (d8+0x140609c)
+    #3 Relaxed_Store src/base/atomicops.h:192:3 (d8+0x140609c)
+    #4 Relaxed_Store<unsigned int> src/base/atomic-utils.h:110:5 (d8+0x140609c)
+    #5 Relaxed_Store src/objects/tagged-field-inl.h:153:3 (d8+0x140609c)
+    #6 store src/objects/tagged-field-inl.h:97:3 (d8+0x140609c)
+    #7 set_wrapper_code gen/torque-generated/src/wasm/wasm-objects-tq-inl.inc:448:3 (d8+0x140609c)
+    #8 v8::internal::(anonymous namespace)::ReplaceWrapper(v8::internal::Isolate*, v8::internal::Handle<v8::internal::WasmInstanceObject>, int, v8::internal::Handle<v8::internal::Code>) src/runtime/runtime-wasm.cc:371:18 (d8+0x140609c)
+    #9 __RT_impl_Runtime_WasmCompileWrapper src/runtime/runtime-wasm.cc:409:3 (d8+0x13e855e) (BuildId: 8b22ba2f7546fadf)
+    #10 v8::internal::Runtime_WasmCompileWrapper(int, unsigned long*, v8::internal::Isolate*) src/runtime/runtime-wasm.cc:375:1 (d8+0x13e855e)
+    #11 Builtins_WasmCEntry setup-isolate-deserialize.cc (d8+0x2025e9b) (BuildId: 8b22ba2f7546fadf)
+    #12 v8::internal::Execution::CallScript(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSFunction>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>) src/execution/execution.cc:540:10 (d8+0x8dd40f) (BuildId: 8b22ba2f7546fadf)
+    #13 v8::Script::Run(v8::Local<v8::Context>, v8::Local<v8::Data>) src/api/api.cc:2131:7 (d8+0x67b57c) (BuildId: 8b22ba2f7546fadf)
+    #14 v8::Script::Run(v8::Local<v8::Context>) src/api/api.cc:2094:10 (d8+0x67b030) (BuildId: 8b22ba2f7546fadf)
+    #15 v8::Shell::ExecuteString(v8::Isolate*, v8::Local<v8::String>, v8::Local<v8::String>, v8::Shell::PrintResult, v8::Shell::ReportExceptions, v8::Shell::ProcessMessageQueue) src/d8/d8.cc:958:28 (d8+0x63b030) (BuildId: 8b22ba2f7546fadf)
+    #16 v8::SourceGroup::Execute(v8::Isolate*) src/d8/d8.cc:4443:10 (d8+0x65346e) (BuildId: 8b22ba2f7546fadf)
+    #17 v8::Shell::RunMainIsolate(v8::Isolate*, bool) src/d8/d8.cc:5248:37 (d8+0x65772e) (BuildId: 8b22ba2f7546fadf)
+    #18 v8::Shell::RunMain(v8::Isolate*, bool) src/d8/d8.cc:5169:18 (d8+0x657196) (BuildId: 8b22ba2f7546fadf)
+    #19 v8::Shell::Main(int, char**) src/d8/d8.cc:6025:18 (d8+0x659510) (BuildId: 8b22ba2f7546fadf)
+    #20 main src/d8/d8.cc:6117:43 (d8+0x659b40) (BuildId: 8b22ba2f7546fadf)
+
+  Previous read of size 4 at 0x7ec0001ce504 by thread T14:
+    #0 load src/objects/tagged-field-inl.h:73:20 (d8+0x199828b) (BuildId: 8b22ba2f7546fadf)
+    #1 wrapper_code gen/torque-generated/src/wasm/wasm-objects-tq-inl.inc:439:11 (d8+0x199828b)
+    #2 wrapper_code gen/torque-generated/src/wasm/wasm-objects-tq-inl.inc:432:43 (d8+0x199828b)
+    #3 is_promising_wasm_export src/objects/shared-function-info-inl.h:773:24 (d8+0x199828b)
+    #4 v8::internal::compiler::SharedFunctionInfoRef::is_promising_wasm_export() const src/compiler/heap-refs.cc:1632:1 (d8+0x199828b)
+    #5 v8::internal::compiler::JSCallReducer::ReduceJSCall(v8::internal::compiler::Node*, v8::internal::compiler::SharedFunctionInfoRef) src/compiler/js-call-reducer.cc:5115:15 (d8+0x19c7ce8) (BuildId: 8b22ba2f7546fadf)
+    #6 v8::internal::compiler::JSCallReducer::ReduceJSCall(v8::internal::compiler::Node*) src/compiler/js-call-reducer.cc (d8+0x19b75e6) (BuildId: 8b22ba2f7546fadf)
+    #7 v8::internal::compiler::JSCallReducer::ReduceJSCall(v8::internal::compiler::Node*) src/compiler/js-call-reducer.cc (d8+0x19b83b8) (BuildId: 8b22ba2f7546fadf)
+    #8 v8::internal::compiler::JSCallReducer::Reduce(v8::internal::compiler::Node*) src/compiler/js-call-reducer.cc:2657:14 (d8+0x19b4eb9) (BuildId: 8b22ba2f7546fadf)
+    #9 Reduce src/compiler/graph-reducer.cc:34:25 (d8+0x197201a) (BuildId: 8b22ba2f7546fadf)
+    #10 v8::internal::compiler::GraphReducer::Reduce(v8::internal::compiler::Node*) src/compiler/graph-reducer.cc:105:35 (d8+0x197201a)
+    #11 v8::internal::compiler::GraphReducer::ReduceTop() src/compiler/graph-reducer.cc:178:25 (d8+0x19719a0) (BuildId: 8b22ba2f7546fadf)
+    #12 v8::internal::compiler::GraphReducer::ReduceNode(v8::internal::compiler::Node*) src/compiler/graph-reducer.cc:75:7 (d8+0x19711b8) (BuildId: 8b22ba2f7546fadf)
+    #13 v8::internal::compiler::GraphReducer::ReduceGraph() src/compiler/graph-reducer.cc:97:36 (d8+0x1971ef4) (BuildId: 8b22ba2f7546fadf)
+    #14 v8::internal::compiler::InliningPhase::Run(v8::internal::compiler::PipelineData*, v8::internal::Zone*) src/compiler/pipeline.cc:1495:19 (d8+0x1b1d3b9) (BuildId: 8b22ba2f7546fadf)
+    #15 auto v8::internal::compiler::PipelineImpl::Run<v8::internal::compiler::InliningPhase>() src/compiler/pipeline.cc:1380:18 (d8+0x1b07ea3) (BuildId: 8b22ba2f7546fadf)
+    #16 v8::internal::compiler::PipelineImpl::CreateGraph() src/compiler/pipeline.cc:2918:3 (d8+0x1b0327a) (BuildId: 8b22ba2f7546fadf)
+    #17 v8::internal::compiler::PipelineCompilationJob::ExecuteJobImpl(v8::internal::RuntimeCallStats*, v8::internal::LocalIsolate*) src/compiler/pipeline.cc:1304:18 (d8+0x1b03088) (BuildId: 8b22ba2f7546fadf)
+    #18 v8::internal::OptimizedCompilationJob::ExecuteJob(v8::internal::RuntimeCallStats*, v8::internal::LocalIsolate*) src/codegen/compiler.cc:490:22 (d8+0x7eea1e) (BuildId: 8b22ba2f7546fadf)
+    #19 v8::internal::OptimizingCompileDispatcher::CompileNext(v8::internal::TurbofanCompilationJob*, v8::internal::LocalIsolate*) src/compiler-dispatcher/optimizing-compile-dispatcher.cc:103:12 (d8+0x84355d) (BuildId: 8b22ba2f7546fadf)
+    #20 v8::internal::OptimizingCompileDispatcher::CompileTask::Run(v8::JobDelegate*) src/compiler-dispatcher/optimizing-compile-dispatcher.cc:56:22 (d8+0x845ef5) (BuildId: 8b22ba2f7546fadf)
+    #21 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (d8+0x2296ddb) (BuildId: 8b22ba2f7546fadf)
+    #22 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:93:25 (d8+0x229da84) (BuildId: 8b22ba2f7546fadf)
+    #23 NotifyStartedAndRun src/base/platform/platform.h:609:5 (d8+0x229081a) (BuildId: 8b22ba2f7546fadf)
+    #24 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1166:11 (d8+0x229081a)
+
+  Thread T14 'V8 DefaultWorke' (tid=489862, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1020:3 (d8+0x59aebb) (BuildId: 8b22ba2f7546fadf)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1198:14 (d8+0x2290709) (BuildId: 8b22ba2f7546fadf)
+    #2 WorkerThread src/libplatform/default-worker-threads-task-runner.cc:78:3 (d8+0x229d237) (BuildId: 8b22ba2f7546fadf)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *, v8::base::Thread::Priority &> buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (d8+0x229d237)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)(), v8::base::Thread::Priority) src/libplatform/default-worker-threads-task-runner.cc:18:28 (d8+0x229d237)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/construct_at.h:38:46 (d8+0x22933be) (BuildId: 8b22ba2f7546fadf)
+    #6 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void, void> buildtools/third_party/libc++/trunk/include/__memory/allocator_traits.h:304:9 (d8+0x22933be)
+    #7 __shared_ptr_emplace<const int &, double (*)(), v8::base::Thread::Priority> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:299:13 (d8+0x22933be)
+    #8 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), v8::base::Thread::Priority, void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1010:55 (d8+0x22933be)
+    #9 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1019:12 (d8+0x22933be)
+    #10 v8::platform::DefaultPlatform::EnsureBackgroundTaskRunnerInitialized() src/libplatform/default-platform.cc:141:9 (d8+0x22933be)
+    #11 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:112:5 (d8+0x22931e5) (BuildId: 8b22ba2f7546fadf)
+    #12 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController> >, v8::platform::PriorityMode &> buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (d8+0x229293c) (BuildId: 8b22ba2f7546fadf)
+    #13 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:54:19 (d8+0x229293c)
+    #14 v8::Shell::Main(int, char**) src/d8/d8.cc:5802:16 (d8+0x658993) (BuildId: 8b22ba2f7546fadf)
+    #15 main src/d8/d8.cc:6117:43 (d8+0x659b40) (BuildId: 8b22ba2f7546fadf)
+
+SUMMARY: ThreadSanitizer: data race buildtools/third_party/libc++/trunk/include/__atomic/cxx_atomic_impl.h:344:5 in __cxx_atomic_store<int>
+==================
+ThreadSanitizer: reported 1 warnings
+

@@ -1,0 +1,159 @@
+0eae0380ff6053932b1285caeec3b3eadc3b5915:
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=future --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 mjsunit/wasm/gc-buffer
+15e45fb834e31c9f1de01d3bd1021eb6d5dd65e0:
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --extra-flags --concurrent-minor-ms-marking
+  --extra-flags --no-enable-fma3 --extra-flags --shared-string-table --extra-flags
+  --lazy-feedback-allocation --extra-flags --invocation-count-for-turbofan=205 --extra-flags
+  --invocation-count-for-maglev=9 --extra-flags --invocation-count-for-feedback-allocation=5
+  --extra-flags --fuzzer-random-seed=498278671 mjsunit/regress/regress-655573
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --extra-flags --cache=code --extra-flags
+  --minor-ms --extra-flags --concurrent-minor-ms-marking --extra-flags --regexp-interpret-all
+  --extra-flags --lazy-feedback-allocation --extra-flags --invocation-count-for-turbofan=235
+  --extra-flags --invocation-count-for-maglev=26 --extra-flags --invocation-count-for-feedback-allocation=1
+  --extra-flags --fuzzer-random-seed=-737467252 mjsunit/regress/regress-1122
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --extra-flags --assert-types --extra-flags
+  --liftoff --extra-flags --maglev --extra-flags --concurrent-minor-ms-marking --extra-flags
+  --regexp-interpret-all --extra-flags --turboshaft --extra-flags --turbo-instruction-scheduling
+  --extra-flags --stress-marking=2 --extra-flags --fuzzer-random-seed=-291886205 mjsunit/regress/regress-655573
+27a0f364839889c194cb083cb4c1cd32c1ad284f:
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=no_wasm_traps --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 cctest/test-streaming-compilation/AsyncTestMoreFunctionsCanBeSerializedCallback
+2eb530ff76cd9d2ff7e80f26714c6732e0f79ac5:
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress_incremental_marking
+  --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1
+  --random-gc-stress mjsunit/wasm/table-grow
+3419574f22aaf45e07a986ac5953170d32c18c1d:
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --extra-flags=--future unittests/RuntimeCallStatsTest.FunctionLengthGetter
+480a491e79337163be10655ce243587b14bcefb2:
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --isolates mjsunit/wasm/stack
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress_incremental_marking
+  --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1
+  --isolates mjsunit/regress/wasm/regress-1299183
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress_js_bg_compile_wasm_code_gc
+  --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1
+  --isolates mjsunit/wasm/indirect-tables
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress_js_bg_compile_wasm_code_gc
+  --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1
+  --isolates mjsunit/wasm/import-table
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress_js_bg_compile_wasm_code_gc
+  --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1
+  --isolates mjsunit/regress/wasm/regress-803788
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress_js_bg_compile_wasm_code_gc
+  --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1
+  --isolates mjsunit/wasm/element-segments-with-reftypes
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress_incremental_marking
+  --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1
+  --isolates mjsunit/wasm/indirect-calls
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --isolates mjsunit/wasm/multi-table-element-section
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --isolates mjsunit/wasm/compiled-module-serialization
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress_incremental_marking
+  --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1
+  --isolates mjsunit/wasm/compiled-module-serialization
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --isolates mjsunit/wasm/indirect-tables
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress_js_bg_compile_wasm_code_gc
+  --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1
+  --isolates mjsunit/wasm/call_indirect
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --isolates mjsunit/wasm/indirect-calls
+53799101225772729a4dffc0976907b1c15dc0d4:
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress_incremental_marking
+  --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1
+  mjsunit/wasm/grow-memory
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 webkit/duplicate-param-gc-crash
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress_incremental_marking
+  --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1
+  mjsunit/regress/regress-crbug-1394741
+5742e8f05cc68e46cd47fbef7e9352ff0dac9e7c:
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=future --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --isolates mjsunit/json2
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress_js_bg_compile_wasm_code_gc
+  --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1
+  --isolates mjsunit/empirical_max_arraybuffer
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --isolates mjsunit/wasm/huge-memory
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --isolates mjsunit/wasm/grow-huge-memory
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress_js_bg_compile_wasm_code_gc
+  --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1
+  --isolates mjsunit/json2
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --isolates mjsunit/wasm/memory64
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --isolates mjsunit/wasm/empirical_max_memory
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=future --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --isolates mjsunit/wasm/memory_2gb_oob
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=future --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --isolates mjsunit/wasm/memory64
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress_js_bg_compile_wasm_code_gc
+  --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1
+  --isolates mjsunit/wasm/grow-huge-memory
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --isolates mjsunit/wasm/grow-memory
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=future --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --isolates mjsunit/wasm/huge-typedarray
+5aae428f5763875db5fdd67959f58aef60b28f18:
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --extra-flags --assert-types --extra-flags
+  --future --extra-flags --interrupt-budget=100 --extra-flags --minor-mc --extra-flags
+  --shared-string-table --extra-flags --stress-wasm-code-gc --extra-flags --turboshaft
+  --extra-flags --random-gc-interval=1964 --extra-flags --stress-compaction-random
+  --extra-flags --stress-scavenge=31 --extra-flags --fuzzer-random-seed=-836634684
+  mjsunit/es6/proxies-example-membrane
+80fc53dd3ac81e3350ecdfc4bfa50e50ea8cde03:
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --extra-flags --always-turbofan
+  --extra-flags --assert-types --extra-flags --minor-mc --extra-flags --no-enable-bmi1
+  --extra-flags --no-lazy-feedback-allocation --extra-flags --no-regexp-tier-up --extra-flags
+  --stress-flush-code --extra-flags --stack-size=434 --extra-flags --random-gc-interval=859
+  --extra-flags --fuzzer-random-seed=818416949 mjsunit/regress/regress-crbug-1420860
+8d4d57a024dc50cf3bfe4c9f35c8345d061a10c4:
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=jitless --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 benchmarks/octane/typescript
+95c855348dc99f87e3a2430671895e476dc84a91:
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --extra-flags --always-turbofan
+  --extra-flags --maglev-future --extra-flags --no-enable-popcnt --extra-flags --no-regexp-tier-up
+  --extra-flags --optimize-on-next-call-optimizes-to-maglev --extra-flags --stress-background-compile
+  --extra-flags --stress-flush-code --extra-flags --stress-lazy-source-positions --extra-flags
+  --stress-maglev --extra-flags --stress-scavenge=22 --extra-flags --stress-compaction-random
+  --extra-flags --stress-delay-tasks --extra-flags --deopt-every-n-times=78 --extra-flags
+  --fuzzer-random-seed=500331866 mjsunit/es6/proxies-example-membrane
+9b7d2a9cd9bbcec35d5008a43056bfd1e1914a81:
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=future --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 mjsunit/wasm/import-memory
+9ee1ba176a52b9ba6f8a773f7b0a5f1d9c77e4af:
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --extra-flags --jit-fuzzing --extra-flags
+  --no-regexp-tier-up --extra-flags --regexp-interpret-all --extra-flags --turbo-stress-instruction-scheduling
+  --extra-flags --stack-size=94 --extra-flags --fuzzer-random-seed=324190250 mjsunit/regress/asm/regress-8505
+becdb484385119f0f4f5b1aef097ed41ab585e4b:
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 unittests/YoungUnifiedHeapTest.FindingV8ToCppGCReference
+d31e52879b6ee0e483d12f96684c93d3f4a2246f:
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 unittests/LogAllTest.LogAll
+e70138196420755a503ea02dbd376d672a90eab4:
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=slow_path --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 mjsunit/wasm/atomics
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 mjsunit/wasm/atomics
+fc437c335c727caf6c22f880809bf63cc34a4a62:
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --extra-flags --jit-fuzzing --extra-flags
+  --no-enable-sse4_2 --extra-flags --no-enable-sahf --extra-flags --stress-wasm-code-gc
+  --extra-flags --stress-scavenge=21 --extra-flags --fuzzer-random-seed=1491033610
+  mjsunit/regress/wasm/regress-1517559
+- tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000
+  --total-timeout-sec=120 --exit-after-n-failures=1 --extra-flags --jit-fuzzing --extra-flags
+  --maglev-future --extra-flags --no-lazy-feedback-allocation --extra-flags --stress-wasm-code-gc
+  --extra-flags --stack-size=661 --extra-flags --fuzzer-random-seed=1812485548 mjsunit/regress/wasm/regress-1517559

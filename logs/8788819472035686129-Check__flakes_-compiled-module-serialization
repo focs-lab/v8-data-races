@@ -1,0 +1,327 @@
+Test: mjsunit/wasm/compiled-module-serialization (flaky in a repeated run)
+Flags: --test /b/s/w/ir/test/mjsunit/mjsunit.js /b/s/w/ir/test/mjsunit/wasm/compiled-module-serialization.js --isolate /b/s/w/ir/test/mjsunit/mjsunit.js /b/s/w/ir/test/mjsunit/wasm/compiled-module-serialization.js --random-seed=-1461189304 --nohard-abort --testing-d8-test-runner --no-liftoff --stress-lazy-source-positions --no-wasm-generic-wrapper --no-wasm-lazy-compilation --expose-wasm --allow-natives-syntax --expose-gc --no-liftoff --no-wasm-lazy-compilation
+Command: out/build/d8 --test test/mjsunit/mjsunit.js test/mjsunit/wasm/compiled-module-serialization.js --isolate test/mjsunit/mjsunit.js test/mjsunit/wasm/compiled-module-serialization.js --random-seed=-1461189304 --nohard-abort --testing-d8-test-runner --no-liftoff --stress-lazy-source-positions --no-wasm-generic-wrapper --no-wasm-lazy-compilation --expose-wasm --allow-natives-syntax --expose-gc --no-liftoff --no-wasm-lazy-compilation
+Variant: stress
+Shard: 2:7
+
+GN arguments:
+dcheck_always_on = false
+is_component_build = false
+is_debug = false
+is_tsan = true
+target_cpu = "x64"
+use_goma = false
+use_remoteexec = true
+v8_enable_google_benchmark = true
+v8_enable_test_features = true
+
+Trigger flake bisect on command line:
+bb add v8/try.triggered/v8_flako -p 'bisect_builder_group="client.v8"' -p 'bisect_buildername="V8 Linux64 TSAN - builder"' -p 'revision="480a491e79337163be10655ce243587b14bcefb2"' -p 'swarming_dimensions=["cpu:x86-64", "pool:chromium.tests", "os:Ubuntu-18.04"]' -p 'isolated_name="bot_default"' -p 'test_name="mjsunit/wasm/compiled-module-serialization"' -p 'timeout_sec=60' -p 'total_timeout_sec=120' -p 'variant="stress"' -p 'extra_args=["--isolates"]'
+
+Local flake reproduction on command line:
+tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=stress --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1 --isolates mjsunit/wasm/compiled-module-serialization
+
+Run #1
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS
+Duration: 00:02:132
+
+Crash Type:
+Data race
+WRITE 1
+
+Crash State:
+v8::internal::wasm::ModuleDecoderImpl::consume_element_func_index(v8::internal::wasm::WasmModule*, v8::internal::wasm::ValueType)
+consume_element_segment_entry
+v8::internal::wasm::(anonymous namespace)::LoadElemSegmentImpl(v8::internal::Zone*, v8::internal::Isolate*, v8::internal::Handle<v8::internal::WasmInstanceObject>, v8::internal::Handle<v8::internal::WasmTableObject>, unsigned int, unsigned int, unsigned int, unsigned int, unsigned long)
+
+Stdout:
+SerializeAndDeserializeModule
+SerializeAndDeserializeModule
+DeserializeInvalidObject
+RelationBetweenModuleAndClone
+DeserializeInvalidObject
+SerializeWrappersWithSameSignature
+SerializeAfterInstantiation
+RelationBetweenModuleAndClone
+SerializeAfterInstantiationWithMemory
+SerializeWrappersWithSameSignature
+GlobalsArePrivateBetweenClones
+SerializeAfterInstantiation
+SerializeAfterInstantiationWithMemory
+GlobalsArePrivateBetweenClones
+SharedTableTest
+SharedTableTest
+StackOverflowAfterSerialization
+StackOverflowAfterSerialization
+TrapAfterDeserialization
+DirectCallAfterSerialization
+ImportCallAfterSerialization
+BranchTableAfterSerialization
+TrapAfterDeserialization
+DirectCallAfterSerialization
+ImportCallAfterSerialization
+BranchTableAfterSerialization
+
+Stderr:
+==================
+WARNING: ThreadSanitizer: data race (pid=27411)
+  Write of size 1 at 0x7b200000135a by main thread:
+    #0 v8::internal::wasm::ModuleDecoderImpl::consume_element_func_index(v8::internal::wasm::WasmModule*, v8::internal::wasm::ValueType) src/wasm/module-decoder-impl.h:2394:20 (d8+0x929a11) (BuildId: 5d14f9356b37770c)
+    #1 consume_element_segment_entry src/wasm/module-decoder-impl.h:1716:11 (d8+0x1493484) (BuildId: 5d14f9356b37770c)
+    #2 v8::internal::wasm::(anonymous namespace)::LoadElemSegmentImpl(v8::internal::Zone*, v8::internal::Isolate*, v8::internal::Handle<v8::internal::WasmInstanceObject>, v8::internal::Handle<v8::internal::WasmTableObject>, unsigned int, unsigned int, unsigned int, unsigned int, unsigned long) src/wasm/module-instantiate.cc:2063:40 (d8+0x1493484)
+    #3 v8::internal::wasm::InstanceBuilder::LoadTableSegments(v8::internal::Handle<v8::internal::WasmInstanceObject>) src/wasm/module-instantiate.cc:2101:49 (d8+0x148e110) (BuildId: 5d14f9356b37770c)
+    #4 v8::internal::wasm::InstanceBuilder::Build() src/wasm/module-instantiate.cc:799:5 (d8+0x1488ff2) (BuildId: 5d14f9356b37770c)
+    #5 v8::internal::wasm::InstantiateToInstanceObject(v8::internal::Isolate*, v8::internal::wasm::ErrorThrower*, v8::internal::Handle<v8::internal::WasmModuleObject>, v8::internal::MaybeHandle<v8::internal::JSReceiver>, v8::internal::MaybeHandle<v8::internal::JSArrayBuffer>) src/wasm/module-instantiate.cc:454:27 (d8+0x1486b81) (BuildId: 5d14f9356b37770c)
+    #6 v8::internal::wasm::WasmEngine::SyncInstantiate(v8::internal::Isolate*, v8::internal::wasm::ErrorThrower*, v8::internal::Handle<v8::internal::WasmModuleObject>, v8::internal::MaybeHandle<v8::internal::JSReceiver>, v8::internal::MaybeHandle<v8::internal::JSArrayBuffer>) src/wasm/wasm-engine.cc:603:10 (d8+0x14dc4ff) (BuildId: 5d14f9356b37770c)
+    #7 v8::(anonymous namespace)::WebAssemblyInstance(v8::FunctionCallbackInfo<v8::Value> const&) src/wasm/wasm-js.cc:844:52 (d8+0x14fa859) (BuildId: 5d14f9356b37770c)
+    #8 v8::internal::FunctionCallbackArguments::Call(v8::internal::CallHandlerInfo) src/api/api-arguments-inl.h:146:3 (d8+0x68a07a) (BuildId: 5d14f9356b37770c)
+    #9 v8::internal::MaybeHandle<v8::internal::Object> v8::internal::(anonymous namespace)::HandleApiCallHelper<true>(v8::internal::Isolate*, v8::internal::Handle<v8::internal::HeapObject>, v8::internal::Handle<v8::internal::FunctionTemplateInfo>, v8::internal::Handle<v8::internal::Object>, unsigned long*, int) src/builtins/builtins-api.cc:113:36 (d8+0x688b1a) (BuildId: 5d14f9356b37770c)
+    #10 v8::internal::Builtin_Impl_HandleApiCall(v8::internal::BuiltinArguments, v8::internal::Isolate*) src/builtins/builtins-api.cc:144:5 (d8+0x68816b) (BuildId: 5d14f9356b37770c)
+    #11 v8::internal::Builtin_HandleApiCall(int, unsigned long*, v8::internal::Isolate*) src/builtins/builtins-api.cc:135:1 (d8+0x687c83) (BuildId: 5d14f9356b37770c)
+    #12 Builtins_AsyncFromSyncIteratorPrototypeThrow setup-isolate-deserialize.cc (d8+0x1dc3774)
+    #13 v8::internal::Execution::CallScript(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSFunction>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>) src/execution/execution.cc:539:10 (d8+0x85f982) (BuildId: 5d14f9356b37770c)
+    #14 v8::Script::Run(v8::Local<v8::Context>, v8::Local<v8::Data>) src/api/api.cc:2233:7 (d8+0x6084b5) (BuildId: 5d14f9356b37770c)
+    #15 v8::Script::Run(v8::Local<v8::Context>) src/api/api.cc:2196:10 (d8+0x607e60) (BuildId: 5d14f9356b37770c)
+    #16 v8::Shell::ExecuteString(v8::Isolate*, v8::Local<v8::String>, v8::Local<v8::String>, v8::Shell::PrintResult, v8::Shell::ReportExceptions, v8::Shell::ProcessMessageQueue) src/d8/d8.cc:877:28 (d8+0x5c74a2) (BuildId: 5d14f9356b37770c)
+    #17 v8::SourceGroup::Execute(v8::Isolate*) src/d8/d8.cc:4290:10 (d8+0x5dfade) (BuildId: 5d14f9356b37770c)
+    #18 v8::Shell::RunMain(v8::Isolate*, bool) src/d8/d8.cc:5004:39 (d8+0x5e38b6) (BuildId: 5d14f9356b37770c)
+    #19 v8::Shell::Main(int, char**) src/d8/d8.cc:5813:18 (d8+0x5e5d9c) (BuildId: 5d14f9356b37770c)
+    #20 main src/d8/d8.cc:5905:43 (d8+0x5e63c0) (BuildId: 5d14f9356b37770c)
+
+  Previous write of size 1 at 0x7b200000135a by thread T8:
+    #0 v8::internal::wasm::ModuleDecoderImpl::consume_element_func_index(v8::internal::wasm::WasmModule*, v8::internal::wasm::ValueType) src/wasm/module-decoder-impl.h:2394:20 (d8+0x929a11) (BuildId: 5d14f9356b37770c)
+    #1 consume_element_segment_entry src/wasm/module-decoder-impl.h:1716:11 (d8+0x1493484) (BuildId: 5d14f9356b37770c)
+    #2 v8::internal::wasm::(anonymous namespace)::LoadElemSegmentImpl(v8::internal::Zone*, v8::internal::Isolate*, v8::internal::Handle<v8::internal::WasmInstanceObject>, v8::internal::Handle<v8::internal::WasmTableObject>, unsigned int, unsigned int, unsigned int, unsigned int, unsigned long) src/wasm/module-instantiate.cc:2063:40 (d8+0x1493484)
+    #3 v8::internal::wasm::InstanceBuilder::LoadTableSegments(v8::internal::Handle<v8::internal::WasmInstanceObject>) src/wasm/module-instantiate.cc:2101:49 (d8+0x148e110) (BuildId: 5d14f9356b37770c)
+    #4 v8::internal::wasm::InstanceBuilder::Build() src/wasm/module-instantiate.cc:799:5 (d8+0x1488ff2) (BuildId: 5d14f9356b37770c)
+    #5 v8::internal::wasm::InstantiateToInstanceObject(v8::internal::Isolate*, v8::internal::wasm::ErrorThrower*, v8::internal::Handle<v8::internal::WasmModuleObject>, v8::internal::MaybeHandle<v8::internal::JSReceiver>, v8::internal::MaybeHandle<v8::internal::JSArrayBuffer>) src/wasm/module-instantiate.cc:454:27 (d8+0x1486b81) (BuildId: 5d14f9356b37770c)
+    #6 v8::internal::wasm::WasmEngine::SyncInstantiate(v8::internal::Isolate*, v8::internal::wasm::ErrorThrower*, v8::internal::Handle<v8::internal::WasmModuleObject>, v8::internal::MaybeHandle<v8::internal::JSReceiver>, v8::internal::MaybeHandle<v8::internal::JSArrayBuffer>) src/wasm/wasm-engine.cc:603:10 (d8+0x14dc4ff) (BuildId: 5d14f9356b37770c)
+    #7 v8::(anonymous namespace)::WebAssemblyInstance(v8::FunctionCallbackInfo<v8::Value> const&) src/wasm/wasm-js.cc:844:52 (d8+0x14fa859) (BuildId: 5d14f9356b37770c)
+    #8 v8::internal::FunctionCallbackArguments::Call(v8::internal::CallHandlerInfo) src/api/api-arguments-inl.h:146:3 (d8+0x68a07a) (BuildId: 5d14f9356b37770c)
+    #9 v8::internal::MaybeHandle<v8::internal::Object> v8::internal::(anonymous namespace)::HandleApiCallHelper<true>(v8::internal::Isolate*, v8::internal::Handle<v8::internal::HeapObject>, v8::internal::Handle<v8::internal::FunctionTemplateInfo>, v8::internal::Handle<v8::internal::Object>, unsigned long*, int) src/builtins/builtins-api.cc:113:36 (d8+0x688b1a) (BuildId: 5d14f9356b37770c)
+    #10 v8::internal::Builtin_Impl_HandleApiCall(v8::internal::BuiltinArguments, v8::internal::Isolate*) src/builtins/builtins-api.cc:144:5 (d8+0x68816b) (BuildId: 5d14f9356b37770c)
+    #11 v8::internal::Builtin_HandleApiCall(int, unsigned long*, v8::internal::Isolate*) src/builtins/builtins-api.cc:135:1 (d8+0x687c83) (BuildId: 5d14f9356b37770c)
+    #12 Builtins_AsyncFromSyncIteratorPrototypeThrow setup-isolate-deserialize.cc (d8+0x1dc3774)
+    #13 v8::internal::Execution::CallScript(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSFunction>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>) src/execution/execution.cc:539:10 (d8+0x85f982) (BuildId: 5d14f9356b37770c)
+    #14 v8::Script::Run(v8::Local<v8::Context>, v8::Local<v8::Data>) src/api/api.cc:2233:7 (d8+0x6084b5) (BuildId: 5d14f9356b37770c)
+    #15 v8::Script::Run(v8::Local<v8::Context>) src/api/api.cc:2196:10 (d8+0x607e60) (BuildId: 5d14f9356b37770c)
+    #16 v8::Shell::ExecuteString(v8::Isolate*, v8::Local<v8::String>, v8::Local<v8::String>, v8::Shell::PrintResult, v8::Shell::ReportExceptions, v8::Shell::ProcessMessageQueue) src/d8/d8.cc:877:28 (d8+0x5c74a2) (BuildId: 5d14f9356b37770c)
+    #17 v8::SourceGroup::Execute(v8::Isolate*) src/d8/d8.cc:4290:10 (d8+0x5dfade) (BuildId: 5d14f9356b37770c)
+    #18 v8::SourceGroup::ExecuteInThread() src/d8/d8.cc:4327:11 (d8+0x5dff0b) (BuildId: 5d14f9356b37770c)
+    #19 v8::SourceGroup::IsolateThread::Run() src/d8/d8.h:117:35 (d8+0x5e6533) (BuildId: 5d14f9356b37770c)
+    #20 NotifyStartedAndRun src/base/platform/platform.h:596:5 (d8+0x1ffb382) (BuildId: 5d14f9356b37770c)
+    #21 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1123:11 (d8+0x1ffb382)
+
+  Location is heap block of size 128 at 0x7b2000001300 allocated by main thread:
+    #0 operator new(unsigned long) /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_new_delete.cpp:64:3 (d8+0x5ae737) (BuildId: 5d14f9356b37770c)
+    #1 __libcpp_operator_new<unsigned long> buildtools/third_party/libc++/trunk/include/new:266:10 (d8+0x147fadc) (BuildId: 5d14f9356b37770c)
+    #2 __libcpp_allocate buildtools/third_party/libc++/trunk/include/new:292:10 (d8+0x147fadc)
+    #3 allocate buildtools/third_party/libc++/trunk/include/__memory/allocator.h:115:38 (d8+0x147fadc)
+    #4 __allocate_at_least<std::Cr::allocator<v8::internal::wasm::WasmFunction> > buildtools/third_party/libc++/trunk/include/__memory/allocate_at_least.h:55:19 (d8+0x147fadc)
+    #5 __split_buffer buildtools/third_party/libc++/trunk/include/__split_buffer:323:29 (d8+0x147fadc)
+    #6 std::Cr::vector<v8::internal::wasm::WasmFunction, std::Cr::allocator<v8::internal::wasm::WasmFunction>>::__append(unsigned long) buildtools/third_party/libc++/trunk/include/vector:1046:53 (d8+0x147fadc)
+    #7 resize buildtools/third_party/libc++/trunk/include/vector:1910:15 (d8+0x14760f7) (BuildId: 5d14f9356b37770c)
+    #8 v8::internal::wasm::ModuleDecoderImpl::DecodeFunctionSection() src/wasm/module-decoder-impl.h:835:24 (d8+0x14760f7)
+    #9 v8::internal::wasm::ModuleDecoderImpl::DecodeSection(v8::internal::wasm::SectionCode, v8::base::Vector<unsigned char const>, unsigned int) src/wasm/module-decoder-impl.h:432:9 (d8+0x146fce7) (BuildId: 5d14f9356b37770c)
+    #10 v8::internal::wasm::ModuleDecoderImpl::DecodeModule(bool) src/wasm/module-decoder-impl.h:1651:9 (d8+0x146ef50) (BuildId: 5d14f9356b37770c)
+    #11 v8::internal::wasm::DecodeWasmModule(v8::internal::wasm::WasmFeatures, v8::base::Vector<unsigned char const>, bool, v8::internal::wasm::ModuleOrigin) src/wasm/module-decoder.cc:123:18 (d8+0x146eb97) (BuildId: 5d14f9356b37770c)
+    #12 v8::internal::wasm::DecodeWasmModule(v8::internal::wasm::WasmFeatures, v8::base::Vector<unsigned char const>, bool, v8::internal::wasm::ModuleOrigin, v8::internal::Counters*, std::Cr::shared_ptr<v8::internal::metrics::Recorder>, v8::metrics::Recorder::ContextId, v8::internal::wasm::DecodingMethod) src/wasm/module-decoder.cc:93:25 (d8+0x146e673) (BuildId: 5d14f9356b37770c)
+    #13 v8::internal::wasm::WasmEngine::SyncCompile(v8::internal::Isolate*, v8::internal::wasm::WasmFeatures const&, v8::internal::wasm::ErrorThrower*, v8::internal::wasm::ModuleWireBytes) src/wasm/wasm-engine.cc:546:27 (d8+0x14da4b6) (BuildId: 5d14f9356b37770c)
+    #14 v8::(anonymous namespace)::WebAssemblyModule(v8::FunctionCallbackInfo<v8::Value> const&) src/wasm/wasm-js.cc:734:50 (d8+0x14f9d34) (BuildId: 5d14f9356b37770c)
+    #15 v8::internal::FunctionCallbackArguments::Call(v8::internal::CallHandlerInfo) src/api/api-arguments-inl.h:146:3 (d8+0x68a07a) (BuildId: 5d14f9356b37770c)
+    #16 v8::internal::MaybeHandle<v8::internal::Object> v8::internal::(anonymous namespace)::HandleApiCallHelper<true>(v8::internal::Isolate*, v8::internal::Handle<v8::internal::HeapObject>, v8::internal::Handle<v8::internal::FunctionTemplateInfo>, v8::internal::Handle<v8::internal::Object>, unsigned long*, int) src/builtins/builtins-api.cc:113:36 (d8+0x688b1a) (BuildId: 5d14f9356b37770c)
+    #17 v8::internal::Builtin_Impl_HandleApiCall(v8::internal::BuiltinArguments, v8::internal::Isolate*) src/builtins/builtins-api.cc:144:5 (d8+0x68816b) (BuildId: 5d14f9356b37770c)
+    #18 v8::internal::Builtin_HandleApiCall(int, unsigned long*, v8::internal::Isolate*) src/builtins/builtins-api.cc:135:1 (d8+0x687c83) (BuildId: 5d14f9356b37770c)
+    #19 Builtins_AsyncFromSyncIteratorPrototypeThrow setup-isolate-deserialize.cc (d8+0x1dc3774)
+    #20 v8::internal::Execution::CallScript(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSFunction>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>) src/execution/execution.cc:539:10 (d8+0x85f982) (BuildId: 5d14f9356b37770c)
+    #21 v8::Script::Run(v8::Local<v8::Context>, v8::Local<v8::Data>) src/api/api.cc:2233:7 (d8+0x6084b5) (BuildId: 5d14f9356b37770c)
+    #22 v8::Script::Run(v8::Local<v8::Context>) src/api/api.cc:2196:10 (d8+0x607e60) (BuildId: 5d14f9356b37770c)
+    #23 v8::Shell::ExecuteString(v8::Isolate*, v8::Local<v8::String>, v8::Local<v8::String>, v8::Shell::PrintResult, v8::Shell::ReportExceptions, v8::Shell::ProcessMessageQueue) src/d8/d8.cc:877:28 (d8+0x5c74a2) (BuildId: 5d14f9356b37770c)
+    #24 v8::SourceGroup::Execute(v8::Isolate*) src/d8/d8.cc:4290:10 (d8+0x5dfade) (BuildId: 5d14f9356b37770c)
+    #25 v8::Shell::RunMain(v8::Isolate*, bool) src/d8/d8.cc:5004:39 (d8+0x5e38b6) (BuildId: 5d14f9356b37770c)
+    #26 v8::Shell::Main(int, char**) src/d8/d8.cc:5813:18 (d8+0x5e5d9c) (BuildId: 5d14f9356b37770c)
+    #27 main src/d8/d8.cc:5905:43 (d8+0x5e63c0) (BuildId: 5d14f9356b37770c)
+
+  Thread T8 'IsolateThread' (tid=27432, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1048:3 (d8+0x52905b) (BuildId: 5d14f9356b37770c)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1155:14 (d8+0x1ffb296) (BuildId: 5d14f9356b37770c)
+    #2 StartExecuteInThread src/d8/d8.cc:4343:5 (d8+0x5e3651) (BuildId: 5d14f9356b37770c)
+    #3 v8::Shell::RunMain(v8::Isolate*, bool) src/d8/d8.cc:4985:32 (d8+0x5e3651)
+    #4 v8::Shell::Main(int, char**) src/d8/d8.cc:5813:18 (d8+0x5e5d9c) (BuildId: 5d14f9356b37770c)
+    #5 main src/d8/d8.cc:5905:43 (d8+0x5e63c0) (BuildId: 5d14f9356b37770c)
+
+SUMMARY: ThreadSanitizer: data race src/wasm/module-decoder-impl.h:2394:20 in v8::internal::wasm::ModuleDecoderImpl::consume_element_func_index(v8::internal::wasm::WasmModule*, v8::internal::wasm::ValueType)
+==================
+ThreadSanitizer: reported 1 warnings
+
+Run #2
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS
+Duration: 00:02:646
+
+Crash Type:
+Data race
+WRITE 1
+
+Crash State:
+v8::internal::wasm::ModuleDecoderImpl::consume_element_func_index(v8::internal::wasm::WasmModule*, v8::internal::wasm::ValueType)
+consume_element_segment_entry
+v8::internal::wasm::(anonymous namespace)::LoadElemSegmentImpl(v8::internal::Zone*, v8::internal::Isolate*, v8::internal::Handle<v8::internal::WasmInstanceObject>, v8::internal::Handle<v8::internal::WasmTableObject>, unsigned int, unsigned int, unsigned int, unsigned int, unsigned long)
+
+Stdout:
+SerializeAndDeserializeModule
+SerializeAndDeserializeModule
+DeserializeInvalidObject
+RelationBetweenModuleAndClone
+SerializeWrappersWithSameSignature
+SerializeAfterInstantiation
+SerializeAfterInstantiationWithMemory
+DeserializeInvalidObject
+RelationBetweenModuleAndClone
+GlobalsArePrivateBetweenClones
+SerializeWrappersWithSameSignature
+SerializeAfterInstantiation
+SerializeAfterInstantiationWithMemory
+SharedTableTest
+GlobalsArePrivateBetweenClones
+SharedTableTest
+StackOverflowAfterSerialization
+StackOverflowAfterSerialization
+TrapAfterDeserialization
+DirectCallAfterSerialization
+ImportCallAfterSerialization
+BranchTableAfterSerialization
+TrapAfterDeserialization
+DirectCallAfterSerialization
+ImportCallAfterSerialization
+BranchTableAfterSerialization
+
+Stderr:
+==================
+WARNING: ThreadSanitizer: data race (pid=28251)
+  Write of size 1 at 0x7b200000135a by thread T8:
+    #0 v8::internal::wasm::ModuleDecoderImpl::consume_element_func_index(v8::internal::wasm::WasmModule*, v8::internal::wasm::ValueType) src/wasm/module-decoder-impl.h:2394:20 (d8+0x929a11) (BuildId: 5d14f9356b37770c)
+    #1 consume_element_segment_entry src/wasm/module-decoder-impl.h:1716:11 (d8+0x1493484) (BuildId: 5d14f9356b37770c)
+    #2 v8::internal::wasm::(anonymous namespace)::LoadElemSegmentImpl(v8::internal::Zone*, v8::internal::Isolate*, v8::internal::Handle<v8::internal::WasmInstanceObject>, v8::internal::Handle<v8::internal::WasmTableObject>, unsigned int, unsigned int, unsigned int, unsigned int, unsigned long) src/wasm/module-instantiate.cc:2063:40 (d8+0x1493484)
+    #3 v8::internal::wasm::InstanceBuilder::LoadTableSegments(v8::internal::Handle<v8::internal::WasmInstanceObject>) src/wasm/module-instantiate.cc:2101:49 (d8+0x148e110) (BuildId: 5d14f9356b37770c)
+    #4 v8::internal::wasm::InstanceBuilder::Build() src/wasm/module-instantiate.cc:799:5 (d8+0x1488ff2) (BuildId: 5d14f9356b37770c)
+    #5 v8::internal::wasm::InstantiateToInstanceObject(v8::internal::Isolate*, v8::internal::wasm::ErrorThrower*, v8::internal::Handle<v8::internal::WasmModuleObject>, v8::internal::MaybeHandle<v8::internal::JSReceiver>, v8::internal::MaybeHandle<v8::internal::JSArrayBuffer>) src/wasm/module-instantiate.cc:454:27 (d8+0x1486b81) (BuildId: 5d14f9356b37770c)
+    #6 v8::internal::wasm::WasmEngine::SyncInstantiate(v8::internal::Isolate*, v8::internal::wasm::ErrorThrower*, v8::internal::Handle<v8::internal::WasmModuleObject>, v8::internal::MaybeHandle<v8::internal::JSReceiver>, v8::internal::MaybeHandle<v8::internal::JSArrayBuffer>) src/wasm/wasm-engine.cc:603:10 (d8+0x14dc4ff) (BuildId: 5d14f9356b37770c)
+    #7 v8::(anonymous namespace)::WebAssemblyInstance(v8::FunctionCallbackInfo<v8::Value> const&) src/wasm/wasm-js.cc:844:52 (d8+0x14fa859) (BuildId: 5d14f9356b37770c)
+    #8 v8::internal::FunctionCallbackArguments::Call(v8::internal::CallHandlerInfo) src/api/api-arguments-inl.h:146:3 (d8+0x68a07a) (BuildId: 5d14f9356b37770c)
+    #9 v8::internal::MaybeHandle<v8::internal::Object> v8::internal::(anonymous namespace)::HandleApiCallHelper<true>(v8::internal::Isolate*, v8::internal::Handle<v8::internal::HeapObject>, v8::internal::Handle<v8::internal::FunctionTemplateInfo>, v8::internal::Handle<v8::internal::Object>, unsigned long*, int) src/builtins/builtins-api.cc:113:36 (d8+0x688b1a) (BuildId: 5d14f9356b37770c)
+    #10 v8::internal::Builtin_Impl_HandleApiCall(v8::internal::BuiltinArguments, v8::internal::Isolate*) src/builtins/builtins-api.cc:144:5 (d8+0x68816b) (BuildId: 5d14f9356b37770c)
+    #11 v8::internal::Builtin_HandleApiCall(int, unsigned long*, v8::internal::Isolate*) src/builtins/builtins-api.cc:135:1 (d8+0x687c83) (BuildId: 5d14f9356b37770c)
+    #12 Builtins_AsyncFromSyncIteratorPrototypeThrow setup-isolate-deserialize.cc (d8+0x1dc3774)
+    #13 v8::internal::Execution::CallScript(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSFunction>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>) src/execution/execution.cc:539:10 (d8+0x85f982) (BuildId: 5d14f9356b37770c)
+    #14 v8::Script::Run(v8::Local<v8::Context>, v8::Local<v8::Data>) src/api/api.cc:2233:7 (d8+0x6084b5) (BuildId: 5d14f9356b37770c)
+    #15 v8::Script::Run(v8::Local<v8::Context>) src/api/api.cc:2196:10 (d8+0x607e60) (BuildId: 5d14f9356b37770c)
+    #16 v8::Shell::ExecuteString(v8::Isolate*, v8::Local<v8::String>, v8::Local<v8::String>, v8::Shell::PrintResult, v8::Shell::ReportExceptions, v8::Shell::ProcessMessageQueue) src/d8/d8.cc:877:28 (d8+0x5c74a2) (BuildId: 5d14f9356b37770c)
+    #17 v8::SourceGroup::Execute(v8::Isolate*) src/d8/d8.cc:4290:10 (d8+0x5dfade) (BuildId: 5d14f9356b37770c)
+    #18 v8::SourceGroup::ExecuteInThread() src/d8/d8.cc:4327:11 (d8+0x5dff0b) (BuildId: 5d14f9356b37770c)
+    #19 v8::SourceGroup::IsolateThread::Run() src/d8/d8.h:117:35 (d8+0x5e6533) (BuildId: 5d14f9356b37770c)
+    #20 NotifyStartedAndRun src/base/platform/platform.h:596:5 (d8+0x1ffb382) (BuildId: 5d14f9356b37770c)
+    #21 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1123:11 (d8+0x1ffb382)
+
+  Previous write of size 1 at 0x7b200000135a by main thread:
+    #0 v8::internal::wasm::ModuleDecoderImpl::consume_element_func_index(v8::internal::wasm::WasmModule*, v8::internal::wasm::ValueType) src/wasm/module-decoder-impl.h:2394:20 (d8+0x929a11) (BuildId: 5d14f9356b37770c)
+    #1 consume_element_segment_entry src/wasm/module-decoder-impl.h:1716:11 (d8+0x1493484) (BuildId: 5d14f9356b37770c)
+    #2 v8::internal::wasm::(anonymous namespace)::LoadElemSegmentImpl(v8::internal::Zone*, v8::internal::Isolate*, v8::internal::Handle<v8::internal::WasmInstanceObject>, v8::internal::Handle<v8::internal::WasmTableObject>, unsigned int, unsigned int, unsigned int, unsigned int, unsigned long) src/wasm/module-instantiate.cc:2063:40 (d8+0x1493484)
+    #3 v8::internal::wasm::InstanceBuilder::LoadTableSegments(v8::internal::Handle<v8::internal::WasmInstanceObject>) src/wasm/module-instantiate.cc:2101:49 (d8+0x148e110) (BuildId: 5d14f9356b37770c)
+    #4 v8::internal::wasm::InstanceBuilder::Build() src/wasm/module-instantiate.cc:799:5 (d8+0x1488ff2) (BuildId: 5d14f9356b37770c)
+    #5 v8::internal::wasm::InstantiateToInstanceObject(v8::internal::Isolate*, v8::internal::wasm::ErrorThrower*, v8::internal::Handle<v8::internal::WasmModuleObject>, v8::internal::MaybeHandle<v8::internal::JSReceiver>, v8::internal::MaybeHandle<v8::internal::JSArrayBuffer>) src/wasm/module-instantiate.cc:454:27 (d8+0x1486b81) (BuildId: 5d14f9356b37770c)
+    #6 v8::internal::wasm::WasmEngine::SyncInstantiate(v8::internal::Isolate*, v8::internal::wasm::ErrorThrower*, v8::internal::Handle<v8::internal::WasmModuleObject>, v8::internal::MaybeHandle<v8::internal::JSReceiver>, v8::internal::MaybeHandle<v8::internal::JSArrayBuffer>) src/wasm/wasm-engine.cc:603:10 (d8+0x14dc4ff) (BuildId: 5d14f9356b37770c)
+    #7 v8::(anonymous namespace)::WebAssemblyInstance(v8::FunctionCallbackInfo<v8::Value> const&) src/wasm/wasm-js.cc:844:52 (d8+0x14fa859) (BuildId: 5d14f9356b37770c)
+    #8 v8::internal::FunctionCallbackArguments::Call(v8::internal::CallHandlerInfo) src/api/api-arguments-inl.h:146:3 (d8+0x68a07a) (BuildId: 5d14f9356b37770c)
+    #9 v8::internal::MaybeHandle<v8::internal::Object> v8::internal::(anonymous namespace)::HandleApiCallHelper<true>(v8::internal::Isolate*, v8::internal::Handle<v8::internal::HeapObject>, v8::internal::Handle<v8::internal::FunctionTemplateInfo>, v8::internal::Handle<v8::internal::Object>, unsigned long*, int) src/builtins/builtins-api.cc:113:36 (d8+0x688b1a) (BuildId: 5d14f9356b37770c)
+    #10 v8::internal::Builtin_Impl_HandleApiCall(v8::internal::BuiltinArguments, v8::internal::Isolate*) src/builtins/builtins-api.cc:144:5 (d8+0x68816b) (BuildId: 5d14f9356b37770c)
+    #11 v8::internal::Builtin_HandleApiCall(int, unsigned long*, v8::internal::Isolate*) src/builtins/builtins-api.cc:135:1 (d8+0x687c83) (BuildId: 5d14f9356b37770c)
+    #12 Builtins_AsyncFromSyncIteratorPrototypeThrow setup-isolate-deserialize.cc (d8+0x1dc3774)
+    #13 v8::internal::Execution::CallScript(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSFunction>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>) src/execution/execution.cc:539:10 (d8+0x85f982) (BuildId: 5d14f9356b37770c)
+    #14 v8::Script::Run(v8::Local<v8::Context>, v8::Local<v8::Data>) src/api/api.cc:2233:7 (d8+0x6084b5) (BuildId: 5d14f9356b37770c)
+    #15 v8::Script::Run(v8::Local<v8::Context>) src/api/api.cc:2196:10 (d8+0x607e60) (BuildId: 5d14f9356b37770c)
+    #16 v8::Shell::ExecuteString(v8::Isolate*, v8::Local<v8::String>, v8::Local<v8::String>, v8::Shell::PrintResult, v8::Shell::ReportExceptions, v8::Shell::ProcessMessageQueue) src/d8/d8.cc:877:28 (d8+0x5c74a2) (BuildId: 5d14f9356b37770c)
+    #17 v8::SourceGroup::Execute(v8::Isolate*) src/d8/d8.cc:4290:10 (d8+0x5dfade) (BuildId: 5d14f9356b37770c)
+    #18 v8::Shell::RunMain(v8::Isolate*, bool) src/d8/d8.cc:5004:39 (d8+0x5e38b6) (BuildId: 5d14f9356b37770c)
+    #19 v8::Shell::Main(int, char**) src/d8/d8.cc:5813:18 (d8+0x5e5d9c) (BuildId: 5d14f9356b37770c)
+    #20 main src/d8/d8.cc:5905:43 (d8+0x5e63c0) (BuildId: 5d14f9356b37770c)
+
+  Location is heap block of size 128 at 0x7b2000001300 allocated by main thread:
+    #0 operator new(unsigned long) /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_new_delete.cpp:64:3 (d8+0x5ae737) (BuildId: 5d14f9356b37770c)
+    #1 __libcpp_operator_new<unsigned long> buildtools/third_party/libc++/trunk/include/new:266:10 (d8+0x147fadc) (BuildId: 5d14f9356b37770c)
+    #2 __libcpp_allocate buildtools/third_party/libc++/trunk/include/new:292:10 (d8+0x147fadc)
+    #3 allocate buildtools/third_party/libc++/trunk/include/__memory/allocator.h:115:38 (d8+0x147fadc)
+    #4 __allocate_at_least<std::Cr::allocator<v8::internal::wasm::WasmFunction> > buildtools/third_party/libc++/trunk/include/__memory/allocate_at_least.h:55:19 (d8+0x147fadc)
+    #5 __split_buffer buildtools/third_party/libc++/trunk/include/__split_buffer:323:29 (d8+0x147fadc)
+    #6 std::Cr::vector<v8::internal::wasm::WasmFunction, std::Cr::allocator<v8::internal::wasm::WasmFunction>>::__append(unsigned long) buildtools/third_party/libc++/trunk/include/vector:1046:53 (d8+0x147fadc)
+    #7 resize buildtools/third_party/libc++/trunk/include/vector:1910:15 (d8+0x14760f7) (BuildId: 5d14f9356b37770c)
+    #8 v8::internal::wasm::ModuleDecoderImpl::DecodeFunctionSection() src/wasm/module-decoder-impl.h:835:24 (d8+0x14760f7)
+    #9 v8::internal::wasm::ModuleDecoderImpl::DecodeSection(v8::internal::wasm::SectionCode, v8::base::Vector<unsigned char const>, unsigned int) src/wasm/module-decoder-impl.h:432:9 (d8+0x146fce7) (BuildId: 5d14f9356b37770c)
+    #10 v8::internal::wasm::ModuleDecoderImpl::DecodeModule(bool) src/wasm/module-decoder-impl.h:1651:9 (d8+0x146ef50) (BuildId: 5d14f9356b37770c)
+    #11 v8::internal::wasm::DecodeWasmModule(v8::internal::wasm::WasmFeatures, v8::base::Vector<unsigned char const>, bool, v8::internal::wasm::ModuleOrigin) src/wasm/module-decoder.cc:123:18 (d8+0x146eb97) (BuildId: 5d14f9356b37770c)
+    #12 v8::internal::wasm::DecodeWasmModule(v8::internal::wasm::WasmFeatures, v8::base::Vector<unsigned char const>, bool, v8::internal::wasm::ModuleOrigin, v8::internal::Counters*, std::Cr::shared_ptr<v8::internal::metrics::Recorder>, v8::metrics::Recorder::ContextId, v8::internal::wasm::DecodingMethod) src/wasm/module-decoder.cc:93:25 (d8+0x146e673) (BuildId: 5d14f9356b37770c)
+    #13 v8::internal::wasm::WasmEngine::SyncCompile(v8::internal::Isolate*, v8::internal::wasm::WasmFeatures const&, v8::internal::wasm::ErrorThrower*, v8::internal::wasm::ModuleWireBytes) src/wasm/wasm-engine.cc:546:27 (d8+0x14da4b6) (BuildId: 5d14f9356b37770c)
+    #14 v8::(anonymous namespace)::WebAssemblyModule(v8::FunctionCallbackInfo<v8::Value> const&) src/wasm/wasm-js.cc:734:50 (d8+0x14f9d34) (BuildId: 5d14f9356b37770c)
+    #15 v8::internal::FunctionCallbackArguments::Call(v8::internal::CallHandlerInfo) src/api/api-arguments-inl.h:146:3 (d8+0x68a07a) (BuildId: 5d14f9356b37770c)
+    #16 v8::internal::MaybeHandle<v8::internal::Object> v8::internal::(anonymous namespace)::HandleApiCallHelper<true>(v8::internal::Isolate*, v8::internal::Handle<v8::internal::HeapObject>, v8::internal::Handle<v8::internal::FunctionTemplateInfo>, v8::internal::Handle<v8::internal::Object>, unsigned long*, int) src/builtins/builtins-api.cc:113:36 (d8+0x688b1a) (BuildId: 5d14f9356b37770c)
+    #17 v8::internal::Builtin_Impl_HandleApiCall(v8::internal::BuiltinArguments, v8::internal::Isolate*) src/builtins/builtins-api.cc:144:5 (d8+0x68816b) (BuildId: 5d14f9356b37770c)
+    #18 v8::internal::Builtin_HandleApiCall(int, unsigned long*, v8::internal::Isolate*) src/builtins/builtins-api.cc:135:1 (d8+0x687c83) (BuildId: 5d14f9356b37770c)
+    #19 Builtins_AsyncFromSyncIteratorPrototypeThrow setup-isolate-deserialize.cc (d8+0x1dc3774)
+    #20 v8::internal::Execution::CallScript(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSFunction>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>) src/execution/execution.cc:539:10 (d8+0x85f982) (BuildId: 5d14f9356b37770c)
+    #21 v8::Script::Run(v8::Local<v8::Context>, v8::Local<v8::Data>) src/api/api.cc:2233:7 (d8+0x6084b5) (BuildId: 5d14f9356b37770c)
+    #22 v8::Script::Run(v8::Local<v8::Context>) src/api/api.cc:2196:10 (d8+0x607e60) (BuildId: 5d14f9356b37770c)
+    #23 v8::Shell::ExecuteString(v8::Isolate*, v8::Local<v8::String>, v8::Local<v8::String>, v8::Shell::PrintResult, v8::Shell::ReportExceptions, v8::Shell::ProcessMessageQueue) src/d8/d8.cc:877:28 (d8+0x5c74a2) (BuildId: 5d14f9356b37770c)
+    #24 v8::SourceGroup::Execute(v8::Isolate*) src/d8/d8.cc:4290:10 (d8+0x5dfade) (BuildId: 5d14f9356b37770c)
+    #25 v8::Shell::RunMain(v8::Isolate*, bool) src/d8/d8.cc:5004:39 (d8+0x5e38b6) (BuildId: 5d14f9356b37770c)
+    #26 v8::Shell::Main(int, char**) src/d8/d8.cc:5813:18 (d8+0x5e5d9c) (BuildId: 5d14f9356b37770c)
+    #27 main src/d8/d8.cc:5905:43 (d8+0x5e63c0) (BuildId: 5d14f9356b37770c)
+
+  Thread T8 'IsolateThread' (tid=28278, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1048:3 (d8+0x52905b) (BuildId: 5d14f9356b37770c)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1155:14 (d8+0x1ffb296) (BuildId: 5d14f9356b37770c)
+    #2 StartExecuteInThread src/d8/d8.cc:4343:5 (d8+0x5e3651) (BuildId: 5d14f9356b37770c)
+    #3 v8::Shell::RunMain(v8::Isolate*, bool) src/d8/d8.cc:4985:32 (d8+0x5e3651)
+    #4 v8::Shell::Main(int, char**) src/d8/d8.cc:5813:18 (d8+0x5e5d9c) (BuildId: 5d14f9356b37770c)
+    #5 main src/d8/d8.cc:5905:43 (d8+0x5e63c0) (BuildId: 5d14f9356b37770c)
+
+SUMMARY: ThreadSanitizer: data race src/wasm/module-decoder-impl.h:2394:20 in v8::internal::wasm::ModuleDecoderImpl::consume_element_func_index(v8::internal::wasm::WasmModule*, v8::internal::wasm::ValueType)
+==================
+ThreadSanitizer: reported 1 warnings
+
+Run #3
+Exit code: 0 [0x00]
+Result: PASS
+Expected outcomes: PASS
+Duration: 00:01:316
+
+Stdout:
+SerializeAndDeserializeModule
+SerializeAndDeserializeModule
+DeserializeInvalidObject
+RelationBetweenModuleAndClone
+SerializeWrappersWithSameSignature
+SerializeAfterInstantiation
+SerializeAfterInstantiationWithMemory
+GlobalsArePrivateBetweenClones
+SharedTableTest
+StackOverflowAfterSerialization
+DeserializeInvalidObject
+RelationBetweenModuleAndClone
+SerializeWrappersWithSameSignature
+SerializeAfterInstantiation
+SerializeAfterInstantiationWithMemory
+GlobalsArePrivateBetweenClones
+SharedTableTest
+StackOverflowAfterSerialization
+TrapAfterDeserialization
+DirectCallAfterSerialization
+TrapAfterDeserialization
+ImportCallAfterSerialization
+DirectCallAfterSerialization
+BranchTableAfterSerialization
+ImportCallAfterSerialization
+BranchTableAfterSerialization
+

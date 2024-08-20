@@ -1,0 +1,783 @@
+Test: mjsunit/wasm/memory_2gb_oob (flaky in a repeated run)
+Flags: --test /b/s/w/ir/test/mjsunit/mjsunit.js /b/s/w/ir/test/mjsunit/wasm/memory_2gb_oob.js --isolate /b/s/w/ir/test/mjsunit/mjsunit.js /b/s/w/ir/test/mjsunit/wasm/memory_2gb_oob.js --random-seed=-1206385236 --nohard-abort --testing-d8-test-runner --future --wasm-max-mem-pages=32768
+Command: out/build/d8 --test test/mjsunit/mjsunit.js test/mjsunit/wasm/memory_2gb_oob.js --isolate test/mjsunit/mjsunit.js test/mjsunit/wasm/memory_2gb_oob.js --random-seed=-1206385236 --nohard-abort --testing-d8-test-runner --future --wasm-max-mem-pages=32768
+Variant: future
+Shard: 1:7
+
+GN arguments:
+dcheck_always_on = false
+is_component_build = false
+is_debug = false
+is_tsan = true
+target_cpu = "x64"
+use_remoteexec = true
+v8_enable_google_benchmark = true
+v8_enable_test_features = true
+
+Trigger flake bisect on command line:
+bb add v8/try.triggered/v8_flako -p 'bisect_builder_group="client.v8"' -p 'bisect_buildername="V8 Linux64 TSAN - builder"' -p 'revision="5742e8f05cc68e46cd47fbef7e9352ff0dac9e7c"' -p 'swarming_dimensions=["cpu:x86-64", "pool:chromium.tests", "os:Ubuntu-22.04"]' -p 'isolated_name="bot_default"' -p 'test_name="mjsunit/wasm/memory_2gb_oob"' -p 'timeout_sec=60' -p 'total_timeout_sec=120' -p 'variant="future"' -p 'extra_args=["--isolates"]'
+
+Local flake reproduction on command line:
+tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=future --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1 --isolates mjsunit/wasm/memory_2gb_oob
+
+Run #1
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS
+Duration: 00:10:434
+
+Crash Type:
+Data race
+READ 8
+
+Crash State:
+std::__Cr::vector<std::__Cr::unique_ptr<v8::internal::wasm::StackMemory, std::__Cr::default_delete<v8::internal::wasm::StackMemory>>, std::__Cr::allocator<std::__Cr::unique_ptr<v8::internal::wasm::StackMemory, std::__Cr::default_delete<v8::internal::wasm::StackMemory>>>>::__base_destruct_at_end(std::__Cr::unique_ptr<v8::internal::wasm::StackMemory, std::__Cr::default_delete<v8::internal::wasm::StackMemory>>*)
+__clear
+clear
+
+Stdout:
+size=4 offset=0
+size=4 offset=0
+size=4 offset=1
+size=4 offset=1
+size=4 offset=2
+size=4 offset=2
+size=4 offset=3
+size=4 offset=3
+size=4 offset=4
+size=4 offset=4
+size=4 offset=5
+size=4 offset=5
+size=4 offset=7
+size=4 offset=7
+size=4 offset=8
+size=4 offset=8
+size=4 offset=9
+size=4 offset=1073741816
+size=4 offset=9
+size=4 offset=1073741820
+size=4 offset=1073741816
+size=4 offset=1073741824
+size=4 offset=1073741825
+size=4 offset=1073741820
+size=4 offset=1073741826
+size=4 offset=1073741827
+size=4 offset=1073741824
+size=4 offset=1073741828
+size=4 offset=1073741825
+size=4 offset=1073741829
+size=4 offset=1073741826
+size=4 offset=1073741831
+size=4 offset=1073741827
+size=4 offset=1073741832
+size=4 offset=1073741828
+size=4 offset=1073741829
+size=4 offset=1073741831
+size=4 offset=1073741833
+size=4 offset=1073741832
+size=4 offset=1073741833
+size=4 offset=2147483640
+size=4 offset=2147483640
+size=4 offset=2147483644
+size=4 offset=2147483644
+size=4 offset=2147483648
+size=4 offset=2147483648
+size=4 offset=2147483649
+size=4 offset=2147483649
+size=4 offset=2147483650
+size=4 offset=2147483650
+size=4 offset=2147483651
+size=4 offset=2147483652
+size=4 offset=2147483651
+size=4 offset=2147483653
+size=4 offset=2147483652
+size=4 offset=2147483655
+size=4 offset=2147483653
+size=4 offset=2147483655
+size=4 offset=2147483656
+size=4 offset=2147483656
+size=4 offset=2147483657
+size=4 offset=2147483657
+size=4 offset=3221225464
+size=4 offset=3221225464
+size=4 offset=3221225468
+size=4 offset=3221225468
+size=4 offset=3221225472
+size=4 offset=3221225472
+size=4 offset=3221225473
+size=4 offset=3221225474
+size=4 offset=3221225473
+size=4 offset=3221225474
+size=4 offset=3221225475
+size=4 offset=3221225476
+size=4 offset=3221225475
+size=4 offset=3221225477
+size=4 offset=3221225476
+size=4 offset=3221225479
+size=4 offset=3221225477
+size=4 offset=3221225480
+size=4 offset=3221225479
+size=4 offset=3221225481
+size=4 offset=3221225480
+size=4 offset=3221225481
+size=4 offset=4294967287
+size=4 offset=4294967287
+size=4 offset=4294967288
+size=4 offset=4294967289
+size=4 offset=4294967288
+size=4 offset=4294967291
+size=4 offset=4294967289
+size=4 offset=4294967292
+size=4 offset=4294967293
+size=4 offset=4294967291
+size=4 offset=4294967294
+size=4 offset=4294967292
+size=4 offset=4294967295
+size=4 offset=4294967293
+size=1 offset=0
+size=1 offset=1
+size=4 offset=4294967294
+size=1 offset=2
+size=4 offset=4294967295
+size=1 offset=3
+size=1 offset=0
+size=1 offset=1
+size=1 offset=2
+size=1 offset=3
+size=1 offset=4
+size=1 offset=5
+size=1 offset=4
+size=1 offset=5
+size=1 offset=7
+size=1 offset=7
+size=1 offset=8
+size=1 offset=8
+size=1 offset=9
+size=1 offset=9
+size=1 offset=1073741816
+size=1 offset=1073741816
+size=1 offset=1073741820
+size=1 offset=1073741820
+size=1 offset=1073741824
+size=1 offset=1073741825
+size=1 offset=1073741824
+size=1 offset=1073741826
+size=1 offset=1073741825
+size=1 offset=1073741827
+size=1 offset=1073741826
+size=1 offset=1073741828
+size=1 offset=1073741827
+size=1 offset=1073741828
+size=1 offset=1073741829
+size=1 offset=1073741829
+size=1 offset=1073741831
+size=1 offset=1073741831
+size=1 offset=1073741832
+size=1 offset=1073741832
+size=1 offset=1073741833
+size=1 offset=2147483640
+size=1 offset=1073741833
+size=1 offset=2147483644
+size=1 offset=2147483640
+size=1 offset=2147483644
+size=1 offset=2147483648
+size=1 offset=2147483648
+size=1 offset=2147483649
+size=1 offset=2147483649
+size=1 offset=2147483650
+size=1 offset=2147483650
+size=1 offset=2147483651
+size=1 offset=2147483651
+size=1 offset=2147483652
+size=1 offset=2147483652
+size=1 offset=2147483653
+size=1 offset=2147483655
+size=1 offset=2147483653
+size=1 offset=2147483656
+size=1 offset=2147483655
+size=1 offset=2147483657
+size=1 offset=3221225464
+size=1 offset=2147483656
+size=1 offset=3221225468
+size=1 offset=3221225472
+size=1 offset=2147483657
+size=1 offset=3221225473
+size=1 offset=3221225464
+size=1 offset=3221225474
+size=1 offset=3221225468
+size=1 offset=3221225475
+size=1 offset=3221225472
+size=1 offset=3221225476
+size=1 offset=3221225473
+size=1 offset=3221225477
+size=1 offset=3221225474
+size=1 offset=3221225479
+size=1 offset=3221225475
+size=1 offset=3221225480
+size=1 offset=3221225476
+size=1 offset=3221225481
+size=1 offset=3221225477
+size=1 offset=4294967287
+size=1 offset=3221225479
+size=1 offset=4294967288
+size=1 offset=3221225480
+size=1 offset=4294967289
+size=1 offset=3221225481
+size=1 offset=4294967291
+size=1 offset=4294967287
+size=1 offset=4294967292
+size=1 offset=4294967293
+size=1 offset=4294967288
+size=1 offset=4294967294
+size=1 offset=4294967289
+size=1 offset=4294967295
+size=8 offset=0
+size=1 offset=4294967291
+size=8 offset=1
+size=1 offset=4294967292
+size=8 offset=2
+size=1 offset=4294967293
+size=8 offset=3
+size=1 offset=4294967294
+size=1 offset=4294967295
+size=8 offset=4
+size=8 offset=0
+size=8 offset=5
+size=8 offset=1
+size=8 offset=7
+size=8 offset=2
+size=8 offset=3
+size=8 offset=8
+size=8 offset=9
+size=8 offset=1073741816
+size=8 offset=4
+size=8 offset=1073741820
+size=8 offset=5
+size=8 offset=7
+size=8 offset=1073741824
+size=8 offset=8
+size=8 offset=1073741825
+size=8 offset=9
+size=8 offset=1073741816
+size=8 offset=1073741826
+size=8 offset=1073741820
+size=8 offset=1073741827
+size=8 offset=1073741824
+size=8 offset=1073741828
+size=8 offset=1073741829
+size=8 offset=1073741825
+size=8 offset=1073741831
+size=8 offset=1073741832
+size=8 offset=1073741826
+size=8 offset=1073741833
+size=8 offset=1073741827
+size=8 offset=2147483640
+size=8 offset=1073741828
+size=8 offset=2147483644
+size=8 offset=1073741829
+size=8 offset=2147483648
+size=8 offset=1073741831
+size=8 offset=1073741832
+size=8 offset=2147483649
+size=8 offset=1073741833
+size=8 offset=2147483650
+size=8 offset=2147483640
+size=8 offset=2147483644
+size=8 offset=2147483648
+size=8 offset=2147483651
+size=8 offset=2147483649
+size=8 offset=2147483650
+size=8 offset=2147483652
+size=8 offset=2147483651
+size=8 offset=2147483653
+size=8 offset=2147483652
+size=8 offset=2147483655
+size=8 offset=2147483656
+size=8 offset=2147483653
+size=8 offset=2147483657
+size=8 offset=2147483655
+size=8 offset=3221225464
+size=8 offset=2147483656
+size=8 offset=2147483657
+size=8 offset=3221225468
+size=8 offset=3221225464
+size=8 offset=3221225468
+size=8 offset=3221225472
+size=8 offset=3221225472
+size=8 offset=3221225473
+size=8 offset=3221225473
+size=8 offset=3221225474
+size=8 offset=3221225475
+size=8 offset=3221225474
+size=8 offset=3221225476
+size=8 offset=3221225475
+size=8 offset=3221225477
+size=8 offset=3221225479
+size=8 offset=3221225476
+size=8 offset=3221225480
+size=8 offset=3221225477
+size=8 offset=3221225481
+size=8 offset=3221225479
+size=8 offset=3221225480
+size=8 offset=4294967287
+size=8 offset=3221225481
+size=8 offset=4294967288
+size=8 offset=4294967287
+size=8 offset=4294967289
+size=8 offset=4294967288
+size=8 offset=4294967291
+size=8 offset=4294967289
+size=8 offset=4294967292
+size=8 offset=4294967291
+size=8 offset=4294967293
+size=8 offset=4294967292
+size=8 offset=4294967294
+size=8 offset=4294967293
+size=8 offset=4294967295
+size=8 offset=4294967294
+size=8 offset=4294967295
+
+Stderr:
+==================
+WARNING: ThreadSanitizer: data race (pid=530605)
+  Read of size 8 at 0x725c000001d8 by thread T22 (mutexes: write M0):
+    #0 std::__Cr::vector<std::__Cr::unique_ptr<v8::internal::wasm::StackMemory, std::__Cr::default_delete<v8::internal::wasm::StackMemory>>, std::__Cr::allocator<std::__Cr::unique_ptr<v8::internal::wasm::StackMemory, std::__Cr::default_delete<v8::internal::wasm::StackMemory>>>>::__base_destruct_at_end(std::__Cr::unique_ptr<v8::internal::wasm::StackMemory, std::__Cr::default_delete<v8::internal::wasm::StackMemory>>*) third_party/libc++/src/include/vector:951:38 (d8+0x17957ac) (BuildId: a7a0130d592b7ef3)
+    #1 __clear third_party/libc++/src/include/vector:947:5 (d8+0x1795714) (BuildId: a7a0130d592b7ef3)
+    #2 clear third_party/libc++/src/include/vector:744:5 (d8+0x1795714)
+    #3 v8::internal::wasm::StackPool::ReleaseFinishedStacks() src/wasm/stacks.cc:75:53 (d8+0x1795714)
+    #4 v8::internal::Heap::GarbageCollectionEpilogueInSafepoint(v8::internal::GarbageCollector) src/heap/heap.cc:1272:43 (d8+0xaad44e) (BuildId: a7a0130d592b7ef3)
+    #5 v8::internal::Heap::PerformGarbageCollection(v8::internal::GarbageCollector, v8::internal::GarbageCollectionReason, char const*) src/heap/heap.cc:2419:3 (d8+0xab704a) (BuildId: a7a0130d592b7ef3)
+    #6 v8::internal::Heap::CollectGarbage(v8::internal::AllocationSpace, v8::internal::GarbageCollectionReason, v8::GCCallbackFlags)::$_1::operator()() const src/heap/heap.cc:1764:9 (d8+0xad868b) (BuildId: a7a0130d592b7ef3)
+    #7 void heap::base::Stack::SetMarkerAndCallbackImpl<v8::internal::Heap::CollectGarbage(v8::internal::AllocationSpace, v8::internal::GarbageCollectionReason, v8::GCCallbackFlags)::$_1>(heap::base::Stack*, void*, void const*) src/heap/base/stack.h:176:5 (d8+0xad8119) (BuildId: a7a0130d592b7ef3)
+    #8 PushAllRegistersAndIterateStack push_registers_asm.cc (d8+0x1996cf6) (BuildId: a7a0130d592b7ef3)
+    #9 SetMarkerIfNeededAndCallback<(lambda at ../../src/heap/heap.cc:1728:40)> src/heap/base/stack.h:82:7 (d8+0xaaecc3) (BuildId: a7a0130d592b7ef3)
+    #10 v8::internal::Heap::CollectGarbage(v8::internal::AllocationSpace, v8::internal::GarbageCollectionReason, v8::GCCallbackFlags) src/heap/heap.cc:1728:11 (d8+0xaaecc3)
+    #11 CollectAllGarbage src/heap/heap.cc:1402:3 (d8+0xab1bb4) (BuildId: a7a0130d592b7ef3)
+    #12 v8::internal::Heap::ReportExternalMemoryPressure() src/heap/heap.cc (d8+0xab1bb4)
+    #13 ReportExternalAllocationLimitReached src/api/api.cc:9466:9 (d8+0x766f71) (BuildId: a7a0130d592b7ef3)
+    #14 v8::Isolate::AdjustAmountOfExternalAllocatedMemory(long) src/api/api.cc:10179:5 (d8+0x766f71)
+    #15 IncrementExternalMemoryCounters src/heap/array-buffer-sweeper.cc:367:9 (d8+0xa1095f) (BuildId: a7a0130d592b7ef3)
+    #16 v8::internal::ArrayBufferSweeper::Append(v8::internal::Tagged<v8::internal::JSArrayBuffer>, v8::internal::ArrayBufferExtension*) src/heap/array-buffer-sweeper.cc:331:3 (d8+0xa1095f)
+    #17 v8::internal::Heap::AppendArrayBufferExtension(v8::internal::Tagged<v8::internal::JSArrayBuffer>, v8::internal::ArrayBufferExtension*) src/heap/heap.cc:4308:26 (d8+0xac0009) (BuildId: a7a0130d592b7ef3)
+    #18 v8::internal::JSArrayBuffer::Attach(std::__Cr::shared_ptr<v8::internal::BackingStore>) src/objects/js-array-buffer.cc:117:20 (d8+0xe60168) (BuildId: a7a0130d592b7ef3)
+    #19 v8::internal::JSArrayBuffer::Setup(v8::internal::SharedFlag, v8::internal::ResizableFlag, std::__Cr::shared_ptr<v8::internal::BackingStore>, v8::internal::Isolate*) src/objects/js-array-buffer.cc:67:5 (d8+0xe5fbcb) (BuildId: a7a0130d592b7ef3)
+    #20 v8::internal::Factory::NewJSArrayBuffer(std::__Cr::shared_ptr<v8::internal::BackingStore>, v8::internal::AllocationType) src/heap/factory.cc:3299:11 (d8+0xa83f4b) (BuildId: a7a0130d592b7ef3)
+    #21 v8::internal::WasmMemoryObject::New(v8::internal::Isolate*, int, int, v8::internal::SharedFlag, v8::internal::WasmMemoryFlag) src/wasm/wasm-objects.cc:787:33 (d8+0x18d2071) (BuildId: a7a0130d592b7ef3)
+    #22 WebAssemblyMemoryImpl src/wasm/wasm-js.cc:1536:8 (d8+0x18a0c0c) (BuildId: a7a0130d592b7ef3)
+    #23 v8::internal::wasm::WebAssemblyMemory(v8::FunctionCallbackInfo<v8::Value> const&) src/wasm/wasm-js.cc:3120:1 (d8+0x18a0c0c)
+    #24 v8::internal::FunctionCallbackArguments::CallOrConstruct(v8::internal::Tagged<v8::internal::FunctionTemplateInfo>, bool) src/api/api-arguments-inl.h:95:3 (d8+0x7a5579) (BuildId: a7a0130d592b7ef3)
+    #25 v8::internal::MaybeHandle<v8::internal::Object> v8::internal::(anonymous namespace)::HandleApiCallHelper<true>(v8::internal::Isolate*, v8::internal::Handle<v8::internal::HeapObject>, v8::internal::Handle<v8::internal::FunctionTemplateInfo>, v8::internal::Handle<v8::internal::Object>, unsigned long*, int) src/builtins/builtins-api.cc:108:36 (d8+0x7a46c0) (BuildId: a7a0130d592b7ef3)
+    #26 v8::internal::Builtin_Impl_HandleApiConstruct(v8::internal::BuiltinArguments, v8::internal::Isolate*) src/builtins/builtins-api.cc:139:3 (d8+0x7a3662) (BuildId: a7a0130d592b7ef3)
+    #27 v8::internal::Builtin_HandleApiConstruct(int, unsigned long*, v8::internal::Isolate*) src/builtins/builtins-api.cc:130:1 (d8+0x7a3203) (BuildId: a7a0130d592b7ef3)
+    #28 Builtins_CEntry_Return1_ArgvOnStack_BuiltinExit setup-isolate-deserialize.cc (d8+0x2746435) (BuildId: a7a0130d592b7ef3)
+    #29 v8::internal::Execution::CallScript(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSFunction>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>) src/execution/execution.cc:516:10 (d8+0x9a0965) (BuildId: a7a0130d592b7ef3)
+    #30 v8::Script::Run(v8::Local<v8::Context>, v8::Local<v8::Data>) src/api/api.cc:2095:7 (d8+0x73a29b) (BuildId: a7a0130d592b7ef3)
+    #31 v8::Script::Run(v8::Local<v8::Context>) src/api/api.cc:2059:10 (d8+0x739b30) (BuildId: a7a0130d592b7ef3)
+    #32 v8::Shell::ExecuteString(v8::Isolate*, v8::Local<v8::String>, v8::Local<v8::String>, v8::Shell::ReportExceptions, v8::Global<v8::Value>*) src/d8/d8.cc:970:44 (d8+0x6f974c) (BuildId: a7a0130d592b7ef3)
+    #33 v8::SourceGroup::Execute(v8::Isolate*) src/d8/d8.cc:4503:10 (d8+0x711891) (BuildId: a7a0130d592b7ef3)
+    #34 v8::SourceGroup::ExecuteInThread() src/d8/d8.cc:4548:11 (d8+0x711dd2) (BuildId: a7a0130d592b7ef3)
+    #35 v8::SourceGroup::IsolateThread::Run() src/d8/d8.h:117:35 (d8+0x7196a3) (BuildId: a7a0130d592b7ef3)
+    #36 NotifyStartedAndRun src/base/platform/platform.h:612:5 (d8+0x29e0139) (BuildId: a7a0130d592b7ef3)
+    #37 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1191:11 (d8+0x29e0139)
+
+  Previous write of size 8 at 0x725c000001d8 by main thread (mutexes: write M1):
+    #0 std::__Cr::vector<std::__Cr::unique_ptr<v8::internal::wasm::StackMemory, std::__Cr::default_delete<v8::internal::wasm::StackMemory>>, std::__Cr::allocator<std::__Cr::unique_ptr<v8::internal::wasm::StackMemory, std::__Cr::default_delete<v8::internal::wasm::StackMemory>>>>::__base_destruct_at_end(std::__Cr::unique_ptr<v8::internal::wasm::StackMemory, std::__Cr::default_delete<v8::internal::wasm::StackMemory>>*) third_party/libc++/src/include/vector:954:18 (d8+0x1795878) (BuildId: a7a0130d592b7ef3)
+    #1 __clear third_party/libc++/src/include/vector:947:5 (d8+0x1795714) (BuildId: a7a0130d592b7ef3)
+    #2 clear third_party/libc++/src/include/vector:744:5 (d8+0x1795714)
+    #3 v8::internal::wasm::StackPool::ReleaseFinishedStacks() src/wasm/stacks.cc:75:53 (d8+0x1795714)
+    #4 v8::internal::Heap::GarbageCollectionEpilogueInSafepoint(v8::internal::GarbageCollector) src/heap/heap.cc:1272:43 (d8+0xaad44e) (BuildId: a7a0130d592b7ef3)
+    #5 v8::internal::Heap::PerformGarbageCollection(v8::internal::GarbageCollector, v8::internal::GarbageCollectionReason, char const*) src/heap/heap.cc:2419:3 (d8+0xab704a) (BuildId: a7a0130d592b7ef3)
+    #6 v8::internal::Heap::CollectGarbage(v8::internal::AllocationSpace, v8::internal::GarbageCollectionReason, v8::GCCallbackFlags)::$_1::operator()() const src/heap/heap.cc:1764:9 (d8+0xad868b) (BuildId: a7a0130d592b7ef3)
+    #7 void heap::base::Stack::SetMarkerAndCallbackImpl<v8::internal::Heap::CollectGarbage(v8::internal::AllocationSpace, v8::internal::GarbageCollectionReason, v8::GCCallbackFlags)::$_1>(heap::base::Stack*, void*, void const*) src/heap/base/stack.h:176:5 (d8+0xad8119) (BuildId: a7a0130d592b7ef3)
+    #8 PushAllRegistersAndIterateStack push_registers_asm.cc (d8+0x1996cf6) (BuildId: a7a0130d592b7ef3)
+    #9 SetMarkerIfNeededAndCallback<(lambda at ../../src/heap/heap.cc:1728:40)> src/heap/base/stack.h:82:7 (d8+0xaaecc3) (BuildId: a7a0130d592b7ef3)
+    #10 v8::internal::Heap::CollectGarbage(v8::internal::AllocationSpace, v8::internal::GarbageCollectionReason, v8::GCCallbackFlags) src/heap/heap.cc:1728:11 (d8+0xaaecc3)
+    #11 CollectAllGarbage src/heap/heap.cc:1402:3 (d8+0xab1bb4) (BuildId: a7a0130d592b7ef3)
+    #12 v8::internal::Heap::ReportExternalMemoryPressure() src/heap/heap.cc (d8+0xab1bb4)
+    #13 ReportExternalAllocationLimitReached src/api/api.cc:9466:9 (d8+0x766f71) (BuildId: a7a0130d592b7ef3)
+    #14 v8::Isolate::AdjustAmountOfExternalAllocatedMemory(long) src/api/api.cc:10179:5 (d8+0x766f71)
+    #15 IncrementExternalMemoryCounters src/heap/array-buffer-sweeper.cc:367:9 (d8+0xa1095f) (BuildId: a7a0130d592b7ef3)
+    #16 v8::internal::ArrayBufferSweeper::Append(v8::internal::Tagged<v8::internal::JSArrayBuffer>, v8::internal::ArrayBufferExtension*) src/heap/array-buffer-sweeper.cc:331:3 (d8+0xa1095f)
+    #17 v8::internal::Heap::AppendArrayBufferExtension(v8::internal::Tagged<v8::internal::JSArrayBuffer>, v8::internal::ArrayBufferExtension*) src/heap/heap.cc:4308:26 (d8+0xac0009) (BuildId: a7a0130d592b7ef3)
+    #18 v8::internal::JSArrayBuffer::Attach(std::__Cr::shared_ptr<v8::internal::BackingStore>) src/objects/js-array-buffer.cc:117:20 (d8+0xe60168) (BuildId: a7a0130d592b7ef3)
+    #19 v8::internal::JSArrayBuffer::Setup(v8::internal::SharedFlag, v8::internal::ResizableFlag, std::__Cr::shared_ptr<v8::internal::BackingStore>, v8::internal::Isolate*) src/objects/js-array-buffer.cc:67:5 (d8+0xe5fbcb) (BuildId: a7a0130d592b7ef3)
+    #20 v8::internal::Factory::NewJSArrayBuffer(std::__Cr::shared_ptr<v8::internal::BackingStore>, v8::internal::AllocationType) src/heap/factory.cc:3299:11 (d8+0xa83f4b) (BuildId: a7a0130d592b7ef3)
+    #21 v8::internal::WasmMemoryObject::New(v8::internal::Isolate*, int, int, v8::internal::SharedFlag, v8::internal::WasmMemoryFlag) src/wasm/wasm-objects.cc:787:33 (d8+0x18d2071) (BuildId: a7a0130d592b7ef3)
+    #22 WebAssemblyMemoryImpl src/wasm/wasm-js.cc:1536:8 (d8+0x18a0c0c) (BuildId: a7a0130d592b7ef3)
+    #23 v8::internal::wasm::WebAssemblyMemory(v8::FunctionCallbackInfo<v8::Value> const&) src/wasm/wasm-js.cc:3120:1 (d8+0x18a0c0c)
+    #24 v8::internal::FunctionCallbackArguments::CallOrConstruct(v8::internal::Tagged<v8::internal::FunctionTemplateInfo>, bool) src/api/api-arguments-inl.h:95:3 (d8+0x7a5579) (BuildId: a7a0130d592b7ef3)
+    #25 v8::internal::MaybeHandle<v8::internal::Object> v8::internal::(anonymous namespace)::HandleApiCallHelper<true>(v8::internal::Isolate*, v8::internal::Handle<v8::internal::HeapObject>, v8::internal::Handle<v8::internal::FunctionTemplateInfo>, v8::internal::Handle<v8::internal::Object>, unsigned long*, int) src/builtins/builtins-api.cc:108:36 (d8+0x7a46c0) (BuildId: a7a0130d592b7ef3)
+    #26 v8::internal::Builtin_Impl_HandleApiConstruct(v8::internal::BuiltinArguments, v8::internal::Isolate*) src/builtins/builtins-api.cc:139:3 (d8+0x7a3662) (BuildId: a7a0130d592b7ef3)
+    #27 v8::internal::Builtin_HandleApiConstruct(int, unsigned long*, v8::internal::Isolate*) src/builtins/builtins-api.cc:130:1 (d8+0x7a3203) (BuildId: a7a0130d592b7ef3)
+    #28 Builtins_CEntry_Return1_ArgvOnStack_BuiltinExit setup-isolate-deserialize.cc (d8+0x2746435) (BuildId: a7a0130d592b7ef3)
+    #29 v8::internal::Execution::CallScript(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSFunction>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>) src/execution/execution.cc:516:10 (d8+0x9a0965) (BuildId: a7a0130d592b7ef3)
+    #30 v8::Script::Run(v8::Local<v8::Context>, v8::Local<v8::Data>) src/api/api.cc:2095:7 (d8+0x73a29b) (BuildId: a7a0130d592b7ef3)
+    #31 v8::Script::Run(v8::Local<v8::Context>) src/api/api.cc:2059:10 (d8+0x739b30) (BuildId: a7a0130d592b7ef3)
+    #32 v8::Shell::ExecuteString(v8::Isolate*, v8::Local<v8::String>, v8::Local<v8::String>, v8::Shell::ReportExceptions, v8::Global<v8::Value>*) src/d8/d8.cc:970:44 (d8+0x6f974c) (BuildId: a7a0130d592b7ef3)
+    #33 v8::SourceGroup::Execute(v8::Isolate*) src/d8/d8.cc:4503:10 (d8+0x711891) (BuildId: a7a0130d592b7ef3)
+    #34 v8::Shell::RunMainIsolate(v8::Isolate*, bool) src/d8/d8.cc:5391:37 (d8+0x717281) (BuildId: a7a0130d592b7ef3)
+    #35 v8::Shell::RunMain(v8::Isolate*, bool) src/d8/d8.cc:5300:18 (d8+0x716e15) (BuildId: a7a0130d592b7ef3)
+    #36 v8::Shell::Main(int, char**) src/d8/d8.cc:6162:18 (d8+0x718dd5) (BuildId: a7a0130d592b7ef3)
+    #37 main src/d8/d8.cc:6254:43 (d8+0x719530) (BuildId: a7a0130d592b7ef3)
+
+  Location is heap block of size 824 at 0x725c00000000 allocated by main thread:
+    #0 operator new(unsigned long) /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_new_delete.cpp:64:3 (d8+0x6de0f2) (BuildId: a7a0130d592b7ef3)
+    #1 v8::internal::wasm::WasmEngine::InitializeOncePerProcess() src/wasm/wasm-engine.cc:1968:23 (d8+0x188d5d8) (BuildId: a7a0130d592b7ef3)
+    #2 v8::internal::V8::Initialize() src/init/v8.cc:239:3 (d8+0xc314f2) (BuildId: a7a0130d592b7ef3)
+    #3 v8::V8::Initialize(int) src/api/api.cc:6422:3 (d8+0x759a49) (BuildId: a7a0130d592b7ef3)
+    #4 Initialize include/v8-initialization.h:120:12 (d8+0x7183c5) (BuildId: a7a0130d592b7ef3)
+    #5 v8::Shell::Main(int, char**) src/d8/d8.cc:5974:3 (d8+0x7183c5)
+    #6 main src/d8/d8.cc:6254:43 (d8+0x719530) (BuildId: a7a0130d592b7ef3)
+
+  Mutex M0 (0x7238000070a0) created at:
+    #0 pthread_mutex_init /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1316:3 (d8+0x65edf3) (BuildId: a7a0130d592b7ef3)
+    #1 InitializeRecursiveNativeHandle src/base/platform/mutex.cc:112:12 (d8+0x29d867a) (BuildId: a7a0130d592b7ef3)
+    #2 v8::base::RecursiveMutex::RecursiveMutex() src/base/platform/mutex.cc:187:3 (d8+0x29d867a)
+    #3 v8::internal::IsolateSafepoint::IsolateSafepoint(v8::internal::Heap*) src/heap/safepoint.cc:29:19 (d8+0xb8c528) (BuildId: a7a0130d592b7ef3)
+    #4 make_unique<v8::internal::IsolateSafepoint, v8::internal::Heap *> third_party/libc++/src/include/__memory/unique_ptr.h:620:30 (d8+0xaa4c7d) (BuildId: a7a0130d592b7ef3)
+    #5 v8::internal::Heap::Heap() src/heap/heap.cc:261:18 (d8+0xaa4c7d)
+    #6 v8::internal::Isolate::Isolate(v8::internal::IsolateGroup*) src/execution/isolate.cc:3907:10 (d8+0x9c8812) (BuildId: a7a0130d592b7ef3)
+    #7 Allocate src/execution/isolate.cc:3847:40 (d8+0x9c63ac) (BuildId: a7a0130d592b7ef3)
+    #8 v8::internal::Isolate::New() src/execution/isolate.cc:3837:34 (d8+0x9c63ac)
+    #9 Allocate src/api/api.cc:9692:37 (d8+0x7663c7) (BuildId: a7a0130d592b7ef3)
+    #10 v8::Isolate::New(v8::Isolate::CreateParams const&) src/api/api.cc:9798:25 (d8+0x7663c7)
+    #11 v8::SourceGroup::ExecuteInThread() src/d8/d8.cc:4518:22 (d8+0x711981) (BuildId: a7a0130d592b7ef3)
+    #12 v8::SourceGroup::IsolateThread::Run() src/d8/d8.h:117:35 (d8+0x7196a3) (BuildId: a7a0130d592b7ef3)
+    #13 NotifyStartedAndRun src/base/platform/platform.h:612:5 (d8+0x29e0139) (BuildId: a7a0130d592b7ef3)
+    #14 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1191:11 (d8+0x29e0139)
+
+  Mutex M1 (0x7238000000a0) created at:
+    #0 pthread_mutex_init /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1316:3 (d8+0x65edf3) (BuildId: a7a0130d592b7ef3)
+    #1 InitializeRecursiveNativeHandle src/base/platform/mutex.cc:112:12 (d8+0x29d867a) (BuildId: a7a0130d592b7ef3)
+    #2 v8::base::RecursiveMutex::RecursiveMutex() src/base/platform/mutex.cc:187:3 (d8+0x29d867a)
+    #3 v8::internal::IsolateSafepoint::IsolateSafepoint(v8::internal::Heap*) src/heap/safepoint.cc:29:19 (d8+0xb8c528) (BuildId: a7a0130d592b7ef3)
+    #4 make_unique<v8::internal::IsolateSafepoint, v8::internal::Heap *> third_party/libc++/src/include/__memory/unique_ptr.h:620:30 (d8+0xaa4c7d) (BuildId: a7a0130d592b7ef3)
+    #5 v8::internal::Heap::Heap() src/heap/heap.cc:261:18 (d8+0xaa4c7d)
+    #6 v8::internal::Isolate::Isolate(v8::internal::IsolateGroup*) src/execution/isolate.cc:3907:10 (d8+0x9c8812) (BuildId: a7a0130d592b7ef3)
+    #7 Allocate src/execution/isolate.cc:3847:40 (d8+0x9c63ac) (BuildId: a7a0130d592b7ef3)
+    #8 v8::internal::Isolate::New() src/execution/isolate.cc:3837:34 (d8+0x9c63ac)
+    #9 Allocate src/api/api.cc:9692:37 (d8+0x7663c7) (BuildId: a7a0130d592b7ef3)
+    #10 v8::Isolate::New(v8::Isolate::CreateParams const&) src/api/api.cc:9798:25 (d8+0x7663c7)
+    #11 v8::Shell::Main(int, char**) src/d8/d8.cc:6041:22 (d8+0x718704) (BuildId: a7a0130d592b7ef3)
+    #12 main src/d8/d8.cc:6254:43 (d8+0x719530) (BuildId: a7a0130d592b7ef3)
+
+  Thread T22 'IsolateThread' (tid=530707, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1023:3 (d8+0x65d441) (BuildId: a7a0130d592b7ef3)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1223:14 (d8+0x29e0029) (BuildId: a7a0130d592b7ef3)
+    #2 StartExecuteInThread src/d8/d8.cc:4566:5 (d8+0x716d7f) (BuildId: a7a0130d592b7ef3)
+    #3 v8::Shell::RunMain(v8::Isolate*, bool) src/d8/d8.cc:5293:32 (d8+0x716d7f)
+    #4 v8::Shell::Main(int, char**) src/d8/d8.cc:6162:18 (d8+0x718dd5) (BuildId: a7a0130d592b7ef3)
+    #5 main src/d8/d8.cc:6254:43 (d8+0x719530) (BuildId: a7a0130d592b7ef3)
+
+SUMMARY: ThreadSanitizer: data race third_party/libc++/src/include/vector:951:38 in std::__Cr::vector<std::__Cr::unique_ptr<v8::internal::wasm::StackMemory, std::__Cr::default_delete<v8::internal::wasm::StackMemory>>, std::__Cr::allocator<std::__Cr::unique_ptr<v8::internal::wasm::StackMemory, std::__Cr::default_delete<v8::internal::wasm::StackMemory>>>>::__base_destruct_at_end(std::__Cr::unique_ptr<v8::internal::wasm::StackMemory, std::__Cr::default_delete<v8::internal::wasm::StackMemory>>*)
+==================
+ThreadSanitizer: reported 1 warnings
+
+Run #2
+Exit code: 0 [0x00]
+Result: PASS
+Expected outcomes: PASS
+Duration: 00:07:667
+
+Stdout:
+size=4 offset=0
+size=4 offset=1
+size=4 offset=2
+size=4 offset=0
+size=4 offset=3
+size=4 offset=4
+size=4 offset=5
+size=4 offset=1
+size=4 offset=7
+size=4 offset=2
+size=4 offset=3
+size=4 offset=8
+size=4 offset=4
+size=4 offset=9
+size=4 offset=5
+size=4 offset=1073741816
+size=4 offset=7
+size=4 offset=1073741820
+size=4 offset=8
+size=4 offset=1073741824
+size=4 offset=1073741825
+size=4 offset=1073741826
+size=4 offset=9
+size=4 offset=1073741827
+size=4 offset=1073741816
+size=4 offset=1073741828
+size=4 offset=1073741820
+size=4 offset=1073741829
+size=4 offset=1073741824
+size=4 offset=1073741831
+size=4 offset=1073741832
+size=4 offset=1073741825
+size=4 offset=1073741826
+size=4 offset=1073741833
+size=4 offset=1073741827
+size=4 offset=1073741828
+size=4 offset=2147483640
+size=4 offset=1073741829
+size=4 offset=1073741831
+size=4 offset=2147483644
+size=4 offset=1073741832
+size=4 offset=2147483648
+size=4 offset=1073741833
+size=4 offset=2147483649
+size=4 offset=2147483640
+size=4 offset=2147483650
+size=4 offset=2147483644
+size=4 offset=2147483651
+size=4 offset=2147483648
+size=4 offset=2147483652
+size=4 offset=2147483649
+size=4 offset=2147483653
+size=4 offset=2147483650
+size=4 offset=2147483655
+size=4 offset=2147483651
+size=4 offset=2147483656
+size=4 offset=2147483652
+size=4 offset=2147483657
+size=4 offset=2147483653
+size=4 offset=3221225464
+size=4 offset=2147483655
+size=4 offset=2147483656
+size=4 offset=3221225468
+size=4 offset=2147483657
+size=4 offset=3221225472
+size=4 offset=3221225464
+size=4 offset=3221225468
+size=4 offset=3221225473
+size=4 offset=3221225472
+size=4 offset=3221225473
+size=4 offset=3221225474
+size=4 offset=3221225474
+size=4 offset=3221225475
+size=4 offset=3221225475
+size=4 offset=3221225476
+size=4 offset=3221225476
+size=4 offset=3221225477
+size=4 offset=3221225477
+size=4 offset=3221225479
+size=4 offset=3221225479
+size=4 offset=3221225480
+size=4 offset=3221225480
+size=4 offset=3221225481
+size=4 offset=3221225481
+size=4 offset=4294967287
+size=4 offset=4294967287
+size=4 offset=4294967288
+size=4 offset=4294967288
+size=4 offset=4294967289
+size=4 offset=4294967289
+size=4 offset=4294967291
+size=4 offset=4294967291
+size=4 offset=4294967292
+size=4 offset=4294967292
+size=4 offset=4294967293
+size=4 offset=4294967294
+size=4 offset=4294967293
+size=4 offset=4294967295
+size=4 offset=4294967294
+size=4 offset=4294967295
+size=1 offset=0
+size=1 offset=0
+size=1 offset=1
+size=1 offset=1
+size=1 offset=2
+size=1 offset=2
+size=1 offset=3
+size=1 offset=3
+size=1 offset=4
+size=1 offset=5
+size=1 offset=7
+size=1 offset=8
+size=1 offset=4
+size=1 offset=9
+size=1 offset=1073741816
+size=1 offset=5
+size=1 offset=1073741820
+size=1 offset=7
+size=1 offset=1073741824
+size=1 offset=8
+size=1 offset=1073741825
+size=1 offset=9
+size=1 offset=1073741826
+size=1 offset=1073741816
+size=1 offset=1073741827
+size=1 offset=1073741820
+size=1 offset=1073741828
+size=1 offset=1073741824
+size=1 offset=1073741825
+size=1 offset=1073741829
+size=1 offset=1073741826
+size=1 offset=1073741831
+size=1 offset=1073741827
+size=1 offset=1073741832
+size=1 offset=1073741828
+size=1 offset=1073741833
+size=1 offset=1073741829
+size=1 offset=2147483640
+size=1 offset=1073741831
+size=1 offset=2147483644
+size=1 offset=1073741832
+size=1 offset=2147483648
+size=1 offset=1073741833
+size=1 offset=2147483649
+size=1 offset=2147483640
+size=1 offset=2147483650
+size=1 offset=2147483644
+size=1 offset=2147483651
+size=1 offset=2147483648
+size=1 offset=2147483652
+size=1 offset=2147483649
+size=1 offset=2147483653
+size=1 offset=2147483650
+size=1 offset=2147483655
+size=1 offset=2147483651
+size=1 offset=2147483656
+size=1 offset=2147483652
+size=1 offset=2147483657
+size=1 offset=2147483653
+size=1 offset=3221225464
+size=1 offset=2147483655
+size=1 offset=3221225468
+size=1 offset=2147483656
+size=1 offset=3221225472
+size=1 offset=2147483657
+size=1 offset=3221225473
+size=1 offset=3221225464
+size=1 offset=3221225474
+size=1 offset=3221225468
+size=1 offset=3221225475
+size=1 offset=3221225472
+size=1 offset=3221225473
+size=1 offset=3221225476
+size=1 offset=3221225474
+size=1 offset=3221225477
+size=1 offset=3221225475
+size=1 offset=3221225479
+size=1 offset=3221225476
+size=1 offset=3221225480
+size=1 offset=3221225477
+size=1 offset=3221225481
+size=1 offset=4294967287
+size=1 offset=3221225479
+size=1 offset=4294967288
+size=1 offset=4294967289
+size=1 offset=3221225480
+size=1 offset=4294967291
+size=1 offset=4294967292
+size=1 offset=3221225481
+size=1 offset=4294967293
+size=1 offset=4294967287
+size=1 offset=4294967294
+size=1 offset=4294967288
+size=1 offset=4294967295
+size=1 offset=4294967289
+size=8 offset=0
+size=8 offset=1
+size=1 offset=4294967291
+size=8 offset=2
+size=1 offset=4294967292
+size=8 offset=3
+size=1 offset=4294967293
+size=8 offset=4
+size=1 offset=4294967294
+size=8 offset=5
+size=1 offset=4294967295
+size=8 offset=7
+size=8 offset=0
+size=8 offset=1
+size=8 offset=8
+size=8 offset=2
+size=8 offset=9
+size=8 offset=3
+size=8 offset=4
+size=8 offset=1073741816
+size=8 offset=1073741820
+size=8 offset=5
+size=8 offset=7
+size=8 offset=8
+size=8 offset=1073741824
+size=8 offset=9
+size=8 offset=1073741816
+size=8 offset=1073741825
+size=8 offset=1073741820
+size=8 offset=1073741826
+size=8 offset=1073741827
+size=8 offset=1073741824
+size=8 offset=1073741828
+size=8 offset=1073741825
+size=8 offset=1073741829
+size=8 offset=1073741826
+size=8 offset=1073741831
+size=8 offset=1073741827
+size=8 offset=1073741832
+size=8 offset=1073741828
+size=8 offset=1073741833
+size=8 offset=1073741829
+size=8 offset=2147483640
+size=8 offset=1073741831
+size=8 offset=2147483644
+size=8 offset=1073741832
+size=8 offset=2147483648
+size=8 offset=1073741833
+size=8 offset=2147483649
+size=8 offset=2147483650
+size=8 offset=2147483640
+size=8 offset=2147483651
+size=8 offset=2147483644
+size=8 offset=2147483652
+size=8 offset=2147483648
+size=8 offset=2147483653
+size=8 offset=2147483655
+size=8 offset=2147483649
+size=8 offset=2147483656
+size=8 offset=2147483657
+size=8 offset=2147483650
+size=8 offset=3221225464
+size=8 offset=2147483651
+size=8 offset=3221225468
+size=8 offset=2147483652
+size=8 offset=3221225472
+size=8 offset=2147483653
+size=8 offset=3221225473
+size=8 offset=2147483655
+size=8 offset=3221225474
+size=8 offset=2147483656
+size=8 offset=3221225475
+size=8 offset=2147483657
+size=8 offset=3221225476
+size=8 offset=3221225464
+size=8 offset=3221225477
+size=8 offset=3221225468
+size=8 offset=3221225472
+size=8 offset=3221225479
+size=8 offset=3221225473
+size=8 offset=3221225480
+size=8 offset=3221225474
+size=8 offset=3221225481
+size=8 offset=4294967287
+size=8 offset=3221225475
+size=8 offset=4294967288
+size=8 offset=3221225476
+size=8 offset=4294967289
+size=8 offset=3221225477
+size=8 offset=4294967291
+size=8 offset=3221225479
+size=8 offset=4294967292
+size=8 offset=3221225480
+size=8 offset=4294967293
+size=8 offset=3221225481
+size=8 offset=4294967294
+size=8 offset=4294967287
+size=8 offset=4294967288
+size=8 offset=4294967295
+size=8 offset=4294967289
+size=8 offset=4294967291
+size=8 offset=4294967292
+size=8 offset=4294967293
+size=8 offset=4294967294
+size=8 offset=4294967295
+

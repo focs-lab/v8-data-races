@@ -1,0 +1,313 @@
+Test: cctest/test-streaming-compilation/AsyncTestMoreFunctionsCanBeSerializedCallback
+Flags: test-streaming-compilation/AsyncTestMoreFunctionsCanBeSerializedCallback --random-seed=-1461189304 --nohard-abort --testing-d8-test-runner --no-wasm-trap-handler
+Command: out/build/cctest test-streaming-compilation/AsyncTestMoreFunctionsCanBeSerializedCallback --random-seed=-1461189304 --nohard-abort --testing-d8-test-runner --no-wasm-trap-handler
+Variant: no_wasm_traps
+Shard: 0:5
+
+GN arguments:
+dcheck_always_on = false
+is_component_build = false
+is_debug = false
+is_tsan = true
+target_cpu = "x64"
+use_remoteexec = true
+v8_enable_google_benchmark = true
+v8_enable_test_features = true
+
+Trigger flake bisect on command line:
+bb add v8/try.triggered/v8_flako -p 'bisect_builder_group="client.v8"' -p 'bisect_buildername="V8 Linux64 TSAN - builder"' -p 'revision="27a0f364839889c194cb083cb4c1cd32c1ad284f"' -p 'swarming_dimensions=["cpu:x86-64", "pool:chromium.tests", "os:Ubuntu-22.04"]' -p 'isolated_name="bot_default"' -p 'test_name="cctest/test-streaming-compilation/AsyncTestMoreFunctionsCanBeSerializedCallback"' -p 'timeout_sec=60' -p 'total_timeout_sec=120' -p 'variant="no_wasm_traps"' -p 'extra_args=[]'
+
+Local flake reproduction on command line:
+tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=no_wasm_traps --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1 cctest/test-streaming-compilation/AsyncTestMoreFunctionsCanBeSerializedCallback
+
+Run #1
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS
+Duration: 00:02:904
+
+Crash Type:
+Data race
+WRITE 1
+
+Crash State:
+__invoke<(lambda at ../../test/cctest/wasm/test-streaming-compilation.cc:1421:7) &, const std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> &>
+__call<(lambda at ../../test/cctest/wasm/test-streaming-compilation.cc:1421:7) &, const std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> &>
+void std::__Cr::__function::__policy_invoker<void (std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> const&)>::__call_impl<std::__Cr::__function::__default_alloc_func<v8::internal::wasm::RunStream_TestMoreFunctionsCanBeSerializedCallback(v8::internal::wasm::MockPlatform*, v8::Isolate*)::$_0, void (std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> const&)>>(std::__Cr::__function::__policy_storage const*, std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> const&)
+
+Stderr:
+/b/s/w/ir/third_party/llvm-build/Release+Asserts/bin/llvm-symbolizer: error: '[stack]': No such file or directory
+==================
+WARNING: ThreadSanitizer: data race (pid=1008440)
+  Write of size 1 at 0x7ffe24152667 by thread T5 (mutexes: write M0):
+    #0 operator() test/cctest/wasm/test-streaming-compilation.cc:1422:25 (cctest+0xe78bd0) (BuildId: b1b34aa87bdd8831)
+    #1 __invoke<(lambda at ../../test/cctest/wasm/test-streaming-compilation.cc:1421:7) &, const std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> &> third_party/libc++/src/include/__type_traits/invoke.h:150:25 (cctest+0xe78bd0)
+    #2 __call<(lambda at ../../test/cctest/wasm/test-streaming-compilation.cc:1421:7) &, const std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> &> third_party/libc++/src/include/__type_traits/invoke.h:225:5 (cctest+0xe78bd0)
+    #3 operator() third_party/libc++/src/include/__functional/function.h:208:12 (cctest+0xe78bd0)
+    #4 void std::__Cr::__function::__policy_invoker<void (std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> const&)>::__call_impl<std::__Cr::__function::__default_alloc_func<v8::internal::wasm::RunStream_TestMoreFunctionsCanBeSerializedCallback(v8::internal::wasm::MockPlatform*, v8::Isolate*)::$_0, void (std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> const&)>>(std::__Cr::__function::__policy_storage const*, std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> const&) third_party/libc++/src/include/__functional/function.h:608:12 (cctest+0xe78bd0)
+    #5 operator() third_party/libc++/src/include/__functional/function.h:714:12 (cctest+0x1ea1be8) (BuildId: b1b34aa87bdd8831)
+    #6 operator() third_party/libc++/src/include/__functional/function.h:987:10 (cctest+0x1ea1be8)
+    #7 v8::internal::wasm::(anonymous namespace)::CallMoreFunctionsCanBeSerializedCallback::call(v8::internal::wasm::CompilationEvent) src/wasm/streaming-decoder.cc:371:7 (cctest+0x1ea1be8)
+    #8 v8::internal::wasm::(anonymous namespace)::CompilationStateImpl::TriggerCallbacks(v8::base::EnumSet<v8::internal::wasm::CompilationEvent, int>) src/wasm/module-compiler.cc:4100:17 (cctest+0x1e59bef) (BuildId: b1b34aa87bdd8831)
+    #9 TriggerCachingAfterTimeout src/wasm/module-compiler.cc:4139:3 (cctest+0x1e5a069) (BuildId: b1b34aa87bdd8831)
+    #10 v8::internal::wasm::(anonymous namespace)::TriggerCodeCachingAfterTimeoutTask::Run() src/wasm/module-compiler.cc:4022:49 (cctest+0x1e5a069)
+    #11 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:95:25 (cctest+0x3c0ba3f) (BuildId: b1b34aa87bdd8831)
+    #12 NotifyStartedAndRun src/base/platform/platform.h:613:5 (cctest+0x3bff729) (BuildId: b1b34aa87bdd8831)
+    #13 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1189:11 (cctest+0x3bff729)
+
+  Previous read of size 1 at 0x7ffe24152667 by main thread:
+    #0 v8::internal::wasm::RunStream_TestMoreFunctionsCanBeSerializedCallback(v8::internal::wasm::MockPlatform*, v8::Isolate*) test/cctest/wasm/test-streaming-compilation.cc:1473:11 (cctest+0xe69f53) (BuildId: b1b34aa87bdd8831)
+    #1 TestAsyncTestMoreFunctionsCanBeSerializedCallback test/cctest/wasm/test-streaming-compilation.cc:1410:1 (cctest+0xe6993a) (BuildId: b1b34aa87bdd8831)
+    #2 v8::internal::wasm::TestWithoutPlatformAsyncTestMoreFunctionsCanBeSerializedCallback() test/cctest/wasm/test-streaming-compilation.cc:1410:1 (cctest+0xe6993a)
+    #3 CcTest::Run(char const*) test/cctest/cctest.cc:163:3 (cctest+0x8b8ec0) (BuildId: b1b34aa87bdd8831)
+    #4 main test/cctest/cctest.cc:397:9 (cctest+0x8baae4) (BuildId: b1b34aa87bdd8831)
+
+  Location is stack of main thread.
+
+  Location is global '??' at 0x7ffe24133000 ([stack]+0x1f667)
+
+  Mutex M0 (0x725800000798) created at:
+    #0 pthread_mutex_init /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1315:3 (cctest+0x838723) (BuildId: b1b34aa87bdd8831)
+    #1 InitializeNativeHandle src/base/platform/mutex.cc:99:12 (cctest+0x3bf807b) (BuildId: b1b34aa87bdd8831)
+    #2 v8::base::Mutex::Mutex() src/base/platform/mutex.cc:152:3 (cctest+0x3bf807b)
+    #3 CompilationStateImpl src/wasm/module-compiler.cc:3461:23 (cctest+0x1e49dc7) (BuildId: b1b34aa87bdd8831)
+    #4 v8::internal::wasm::CompilationState::New(std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> const&, std::__Cr::shared_ptr<v8::internal::Counters>, v8::internal::wasm::DynamicTiering) src/wasm/module-compiler.cc:959:11 (cctest+0x1e49dc7)
+    #5 v8::internal::wasm::NativeModule::NativeModule(v8::internal::wasm::WasmFeatures, v8::base::EnumSet<v8::internal::wasm::CompileTimeImport, int>, v8::internal::wasm::DynamicTiering, v8::internal::VirtualMemory, std::__Cr::shared_ptr<v8::internal::wasm::WasmModule const>, std::__Cr::shared_ptr<v8::internal::Counters>, std::__Cr::shared_ptr<v8::internal::wasm::NativeModule>*) src/wasm/wasm-code-manager.cc:849:24 (cctest+0x1f3e438) (BuildId: b1b34aa87bdd8831)
+    #6 v8::internal::wasm::WasmCodeManager::NewNativeModule(v8::internal::Isolate*, v8::internal::wasm::WasmFeatures, v8::base::EnumSet<v8::internal::wasm::CompileTimeImport, int>, unsigned long, std::__Cr::shared_ptr<v8::internal::wasm::WasmModule const>) src/wasm/wasm-code-manager.cc:2205:7 (cctest+0x1f444dc) (BuildId: b1b34aa87bdd8831)
+    #7 v8::internal::wasm::WasmEngine::NewNativeModule(v8::internal::Isolate*, v8::internal::wasm::WasmFeatures, v8::base::EnumSet<v8::internal::wasm::CompileTimeImport, int>, std::__Cr::shared_ptr<v8::internal::wasm::WasmModule const>, unsigned long) src/wasm/wasm-engine.cc:1461:29 (cctest+0x1f62739) (BuildId: b1b34aa87bdd8831)
+    #8 v8::internal::wasm::AsyncCompileJob::CreateNativeModule(std::__Cr::shared_ptr<v8::internal::wasm::WasmModule const>, unsigned long) src/wasm/module-compiler.cc:2604:37 (cctest+0x1e5097e) (BuildId: b1b34aa87bdd8831)
+    #9 v8::internal::wasm::AsyncCompileJob::PrepareAndStartCompile::RunInForeground(v8::internal::wasm::AsyncCompileJob*) src/wasm/module-compiler.cc:3021:12 (cctest+0x1e62863) (BuildId: b1b34aa87bdd8831)
+    #10 v8::internal::wasm::AsyncCompileJob::CompileStep::Run(v8::internal::wasm::AsyncCompileJob*, bool) src/wasm/module-compiler.cc:2826:7 (cctest+0x1e62607) (BuildId: b1b34aa87bdd8831)
+    #11 v8::internal::wasm::AsyncCompileJob::CompileTask::RunInternal() src/wasm/module-compiler.cc:2855:18 (cctest+0x1e623c8) (BuildId: b1b34aa87bdd8831)
+    #12 Run src/tasks/cancelable-task.h:155:7 (cctest+0x1e5326d) (BuildId: b1b34aa87bdd8831)
+    #13 ExecuteForegroundTaskImmediately src/wasm/module-compiler.cc:2890:13 (cctest+0x1e5326d)
+    #14 void v8::internal::wasm::AsyncCompileJob::DoImmediately<v8::internal::wasm::AsyncCompileJob::PrepareAndStartCompile, std::__Cr::shared_ptr<v8::internal::wasm::WasmModule> const&, bool, bool, unsigned long&>(std::__Cr::shared_ptr<v8::internal::wasm::WasmModule> const&, bool&&, bool&&, unsigned long&) src/wasm/module-compiler.cc:2923:3 (cctest+0x1e5326d)
+    #15 v8::internal::wasm::AsyncStreamingProcessor::ProcessCodeSectionHeader(int, unsigned int, std::__Cr::shared_ptr<v8::internal::wasm::WireBytesStorage>, int, int) src/wasm/module-compiler.cc:3213:9 (cctest+0x1e52ecd) (BuildId: b1b34aa87bdd8831)
+    #16 StartCodeSection src/wasm/streaming-decoder.cc:185:22 (cctest+0x1e9fbaf) (BuildId: b1b34aa87bdd8831)
+    #17 v8::internal::wasm::AsyncStreamingDecoder::DecodeNumberOfFunctions::NextWithValue(v8::internal::wasm::AsyncStreamingDecoder*) src/wasm/streaming-decoder.cc:678:14 (cctest+0x1e9fbaf)
+    #18 v8::internal::wasm::AsyncStreamingDecoder::DecodeVarInt32::Next(v8::internal::wasm::AsyncStreamingDecoder*) src/wasm/streaming-decoder.cc:600:10 (cctest+0x1e9ef0f) (BuildId: b1b34aa87bdd8831)
+    #19 v8::internal::wasm::AsyncStreamingDecoder::OnBytesReceived(v8::base::Vector<unsigned char const>) src/wasm/streaming-decoder.cc:266:24 (cctest+0x1e9df98) (BuildId: b1b34aa87bdd8831)
+    #20 OnBytesReceived test/cctest/wasm/test-streaming-compilation.cc:253:14 (cctest+0xe69d1b) (BuildId: b1b34aa87bdd8831)
+    #21 v8::internal::wasm::RunStream_TestMoreFunctionsCanBeSerializedCallback(v8::internal::wasm::MockPlatform*, v8::Isolate*) test/cctest/wasm/test-streaming-compilation.cc:1446:10 (cctest+0xe69d1b)
+    #22 TestAsyncTestMoreFunctionsCanBeSerializedCallback test/cctest/wasm/test-streaming-compilation.cc:1410:1 (cctest+0xe6993a) (BuildId: b1b34aa87bdd8831)
+    #23 v8::internal::wasm::TestWithoutPlatformAsyncTestMoreFunctionsCanBeSerializedCallback() test/cctest/wasm/test-streaming-compilation.cc:1410:1 (cctest+0xe6993a)
+    #24 CcTest::Run(char const*) test/cctest/cctest.cc:163:3 (cctest+0x8b8ec0) (BuildId: b1b34aa87bdd8831)
+    #25 main test/cctest/cctest.cc:397:9 (cctest+0x8baae4) (BuildId: b1b34aa87bdd8831)
+
+  Thread T5 'V8 DefaultWorke' (tid=1008475, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1022:3 (cctest+0x836def) (BuildId: b1b34aa87bdd8831)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1221:14 (cctest+0x3bff619) (BuildId: b1b34aa87bdd8831)
+    #2 WorkerThread src/libplatform/default-worker-threads-task-runner.cc:80:3 (cctest+0x3c0b130) (BuildId: b1b34aa87bdd8831)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *, v8::base::Thread::Priority &> third_party/libc++/src/include/__memory/unique_ptr.h:620:30 (cctest+0x3c0b130)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)(), v8::base::Thread::Priority) src/libplatform/default-worker-threads-task-runner.cc:18:28 (cctest+0x3c0b130)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, v8::platform::DefaultWorkerThreadsTaskRunner *> third_party/libc++/src/include/__memory/construct_at.h:41:46 (cctest+0x3c019ba) (BuildId: b1b34aa87bdd8831)
+    #6 __construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, v8::platform::DefaultWorkerThreadsTaskRunner *> third_party/libc++/src/include/__memory/construct_at.h:49:10 (cctest+0x3c019ba)
+    #7 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void, 0> third_party/libc++/src/include/__memory/allocator_traits.h:328:5 (cctest+0x3c019ba)
+    #8 __shared_ptr_emplace<const int &, double (*)(), v8::base::Thread::Priority, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, 0> third_party/libc++/src/include/__memory/shared_ptr.h:265:5 (cctest+0x3c019ba)
+    #9 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), v8::base::Thread::Priority, 0> third_party/libc++/src/include/__memory/shared_ptr.h:826:51 (cctest+0x3c019ba)
+    #10 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, 0> third_party/libc++/src/include/__memory/shared_ptr.h:834:10 (cctest+0x3c019ba)
+    #11 v8::platform::DefaultPlatform::EnsureBackgroundTaskRunnerInitialized() src/libplatform/default-platform.cc:141:9 (cctest+0x3c019ba)
+    #12 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:112:5 (cctest+0x3c018d5) (BuildId: b1b34aa87bdd8831)
+    #13 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController> >, v8::platform::PriorityMode &> third_party/libc++/src/include/__memory/unique_ptr.h:620:30 (cctest+0x3c0145c) (BuildId: b1b34aa87bdd8831)
+    #14 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:54:19 (cctest+0x3c0145c)
+    #15 CcTest::Run(char const*) test/cctest/cctest.cc:117:7 (cctest+0x8b8bec) (BuildId: b1b34aa87bdd8831)
+    #16 main test/cctest/cctest.cc:397:9 (cctest+0x8baae4) (BuildId: b1b34aa87bdd8831)
+
+SUMMARY: ThreadSanitizer: data race test/cctest/wasm/test-streaming-compilation.cc:1422:25 in operator()
+==================
+ThreadSanitizer: reported 1 warnings
+
+Run #2
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS
+Duration: 00:02:749
+
+Crash Type:
+Data race
+WRITE 1
+
+Crash State:
+__invoke<(lambda at ../../test/cctest/wasm/test-streaming-compilation.cc:1421:7) &, const std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> &>
+__call<(lambda at ../../test/cctest/wasm/test-streaming-compilation.cc:1421:7) &, const std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> &>
+void std::__Cr::__function::__policy_invoker<void (std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> const&)>::__call_impl<std::__Cr::__function::__default_alloc_func<v8::internal::wasm::RunStream_TestMoreFunctionsCanBeSerializedCallback(v8::internal::wasm::MockPlatform*, v8::Isolate*)::$_0, void (std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> const&)>>(std::__Cr::__function::__policy_storage const*, std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> const&)
+
+Stderr:
+/b/s/w/ir/third_party/llvm-build/Release+Asserts/bin/llvm-symbolizer: error: '[stack]': No such file or directory
+==================
+WARNING: ThreadSanitizer: data race (pid=1009754)
+  Write of size 1 at 0x7ffe6138d507 by thread T6 (mutexes: write M0):
+    #0 operator() test/cctest/wasm/test-streaming-compilation.cc:1422:25 (cctest+0xe78bd0) (BuildId: b1b34aa87bdd8831)
+    #1 __invoke<(lambda at ../../test/cctest/wasm/test-streaming-compilation.cc:1421:7) &, const std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> &> third_party/libc++/src/include/__type_traits/invoke.h:150:25 (cctest+0xe78bd0)
+    #2 __call<(lambda at ../../test/cctest/wasm/test-streaming-compilation.cc:1421:7) &, const std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> &> third_party/libc++/src/include/__type_traits/invoke.h:225:5 (cctest+0xe78bd0)
+    #3 operator() third_party/libc++/src/include/__functional/function.h:208:12 (cctest+0xe78bd0)
+    #4 void std::__Cr::__function::__policy_invoker<void (std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> const&)>::__call_impl<std::__Cr::__function::__default_alloc_func<v8::internal::wasm::RunStream_TestMoreFunctionsCanBeSerializedCallback(v8::internal::wasm::MockPlatform*, v8::Isolate*)::$_0, void (std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> const&)>>(std::__Cr::__function::__policy_storage const*, std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> const&) third_party/libc++/src/include/__functional/function.h:608:12 (cctest+0xe78bd0)
+    #5 operator() third_party/libc++/src/include/__functional/function.h:714:12 (cctest+0x1ea1be8) (BuildId: b1b34aa87bdd8831)
+    #6 operator() third_party/libc++/src/include/__functional/function.h:987:10 (cctest+0x1ea1be8)
+    #7 v8::internal::wasm::(anonymous namespace)::CallMoreFunctionsCanBeSerializedCallback::call(v8::internal::wasm::CompilationEvent) src/wasm/streaming-decoder.cc:371:7 (cctest+0x1ea1be8)
+    #8 v8::internal::wasm::(anonymous namespace)::CompilationStateImpl::TriggerCallbacks(v8::base::EnumSet<v8::internal::wasm::CompilationEvent, int>) src/wasm/module-compiler.cc:4100:17 (cctest+0x1e59bef) (BuildId: b1b34aa87bdd8831)
+    #9 TriggerCachingAfterTimeout src/wasm/module-compiler.cc:4139:3 (cctest+0x1e5a069) (BuildId: b1b34aa87bdd8831)
+    #10 v8::internal::wasm::(anonymous namespace)::TriggerCodeCachingAfterTimeoutTask::Run() src/wasm/module-compiler.cc:4022:49 (cctest+0x1e5a069)
+    #11 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:95:25 (cctest+0x3c0ba3f) (BuildId: b1b34aa87bdd8831)
+    #12 NotifyStartedAndRun src/base/platform/platform.h:613:5 (cctest+0x3bff729) (BuildId: b1b34aa87bdd8831)
+    #13 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1189:11 (cctest+0x3bff729)
+
+  Previous read of size 1 at 0x7ffe6138d507 by main thread:
+    #0 v8::internal::wasm::RunStream_TestMoreFunctionsCanBeSerializedCallback(v8::internal::wasm::MockPlatform*, v8::Isolate*) test/cctest/wasm/test-streaming-compilation.cc:1473:11 (cctest+0xe69f53) (BuildId: b1b34aa87bdd8831)
+    #1 TestAsyncTestMoreFunctionsCanBeSerializedCallback test/cctest/wasm/test-streaming-compilation.cc:1410:1 (cctest+0xe6993a) (BuildId: b1b34aa87bdd8831)
+    #2 v8::internal::wasm::TestWithoutPlatformAsyncTestMoreFunctionsCanBeSerializedCallback() test/cctest/wasm/test-streaming-compilation.cc:1410:1 (cctest+0xe6993a)
+    #3 CcTest::Run(char const*) test/cctest/cctest.cc:163:3 (cctest+0x8b8ec0) (BuildId: b1b34aa87bdd8831)
+    #4 main test/cctest/cctest.cc:397:9 (cctest+0x8baae4) (BuildId: b1b34aa87bdd8831)
+
+  Location is stack of main thread.
+
+  Location is global '??' at 0x7ffe6136e000 ([stack]+0x1f507)
+
+  Mutex M0 (0x725800000798) created at:
+    #0 pthread_mutex_init /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1315:3 (cctest+0x838723) (BuildId: b1b34aa87bdd8831)
+    #1 InitializeNativeHandle src/base/platform/mutex.cc:99:12 (cctest+0x3bf807b) (BuildId: b1b34aa87bdd8831)
+    #2 v8::base::Mutex::Mutex() src/base/platform/mutex.cc:152:3 (cctest+0x3bf807b)
+    #3 CompilationStateImpl src/wasm/module-compiler.cc:3461:23 (cctest+0x1e49dc7) (BuildId: b1b34aa87bdd8831)
+    #4 v8::internal::wasm::CompilationState::New(std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> const&, std::__Cr::shared_ptr<v8::internal::Counters>, v8::internal::wasm::DynamicTiering) src/wasm/module-compiler.cc:959:11 (cctest+0x1e49dc7)
+    #5 v8::internal::wasm::NativeModule::NativeModule(v8::internal::wasm::WasmFeatures, v8::base::EnumSet<v8::internal::wasm::CompileTimeImport, int>, v8::internal::wasm::DynamicTiering, v8::internal::VirtualMemory, std::__Cr::shared_ptr<v8::internal::wasm::WasmModule const>, std::__Cr::shared_ptr<v8::internal::Counters>, std::__Cr::shared_ptr<v8::internal::wasm::NativeModule>*) src/wasm/wasm-code-manager.cc:849:24 (cctest+0x1f3e438) (BuildId: b1b34aa87bdd8831)
+    #6 v8::internal::wasm::WasmCodeManager::NewNativeModule(v8::internal::Isolate*, v8::internal::wasm::WasmFeatures, v8::base::EnumSet<v8::internal::wasm::CompileTimeImport, int>, unsigned long, std::__Cr::shared_ptr<v8::internal::wasm::WasmModule const>) src/wasm/wasm-code-manager.cc:2205:7 (cctest+0x1f444dc) (BuildId: b1b34aa87bdd8831)
+    #7 v8::internal::wasm::WasmEngine::NewNativeModule(v8::internal::Isolate*, v8::internal::wasm::WasmFeatures, v8::base::EnumSet<v8::internal::wasm::CompileTimeImport, int>, std::__Cr::shared_ptr<v8::internal::wasm::WasmModule const>, unsigned long) src/wasm/wasm-engine.cc:1461:29 (cctest+0x1f62739) (BuildId: b1b34aa87bdd8831)
+    #8 v8::internal::wasm::AsyncCompileJob::CreateNativeModule(std::__Cr::shared_ptr<v8::internal::wasm::WasmModule const>, unsigned long) src/wasm/module-compiler.cc:2604:37 (cctest+0x1e5097e) (BuildId: b1b34aa87bdd8831)
+    #9 v8::internal::wasm::AsyncCompileJob::PrepareAndStartCompile::RunInForeground(v8::internal::wasm::AsyncCompileJob*) src/wasm/module-compiler.cc:3021:12 (cctest+0x1e62863) (BuildId: b1b34aa87bdd8831)
+    #10 v8::internal::wasm::AsyncCompileJob::CompileStep::Run(v8::internal::wasm::AsyncCompileJob*, bool) src/wasm/module-compiler.cc:2826:7 (cctest+0x1e62607) (BuildId: b1b34aa87bdd8831)
+    #11 v8::internal::wasm::AsyncCompileJob::CompileTask::RunInternal() src/wasm/module-compiler.cc:2855:18 (cctest+0x1e623c8) (BuildId: b1b34aa87bdd8831)
+    #12 Run src/tasks/cancelable-task.h:155:7 (cctest+0x1e5326d) (BuildId: b1b34aa87bdd8831)
+    #13 ExecuteForegroundTaskImmediately src/wasm/module-compiler.cc:2890:13 (cctest+0x1e5326d)
+    #14 void v8::internal::wasm::AsyncCompileJob::DoImmediately<v8::internal::wasm::AsyncCompileJob::PrepareAndStartCompile, std::__Cr::shared_ptr<v8::internal::wasm::WasmModule> const&, bool, bool, unsigned long&>(std::__Cr::shared_ptr<v8::internal::wasm::WasmModule> const&, bool&&, bool&&, unsigned long&) src/wasm/module-compiler.cc:2923:3 (cctest+0x1e5326d)
+    #15 v8::internal::wasm::AsyncStreamingProcessor::ProcessCodeSectionHeader(int, unsigned int, std::__Cr::shared_ptr<v8::internal::wasm::WireBytesStorage>, int, int) src/wasm/module-compiler.cc:3213:9 (cctest+0x1e52ecd) (BuildId: b1b34aa87bdd8831)
+    #16 StartCodeSection src/wasm/streaming-decoder.cc:185:22 (cctest+0x1e9fbaf) (BuildId: b1b34aa87bdd8831)
+    #17 v8::internal::wasm::AsyncStreamingDecoder::DecodeNumberOfFunctions::NextWithValue(v8::internal::wasm::AsyncStreamingDecoder*) src/wasm/streaming-decoder.cc:678:14 (cctest+0x1e9fbaf)
+    #18 v8::internal::wasm::AsyncStreamingDecoder::DecodeVarInt32::Next(v8::internal::wasm::AsyncStreamingDecoder*) src/wasm/streaming-decoder.cc:600:10 (cctest+0x1e9ef0f) (BuildId: b1b34aa87bdd8831)
+    #19 v8::internal::wasm::AsyncStreamingDecoder::OnBytesReceived(v8::base::Vector<unsigned char const>) src/wasm/streaming-decoder.cc:266:24 (cctest+0x1e9df98) (BuildId: b1b34aa87bdd8831)
+    #20 OnBytesReceived test/cctest/wasm/test-streaming-compilation.cc:253:14 (cctest+0xe69d1b) (BuildId: b1b34aa87bdd8831)
+    #21 v8::internal::wasm::RunStream_TestMoreFunctionsCanBeSerializedCallback(v8::internal::wasm::MockPlatform*, v8::Isolate*) test/cctest/wasm/test-streaming-compilation.cc:1446:10 (cctest+0xe69d1b)
+    #22 TestAsyncTestMoreFunctionsCanBeSerializedCallback test/cctest/wasm/test-streaming-compilation.cc:1410:1 (cctest+0xe6993a) (BuildId: b1b34aa87bdd8831)
+    #23 v8::internal::wasm::TestWithoutPlatformAsyncTestMoreFunctionsCanBeSerializedCallback() test/cctest/wasm/test-streaming-compilation.cc:1410:1 (cctest+0xe6993a)
+    #24 CcTest::Run(char const*) test/cctest/cctest.cc:163:3 (cctest+0x8b8ec0) (BuildId: b1b34aa87bdd8831)
+    #25 main test/cctest/cctest.cc:397:9 (cctest+0x8baae4) (BuildId: b1b34aa87bdd8831)
+
+  Thread T6 'V8 DefaultWorke' (tid=1009827, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1022:3 (cctest+0x836def) (BuildId: b1b34aa87bdd8831)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1221:14 (cctest+0x3bff619) (BuildId: b1b34aa87bdd8831)
+    #2 WorkerThread src/libplatform/default-worker-threads-task-runner.cc:80:3 (cctest+0x3c0b130) (BuildId: b1b34aa87bdd8831)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *, v8::base::Thread::Priority &> third_party/libc++/src/include/__memory/unique_ptr.h:620:30 (cctest+0x3c0b130)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)(), v8::base::Thread::Priority) src/libplatform/default-worker-threads-task-runner.cc:18:28 (cctest+0x3c0b130)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, v8::platform::DefaultWorkerThreadsTaskRunner *> third_party/libc++/src/include/__memory/construct_at.h:41:46 (cctest+0x3c019ba) (BuildId: b1b34aa87bdd8831)
+    #6 __construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, v8::platform::DefaultWorkerThreadsTaskRunner *> third_party/libc++/src/include/__memory/construct_at.h:49:10 (cctest+0x3c019ba)
+    #7 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void, 0> third_party/libc++/src/include/__memory/allocator_traits.h:328:5 (cctest+0x3c019ba)
+    #8 __shared_ptr_emplace<const int &, double (*)(), v8::base::Thread::Priority, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, 0> third_party/libc++/src/include/__memory/shared_ptr.h:265:5 (cctest+0x3c019ba)
+    #9 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), v8::base::Thread::Priority, 0> third_party/libc++/src/include/__memory/shared_ptr.h:826:51 (cctest+0x3c019ba)
+    #10 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, 0> third_party/libc++/src/include/__memory/shared_ptr.h:834:10 (cctest+0x3c019ba)
+    #11 v8::platform::DefaultPlatform::EnsureBackgroundTaskRunnerInitialized() src/libplatform/default-platform.cc:141:9 (cctest+0x3c019ba)
+    #12 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:112:5 (cctest+0x3c018d5) (BuildId: b1b34aa87bdd8831)
+    #13 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController> >, v8::platform::PriorityMode &> third_party/libc++/src/include/__memory/unique_ptr.h:620:30 (cctest+0x3c0145c) (BuildId: b1b34aa87bdd8831)
+    #14 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:54:19 (cctest+0x3c0145c)
+    #15 CcTest::Run(char const*) test/cctest/cctest.cc:117:7 (cctest+0x8b8bec) (BuildId: b1b34aa87bdd8831)
+    #16 main test/cctest/cctest.cc:397:9 (cctest+0x8baae4) (BuildId: b1b34aa87bdd8831)
+
+SUMMARY: ThreadSanitizer: data race test/cctest/wasm/test-streaming-compilation.cc:1422:25 in operator()
+==================
+ThreadSanitizer: reported 1 warnings
+
+Run #3
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS
+Duration: 00:02:780
+
+Crash Type:
+Data race
+WRITE 1
+
+Crash State:
+__invoke<(lambda at ../../test/cctest/wasm/test-streaming-compilation.cc:1421:7) &, const std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> &>
+__call<(lambda at ../../test/cctest/wasm/test-streaming-compilation.cc:1421:7) &, const std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> &>
+void std::__Cr::__function::__policy_invoker<void (std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> const&)>::__call_impl<std::__Cr::__function::__default_alloc_func<v8::internal::wasm::RunStream_TestMoreFunctionsCanBeSerializedCallback(v8::internal::wasm::MockPlatform*, v8::Isolate*)::$_0, void (std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> const&)>>(std::__Cr::__function::__policy_storage const*, std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> const&)
+
+Stderr:
+/b/s/w/ir/third_party/llvm-build/Release+Asserts/bin/llvm-symbolizer: error: '[stack]': No such file or directory
+==================
+WARNING: ThreadSanitizer: data race (pid=1011315)
+  Write of size 1 at 0x7ffc0cae3a07 by thread T7 (mutexes: write M0):
+    #0 operator() test/cctest/wasm/test-streaming-compilation.cc:1422:25 (cctest+0xe78bd0) (BuildId: b1b34aa87bdd8831)
+    #1 __invoke<(lambda at ../../test/cctest/wasm/test-streaming-compilation.cc:1421:7) &, const std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> &> third_party/libc++/src/include/__type_traits/invoke.h:150:25 (cctest+0xe78bd0)
+    #2 __call<(lambda at ../../test/cctest/wasm/test-streaming-compilation.cc:1421:7) &, const std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> &> third_party/libc++/src/include/__type_traits/invoke.h:225:5 (cctest+0xe78bd0)
+    #3 operator() third_party/libc++/src/include/__functional/function.h:208:12 (cctest+0xe78bd0)
+    #4 void std::__Cr::__function::__policy_invoker<void (std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> const&)>::__call_impl<std::__Cr::__function::__default_alloc_func<v8::internal::wasm::RunStream_TestMoreFunctionsCanBeSerializedCallback(v8::internal::wasm::MockPlatform*, v8::Isolate*)::$_0, void (std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> const&)>>(std::__Cr::__function::__policy_storage const*, std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> const&) third_party/libc++/src/include/__functional/function.h:608:12 (cctest+0xe78bd0)
+    #5 operator() third_party/libc++/src/include/__functional/function.h:714:12 (cctest+0x1ea1be8) (BuildId: b1b34aa87bdd8831)
+    #6 operator() third_party/libc++/src/include/__functional/function.h:987:10 (cctest+0x1ea1be8)
+    #7 v8::internal::wasm::(anonymous namespace)::CallMoreFunctionsCanBeSerializedCallback::call(v8::internal::wasm::CompilationEvent) src/wasm/streaming-decoder.cc:371:7 (cctest+0x1ea1be8)
+    #8 v8::internal::wasm::(anonymous namespace)::CompilationStateImpl::TriggerCallbacks(v8::base::EnumSet<v8::internal::wasm::CompilationEvent, int>) src/wasm/module-compiler.cc:4100:17 (cctest+0x1e59bef) (BuildId: b1b34aa87bdd8831)
+    #9 TriggerCachingAfterTimeout src/wasm/module-compiler.cc:4139:3 (cctest+0x1e5a069) (BuildId: b1b34aa87bdd8831)
+    #10 v8::internal::wasm::(anonymous namespace)::TriggerCodeCachingAfterTimeoutTask::Run() src/wasm/module-compiler.cc:4022:49 (cctest+0x1e5a069)
+    #11 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:95:25 (cctest+0x3c0ba3f) (BuildId: b1b34aa87bdd8831)
+    #12 NotifyStartedAndRun src/base/platform/platform.h:613:5 (cctest+0x3bff729) (BuildId: b1b34aa87bdd8831)
+    #13 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1189:11 (cctest+0x3bff729)
+
+  Previous read of size 1 at 0x7ffc0cae3a07 by main thread:
+    #0 v8::internal::wasm::RunStream_TestMoreFunctionsCanBeSerializedCallback(v8::internal::wasm::MockPlatform*, v8::Isolate*) test/cctest/wasm/test-streaming-compilation.cc:1473:11 (cctest+0xe69f53) (BuildId: b1b34aa87bdd8831)
+    #1 TestAsyncTestMoreFunctionsCanBeSerializedCallback test/cctest/wasm/test-streaming-compilation.cc:1410:1 (cctest+0xe6993a) (BuildId: b1b34aa87bdd8831)
+    #2 v8::internal::wasm::TestWithoutPlatformAsyncTestMoreFunctionsCanBeSerializedCallback() test/cctest/wasm/test-streaming-compilation.cc:1410:1 (cctest+0xe6993a)
+    #3 CcTest::Run(char const*) test/cctest/cctest.cc:163:3 (cctest+0x8b8ec0) (BuildId: b1b34aa87bdd8831)
+    #4 main test/cctest/cctest.cc:397:9 (cctest+0x8baae4) (BuildId: b1b34aa87bdd8831)
+
+  Location is stack of main thread.
+
+  Location is global '??' at 0x7ffc0cac5000 ([stack]+0x1ea07)
+
+  Mutex M0 (0x725800000798) created at:
+    #0 pthread_mutex_init /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1315:3 (cctest+0x838723) (BuildId: b1b34aa87bdd8831)
+    #1 InitializeNativeHandle src/base/platform/mutex.cc:99:12 (cctest+0x3bf807b) (BuildId: b1b34aa87bdd8831)
+    #2 v8::base::Mutex::Mutex() src/base/platform/mutex.cc:152:3 (cctest+0x3bf807b)
+    #3 CompilationStateImpl src/wasm/module-compiler.cc:3461:23 (cctest+0x1e49dc7) (BuildId: b1b34aa87bdd8831)
+    #4 v8::internal::wasm::CompilationState::New(std::__Cr::shared_ptr<v8::internal::wasm::NativeModule> const&, std::__Cr::shared_ptr<v8::internal::Counters>, v8::internal::wasm::DynamicTiering) src/wasm/module-compiler.cc:959:11 (cctest+0x1e49dc7)
+    #5 v8::internal::wasm::NativeModule::NativeModule(v8::internal::wasm::WasmFeatures, v8::base::EnumSet<v8::internal::wasm::CompileTimeImport, int>, v8::internal::wasm::DynamicTiering, v8::internal::VirtualMemory, std::__Cr::shared_ptr<v8::internal::wasm::WasmModule const>, std::__Cr::shared_ptr<v8::internal::Counters>, std::__Cr::shared_ptr<v8::internal::wasm::NativeModule>*) src/wasm/wasm-code-manager.cc:849:24 (cctest+0x1f3e438) (BuildId: b1b34aa87bdd8831)
+    #6 v8::internal::wasm::WasmCodeManager::NewNativeModule(v8::internal::Isolate*, v8::internal::wasm::WasmFeatures, v8::base::EnumSet<v8::internal::wasm::CompileTimeImport, int>, unsigned long, std::__Cr::shared_ptr<v8::internal::wasm::WasmModule const>) src/wasm/wasm-code-manager.cc:2205:7 (cctest+0x1f444dc) (BuildId: b1b34aa87bdd8831)
+    #7 v8::internal::wasm::WasmEngine::NewNativeModule(v8::internal::Isolate*, v8::internal::wasm::WasmFeatures, v8::base::EnumSet<v8::internal::wasm::CompileTimeImport, int>, std::__Cr::shared_ptr<v8::internal::wasm::WasmModule const>, unsigned long) src/wasm/wasm-engine.cc:1461:29 (cctest+0x1f62739) (BuildId: b1b34aa87bdd8831)
+    #8 v8::internal::wasm::AsyncCompileJob::CreateNativeModule(std::__Cr::shared_ptr<v8::internal::wasm::WasmModule const>, unsigned long) src/wasm/module-compiler.cc:2604:37 (cctest+0x1e5097e) (BuildId: b1b34aa87bdd8831)
+    #9 v8::internal::wasm::AsyncCompileJob::PrepareAndStartCompile::RunInForeground(v8::internal::wasm::AsyncCompileJob*) src/wasm/module-compiler.cc:3021:12 (cctest+0x1e62863) (BuildId: b1b34aa87bdd8831)
+    #10 v8::internal::wasm::AsyncCompileJob::CompileStep::Run(v8::internal::wasm::AsyncCompileJob*, bool) src/wasm/module-compiler.cc:2826:7 (cctest+0x1e62607) (BuildId: b1b34aa87bdd8831)
+    #11 v8::internal::wasm::AsyncCompileJob::CompileTask::RunInternal() src/wasm/module-compiler.cc:2855:18 (cctest+0x1e623c8) (BuildId: b1b34aa87bdd8831)
+    #12 Run src/tasks/cancelable-task.h:155:7 (cctest+0x1e5326d) (BuildId: b1b34aa87bdd8831)
+    #13 ExecuteForegroundTaskImmediately src/wasm/module-compiler.cc:2890:13 (cctest+0x1e5326d)
+    #14 void v8::internal::wasm::AsyncCompileJob::DoImmediately<v8::internal::wasm::AsyncCompileJob::PrepareAndStartCompile, std::__Cr::shared_ptr<v8::internal::wasm::WasmModule> const&, bool, bool, unsigned long&>(std::__Cr::shared_ptr<v8::internal::wasm::WasmModule> const&, bool&&, bool&&, unsigned long&) src/wasm/module-compiler.cc:2923:3 (cctest+0x1e5326d)
+    #15 v8::internal::wasm::AsyncStreamingProcessor::ProcessCodeSectionHeader(int, unsigned int, std::__Cr::shared_ptr<v8::internal::wasm::WireBytesStorage>, int, int) src/wasm/module-compiler.cc:3213:9 (cctest+0x1e52ecd) (BuildId: b1b34aa87bdd8831)
+    #16 StartCodeSection src/wasm/streaming-decoder.cc:185:22 (cctest+0x1e9fbaf) (BuildId: b1b34aa87bdd8831)
+    #17 v8::internal::wasm::AsyncStreamingDecoder::DecodeNumberOfFunctions::NextWithValue(v8::internal::wasm::AsyncStreamingDecoder*) src/wasm/streaming-decoder.cc:678:14 (cctest+0x1e9fbaf)
+    #18 v8::internal::wasm::AsyncStreamingDecoder::DecodeVarInt32::Next(v8::internal::wasm::AsyncStreamingDecoder*) src/wasm/streaming-decoder.cc:600:10 (cctest+0x1e9ef0f) (BuildId: b1b34aa87bdd8831)
+    #19 v8::internal::wasm::AsyncStreamingDecoder::OnBytesReceived(v8::base::Vector<unsigned char const>) src/wasm/streaming-decoder.cc:266:24 (cctest+0x1e9df98) (BuildId: b1b34aa87bdd8831)
+    #20 OnBytesReceived test/cctest/wasm/test-streaming-compilation.cc:253:14 (cctest+0xe69d1b) (BuildId: b1b34aa87bdd8831)
+    #21 v8::internal::wasm::RunStream_TestMoreFunctionsCanBeSerializedCallback(v8::internal::wasm::MockPlatform*, v8::Isolate*) test/cctest/wasm/test-streaming-compilation.cc:1446:10 (cctest+0xe69d1b)
+    #22 TestAsyncTestMoreFunctionsCanBeSerializedCallback test/cctest/wasm/test-streaming-compilation.cc:1410:1 (cctest+0xe6993a) (BuildId: b1b34aa87bdd8831)
+    #23 v8::internal::wasm::TestWithoutPlatformAsyncTestMoreFunctionsCanBeSerializedCallback() test/cctest/wasm/test-streaming-compilation.cc:1410:1 (cctest+0xe6993a)
+    #24 CcTest::Run(char const*) test/cctest/cctest.cc:163:3 (cctest+0x8b8ec0) (BuildId: b1b34aa87bdd8831)
+    #25 main test/cctest/cctest.cc:397:9 (cctest+0x8baae4) (BuildId: b1b34aa87bdd8831)
+
+  Thread T7 'V8 DefaultWorke' (tid=1011365, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1022:3 (cctest+0x836def) (BuildId: b1b34aa87bdd8831)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1221:14 (cctest+0x3bff619) (BuildId: b1b34aa87bdd8831)
+    #2 WorkerThread src/libplatform/default-worker-threads-task-runner.cc:80:3 (cctest+0x3c0b130) (BuildId: b1b34aa87bdd8831)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *, v8::base::Thread::Priority &> third_party/libc++/src/include/__memory/unique_ptr.h:620:30 (cctest+0x3c0b130)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)(), v8::base::Thread::Priority) src/libplatform/default-worker-threads-task-runner.cc:18:28 (cctest+0x3c0b130)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, v8::platform::DefaultWorkerThreadsTaskRunner *> third_party/libc++/src/include/__memory/construct_at.h:41:46 (cctest+0x3c019ba) (BuildId: b1b34aa87bdd8831)
+    #6 __construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, v8::platform::DefaultWorkerThreadsTaskRunner *> third_party/libc++/src/include/__memory/construct_at.h:49:10 (cctest+0x3c019ba)
+    #7 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void, 0> third_party/libc++/src/include/__memory/allocator_traits.h:328:5 (cctest+0x3c019ba)
+    #8 __shared_ptr_emplace<const int &, double (*)(), v8::base::Thread::Priority, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, 0> third_party/libc++/src/include/__memory/shared_ptr.h:265:5 (cctest+0x3c019ba)
+    #9 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), v8::base::Thread::Priority, 0> third_party/libc++/src/include/__memory/shared_ptr.h:826:51 (cctest+0x3c019ba)
+    #10 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, 0> third_party/libc++/src/include/__memory/shared_ptr.h:834:10 (cctest+0x3c019ba)
+    #11 v8::platform::DefaultPlatform::EnsureBackgroundTaskRunnerInitialized() src/libplatform/default-platform.cc:141:9 (cctest+0x3c019ba)
+    #12 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:112:5 (cctest+0x3c018d5) (BuildId: b1b34aa87bdd8831)
+    #13 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController> >, v8::platform::PriorityMode &> third_party/libc++/src/include/__memory/unique_ptr.h:620:30 (cctest+0x3c0145c) (BuildId: b1b34aa87bdd8831)
+    #14 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:54:19 (cctest+0x3c0145c)
+    #15 CcTest::Run(char const*) test/cctest/cctest.cc:117:7 (cctest+0x8b8bec) (BuildId: b1b34aa87bdd8831)
+    #16 main test/cctest/cctest.cc:397:9 (cctest+0x8baae4) (BuildId: b1b34aa87bdd8831)
+
+SUMMARY: ThreadSanitizer: data race test/cctest/wasm/test-streaming-compilation.cc:1422:25 in operator()
+==================
+ThreadSanitizer: reported 1 warnings
+

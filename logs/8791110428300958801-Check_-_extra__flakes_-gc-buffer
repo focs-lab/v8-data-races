@@ -1,0 +1,270 @@
+Test: mjsunit/wasm/gc-buffer (flaky in a repeated run)
+Flags: --test /b/s/w/ir/test/mjsunit/mjsunit.js /b/s/w/ir/test/mjsunit/wasm/gc-buffer.js --random-seed=-1461189304 --nohard-abort --testing-d8-test-runner --future --expose-wasm --gc-interval=500 --stress-compaction --expose-gc
+Command: out/build/d8 --test test/mjsunit/mjsunit.js test/mjsunit/wasm/gc-buffer.js --random-seed=-1461189304 --nohard-abort --testing-d8-test-runner --future --expose-wasm --gc-interval=500 --stress-compaction --expose-gc
+Variant: future
+Shard: 2:10
+
+GN arguments:
+dcheck_always_on = true
+is_component_build = true
+is_debug = true
+is_tsan = true
+symbol_level = 1
+target_cpu = "x64"
+use_goma = false
+use_remoteexec = true
+v8_enable_backtrace = true
+v8_enable_fast_mksnapshot = true
+v8_enable_google_benchmark = true
+v8_enable_slow_dchecks = false
+v8_enable_test_features = true
+v8_enable_verify_heap = false
+
+Trigger flake bisect on command line:
+bb add v8/try.triggered/v8_flako -p 'bisect_builder_group="client.v8"' -p 'bisect_buildername="V8 Linux64 TSAN - debug builder"' -p 'revision="0eae0380ff6053932b1285caeec3b3eadc3b5915"' -p 'swarming_dimensions=["cpu:x86-64", "pool:chromium.tests", "os:Ubuntu-18.04"]' -p 'isolated_name="bot_default"' -p 'test_name="mjsunit/wasm/gc-buffer"' -p 'timeout_sec=60' -p 'total_timeout_sec=120' -p 'variant="future"' -p 'extra_args=[]'
+
+Local flake reproduction on command line:
+tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=future --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1 mjsunit/wasm/gc-buffer
+
+Run #1
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS
+Duration: 00:03:724
+
+Crash Type:
+Data race
+READ 8
+
+Crash State:
+GetFlags
+InReadOnlySpace
+GetIsolateFromHeapObject
+
+Stdout:
+module
+  instance 0
+  instance 1
+  instance 2
+  instance 3
+  instance 4
+  instance 5
+  instance 6
+  instance 7
+  instance 8
+  instance 9
+module
+  instance 0
+  instance 1
+  instance 2
+  instance 3
+  instance 4
+  instance 5
+  instance 6
+  instance 7
+  instance 8
+  instance 9
+module
+  instance 0
+  instance 1
+  instance 2
+  instance 3
+  instance 4
+  instance 5
+  instance 6
+  instance 7
+  instance 8
+  instance 9
+module
+  instance 0
+  instance 1
+  instance 2
+  instance 3
+  instance 4
+  instance 5
+  instance 6
+  instance 7
+  instance 8
+  instance 9
+module
+  instance 0
+  instance 1
+  instance 2
+  instance 3
+  instance 4
+  instance 5
+  instance 6
+  instance 7
+  instance 8
+  instance 9
+module
+  instance 0
+  instance 1
+  instance 2
+  instance 3
+  instance 4
+  instance 5
+  instance 6
+  instance 7
+  instance 8
+  instance 9
+
+Stderr:
+==================
+WARNING: ThreadSanitizer: data race (pid=2659)
+  Read of size 8 at 0x7e92001c0008 by thread T3:
+    #0 GetFlags src/heap/heap-write-barrier-inl.h:80:12 (libv8.so+0x1f2cdde) (BuildId: 0079bc7ef01dde0e)
+    #1 InReadOnlySpace src/heap/heap-write-barrier-inl.h:92:12 (libv8.so+0x1f2cdde)
+    #2 GetIsolateFromHeapObject src/execution/isolate-utils-inl.h:82:14 (libv8.so+0x1f2cdde)
+    #3 GetPtrComprCageBaseSlow src/execution/isolate-utils-inl.h:114:9 (libv8.so+0x1f2cdde)
+    #4 IsCode src/objects/instance-type-inl.h:183:1 (libv8.so+0x1f2cdde)
+    #5 IsCode src/objects/objects-inl.h:99:1 (libv8.so+0x1f2cdde)
+    #6 v8::internal::JSFunction::ShouldFlushBaselineCode(v8::base::EnumSet<v8::internal::CodeFlushMode, int>) src/objects/js-function-inl.h:241:19 (libv8.so+0x1f2cdde)
+    #7 v8::internal::MarkingVisitorBase<v8::internal::ConcurrentMarkingVisitor, v8::internal::ConcurrentMarkingState>::VisitJSFunction(v8::internal::Map, v8::internal::JSFunction) src/heap/marking-visitor-inl.h:179:19 (libv8.so+0x1f1e337) (BuildId: 0079bc7ef01dde0e)
+    #8 v8::internal::HeapVisitor<int, v8::internal::ConcurrentMarkingVisitor>::Visit(v8::internal::Map, v8::internal::HeapObject) src/heap/objects-visiting-inl.h:64:5 (libv8.so+0x1f10cb1) (BuildId: 0079bc7ef01dde0e)
+    #9 v8::internal::ConcurrentMarking::RunMajor(v8::JobDelegate*, v8::base::EnumSet<v8::internal::CodeFlushMode, int>, unsigned int, bool) src/heap/concurrent-marking.cc:813:41 (libv8.so+0x1f1001f) (BuildId: 0079bc7ef01dde0e)
+    #10 v8::internal::ConcurrentMarking::JobTaskMajor::Run(v8::JobDelegate*) src/heap/concurrent-marking.cc:661:28 (libv8.so+0x1f42530) (BuildId: 0079bc7ef01dde0e)
+    #11 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (libv8_libplatform.so+0x1b1eb) (BuildId: 5a7cf258a6049369)
+    #12 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:73:11 (libv8_libplatform.so+0x1eca0) (BuildId: 5a7cf258a6049369)
+    #13 NotifyStartedAndRun src/base/platform/platform.h:596:5 (libv8_libbase.so+0x567e8) (BuildId: 72dd6f7c8de9f8e3)
+    #14 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1123:11 (libv8_libbase.so+0x567e8)
+
+  Previous write of size 8 at 0x7e92001c0008 by thread T4:
+    #0 v8::internal::MemoryChunk::SetOldGenerationPageFlags(bool) src/heap/memory-chunk.cc (libv8.so+0x211b4d9) (BuildId: 0079bc7ef01dde0e)
+    #1 v8::internal::PagedSpaceBase::InitializePage(v8::internal::MemoryChunk*) src/heap/paged-spaces.cc:113:9 (libv8.so+0x21456d5) (BuildId: 0079bc7ef01dde0e)
+    #2 v8::internal::MemoryAllocator::AllocatePage(v8::internal::MemoryAllocator::AllocationMode, v8::internal::Space*, v8::internal::Executability) src/heap/memory-allocator.cc:587:10 (libv8.so+0x2116411) (BuildId: 0079bc7ef01dde0e)
+    #3 v8::internal::PagedSpaceBase::TryExpandBackground(unsigned long) src/heap/paged-spaces.cc:406:44 (libv8.so+0x2148dc1) (BuildId: 0079bc7ef01dde0e)
+    #4 v8::internal::ConcurrentAllocator::AllocateFromSpaceFreeList(unsigned long, unsigned long, v8::internal::AllocationOrigin) src/heap/concurrent-allocator.cc:238:22 (libv8.so+0x1f0d7fb) (BuildId: 0079bc7ef01dde0e)
+    #5 v8::internal::ConcurrentAllocator::AllocateLab(v8::internal::AllocationOrigin) src/heap/concurrent-allocator.cc:160:17 (libv8.so+0x1f0d45a) (BuildId: 0079bc7ef01dde0e)
+    #6 v8::internal::ConcurrentAllocator::AllocateInLabSlow(int, v8::internal::AllocationAlignment, v8::internal::AllocationOrigin) src/heap/concurrent-allocator.cc:150:8 (libv8.so+0x1f0d34c) (BuildId: 0079bc7ef01dde0e)
+    #7 v8::internal::ConcurrentAllocator::AllocateRaw(int, v8::internal::AllocationAlignment, v8::internal::AllocationOrigin) src/heap/concurrent-allocator-inl.h:43:16 (libv8.so+0x1f0e672) (BuildId: 0079bc7ef01dde0e)
+    #8 v8::internal::LocalHeap::AllocateRaw(int, v8::internal::AllocationType, v8::internal::AllocationOrigin, v8::internal::AllocationAlignment) src/heap/local-heap-inl.h (libv8.so+0x1f0cb98) (BuildId: 0079bc7ef01dde0e)
+    #9 AllocateRawOrFail src/heap/local-heap-inl.h:80:29 (libv8.so+0x206a53c) (BuildId: 0079bc7ef01dde0e)
+    #10 v8::internal::LocalFactory::AllocateRaw(int, v8::internal::AllocationType, v8::internal::AllocationAlignment) src/heap/local-factory.cc:51:53 (libv8.so+0x206a53c)
+    #11 AllocateRaw src/heap/factory-base.cc:1140:18 (libv8.so+0x1f54ffa) (BuildId: 0079bc7ef01dde0e)
+    #12 v8::internal::FactoryBase<v8::internal::LocalFactory>::AllocateRawWithImmortalMap(int, v8::internal::AllocationType, v8::internal::Map, v8::internal::AllocationAlignment) src/heap/factory-base.cc:1131:23 (libv8.so+0x1f54ffa)
+    #13 v8::internal::FactoryBase<v8::internal::LocalFactory>::NewByteArray(int, v8::internal::AllocationType) src/heap/factory-base.cc:213:23 (libv8.so+0x1fa40c3) (BuildId: 0079bc7ef01dde0e)
+    #14 v8::internal::Handle<v8::internal::ByteArray> v8::internal::baseline::BytecodeOffsetTableBuilder::ToBytecodeOffsetTable<v8::internal::LocalIsolate>(v8::internal::LocalIsolate*) src/baseline/baseline-compiler.cc:70:49 (libv8.so+0x1a465b1) (BuildId: 0079bc7ef01dde0e)
+    #15 v8::internal::baseline::BaselineCompiler::Build(v8::internal::LocalIsolate*) src/baseline/baseline-compiler.cc:346:38 (libv8.so+0x1a4644b) (BuildId: 0079bc7ef01dde0e)
+    #16 v8::internal::baseline::BaselineCompilerTask::Compile(v8::internal::LocalIsolate*) src/baseline/baseline-batch-compiler.cc:55:18 (libv8.so+0x1a42803) (BuildId: 0079bc7ef01dde0e)
+    #17 Compile src/baseline/baseline-batch-compiler.cc:132:12 (libv8.so+0x1a4224a) (BuildId: 0079bc7ef01dde0e)
+    #18 v8::internal::baseline::ConcurrentBaselineCompiler::JobDispatcher::Run(v8::JobDelegate*) src/baseline/baseline-batch-compiler.cc:177:14 (libv8.so+0x1a4224a)
+    #19 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (libv8_libplatform.so+0x1b1eb) (BuildId: 5a7cf258a6049369)
+    #20 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:73:11 (libv8_libplatform.so+0x1eca0) (BuildId: 5a7cf258a6049369)
+    #21 NotifyStartedAndRun src/base/platform/platform.h:596:5 (libv8_libbase.so+0x567e8) (BuildId: 72dd6f7c8de9f8e3)
+    #22 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1123:11 (libv8_libbase.so+0x567e8)
+
+  Thread T3 'V8 DefaultWorke' (tid=2671, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1047:3 (d8+0xac7eb) (BuildId: 46134b4349c884ed)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1155:14 (libv8_libbase.so+0x5667a) (BuildId: 72dd6f7c8de9f8e3)
+    #2 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::WorkerThread(v8::platform::DefaultWorkerThreadsTaskRunner*) src/libplatform/default-worker-threads-task-runner.cc:66:3 (libv8_libplatform.so+0x1eb6f) (BuildId: 5a7cf258a6049369)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (libv8_libplatform.so+0x1e58f) (BuildId: 5a7cf258a6049369)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)()) src/libplatform/default-worker-threads-task-runner.cc:16:28 (libv8_libplatform.so+0x1e58f)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/construct_at.h:38:48 (libv8_libplatform.so+0x1bf41) (BuildId: 5a7cf258a6049369)
+    #6 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void, void> buildtools/third_party/libc++/trunk/include/__memory/allocator_traits.h:304:9 (libv8_libplatform.so+0x1bf41)
+    #7 __shared_ptr_emplace<const int &, double (*)()> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:275:9 (libv8_libplatform.so+0x1bf41)
+    #8 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:936:55 (libv8_libplatform.so+0x1bf41)
+    #9 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:945:12 (libv8_libplatform.so+0x1bf41)
+    #10 v8::platform::DefaultPlatform::EnsureBackgroundTaskRunnerInitialized() src/libplatform/default-platform.cc:132:7 (libv8_libplatform.so+0x1bf41)
+    #11 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::Cr::unique_ptr<v8::TracingController, std::Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:108:5 (libv8_libplatform.so+0x1be84) (BuildId: 5a7cf258a6049369)
+    #12 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::Cr::unique_ptr<v8::TracingController, std::Cr::default_delete<v8::TracingController> > > buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (libv8_libplatform.so+0x1b2e4) (BuildId: 5a7cf258a6049369)
+    #13 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::Cr::unique_ptr<v8::TracingController, std::Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:53:19 (libv8_libplatform.so+0x1b2e4)
+    #14 v8::Shell::Main(int, char**) src/d8/d8.cc:5823:16 (d8+0x170621) (BuildId: 46134b4349c884ed)
+    #15 main src/d8/d8.cc:6128:43 (d8+0x1719f0) (BuildId: 46134b4349c884ed)
+
+  Thread T4 'V8 DefaultWorke' (tid=2672, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1047:3 (d8+0xac7eb) (BuildId: 46134b4349c884ed)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1155:14 (libv8_libbase.so+0x5667a) (BuildId: 72dd6f7c8de9f8e3)
+    #2 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::WorkerThread(v8::platform::DefaultWorkerThreadsTaskRunner*) src/libplatform/default-worker-threads-task-runner.cc:66:3 (libv8_libplatform.so+0x1eb6f) (BuildId: 5a7cf258a6049369)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (libv8_libplatform.so+0x1e58f) (BuildId: 5a7cf258a6049369)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)()) src/libplatform/default-worker-threads-task-runner.cc:16:28 (libv8_libplatform.so+0x1e58f)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/construct_at.h:38:48 (libv8_libplatform.so+0x1bf41) (BuildId: 5a7cf258a6049369)
+    #6 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void, void> buildtools/third_party/libc++/trunk/include/__memory/allocator_traits.h:304:9 (libv8_libplatform.so+0x1bf41)
+    #7 __shared_ptr_emplace<const int &, double (*)()> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:275:9 (libv8_libplatform.so+0x1bf41)
+    #8 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:936:55 (libv8_libplatform.so+0x1bf41)
+    #9 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:945:12 (libv8_libplatform.so+0x1bf41)
+    #10 v8::platform::DefaultPlatform::EnsureBackgroundTaskRunnerInitialized() src/libplatform/default-platform.cc:132:7 (libv8_libplatform.so+0x1bf41)
+    #11 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::Cr::unique_ptr<v8::TracingController, std::Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:108:5 (libv8_libplatform.so+0x1be84) (BuildId: 5a7cf258a6049369)
+    #12 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::Cr::unique_ptr<v8::TracingController, std::Cr::default_delete<v8::TracingController> > > buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (libv8_libplatform.so+0x1b2e4) (BuildId: 5a7cf258a6049369)
+    #13 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::Cr::unique_ptr<v8::TracingController, std::Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:53:19 (libv8_libplatform.so+0x1b2e4)
+    #14 v8::Shell::Main(int, char**) src/d8/d8.cc:5823:16 (d8+0x170621) (BuildId: 46134b4349c884ed)
+    #15 main src/d8/d8.cc:6128:43 (d8+0x1719f0) (BuildId: 46134b4349c884ed)
+
+SUMMARY: ThreadSanitizer: data race src/heap/heap-write-barrier-inl.h:80:12 in GetFlags
+==================
+ThreadSanitizer: reported 1 warnings
+
+Run #2
+Exit code: 0 [0x00]
+Result: PASS
+Expected outcomes: PASS
+Duration: 00:03:152
+
+Stdout:
+module
+  instance 0
+  instance 1
+  instance 2
+  instance 3
+  instance 4
+  instance 5
+  instance 6
+  instance 7
+  instance 8
+  instance 9
+module
+  instance 0
+  instance 1
+  instance 2
+  instance 3
+  instance 4
+  instance 5
+  instance 6
+  instance 7
+  instance 8
+  instance 9
+module
+  instance 0
+  instance 1
+  instance 2
+  instance 3
+  instance 4
+  instance 5
+  instance 6
+  instance 7
+  instance 8
+  instance 9
+module
+  instance 0
+  instance 1
+  instance 2
+  instance 3
+  instance 4
+  instance 5
+  instance 6
+  instance 7
+  instance 8
+  instance 9
+module
+  instance 0
+  instance 1
+  instance 2
+  instance 3
+  instance 4
+  instance 5
+  instance 6
+  instance 7
+  instance 8
+  instance 9
+module
+  instance 0
+  instance 1
+  instance 2
+  instance 3
+  instance 4
+  instance 5
+  instance 6
+  instance 7
+  instance 8
+  instance 9
+

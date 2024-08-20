@@ -1,0 +1,202 @@
+Test: mjsunit/regress/regress-1122 (flaky in a repeated run)
+Flags: --test /b/s/w/ir/test/mjsunit/mjsunit.js /b/s/w/ir/test/mjsunit/mjsunit_numfuzz.js /b/s/w/ir/test/mjsunit/regress/regress-1122.js --random-seed=103330061 --nohard-abort --exit-on-contradictory-flags --testing-d8-test-runner --no-fail --cache=code --minor-ms --concurrent-minor-ms-marking --regexp-interpret-all --lazy-feedback-allocation --invocation-count-for-turbofan=235 --invocation-count-for-maglev=26 --invocation-count-for-feedback-allocation=1 --fuzzer-random-seed=-737467252
+Command: out/build/d8 --test test/mjsunit/mjsunit.js test/mjsunit/mjsunit_numfuzz.js test/mjsunit/regress/regress-1122.js --random-seed=103330061 --nohard-abort --exit-on-contradictory-flags --testing-d8-test-runner --no-fail --cache=code --minor-ms --concurrent-minor-ms-marking --regexp-interpret-all --lazy-feedback-allocation --invocation-count-for-turbofan=235 --invocation-count-for-maglev=26 --invocation-count-for-feedback-allocation=1 --fuzzer-random-seed=-737467252
+Variant: None
+
+GN arguments:
+dcheck_always_on = false
+is_component_build = false
+is_debug = false
+is_tsan = true
+target_cpu = "x64"
+use_goma = false
+use_remoteexec = true
+v8_enable_google_benchmark = true
+v8_enable_test_features = true
+
+Trigger flake bisect on command line:
+bb add v8/try.triggered/v8_flako -p 'bisect_builder_group="client.v8.clusterfuzz"' -p 'bisect_buildername="V8 Clusterfuzz Linux64 TSAN - release builder"' -p 'revision="15e45fb834e31c9f1de01d3bd1021eb6d5dd65e0"' -p 'swarming_dimensions=["cpu:x86-64", "pool:chromium.tests", "os:Ubuntu-22.04"]' -p 'isolated_name="run-num-fuzzer"' -p 'test_name="mjsunit/regress/regress-1122"' -p 'timeout_sec=60' -p 'total_timeout_sec=120' -p 'variant="default"' -p 'extra_args=["--extra-flags", "--cache=code", "--extra-flags", "--minor-ms", "--extra-flags", "--concurrent-minor-ms-marking", "--extra-flags", "--regexp-interpret-all", "--extra-flags", "--lazy-feedback-allocation", "--extra-flags", "--invocation-count-for-turbofan=235", "--extra-flags", "--invocation-count-for-maglev=26", "--extra-flags", "--invocation-count-for-feedback-allocation=1", "--extra-flags", "--fuzzer-random-seed=-737467252"]'
+
+Local flake reproduction on command line:
+tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=default --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1 --extra-flags --cache=code --extra-flags --minor-ms --extra-flags --concurrent-minor-ms-marking --extra-flags --regexp-interpret-all --extra-flags --lazy-feedback-allocation --extra-flags --invocation-count-for-turbofan=235 --extra-flags --invocation-count-for-maglev=26 --extra-flags --invocation-count-for-feedback-allocation=1 --extra-flags --fuzzer-random-seed=-737467252 mjsunit/regress/regress-1122
+
+Run #1
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS, TIMEOUT
+Duration: 00:26:899
+
+Crash Type:
+Data race
+ATOMIC READ 8
+
+Crash State:
+GetFlags
+InYoungGeneration
+InYoungGeneration
+
+Stdout:
+============ Run: Produce code cache ============
+============ Run: Consume code cache ============
+
+Stderr:
+V8 is running with experimental features enabled. Stability and security will suffer.
+==================
+WARNING: ThreadSanitizer: data race (pid=320807)
+  Read of size 8 at 0x7ec700e80008 by thread T6:
+    #0 GetFlags src/heap/basic-memory-chunk.h:207:45 (d8+0x95518f) (BuildId: 087065db758fba2c)
+    #1 InYoungGeneration src/heap/basic-memory-chunk.h:256:13 (d8+0x95518f)
+    #2 InYoungGeneration src/heap/heap-inl.h:284:54 (d8+0x95518f)
+    #3 bool v8::internal::VisitYoungObjectViaSlot<(v8::internal::ObjectVisitationMode)1, (v8::internal::SlotTreatmentMode)0, v8::internal::YoungGenerationConcurrentMarkingVisitor, v8::internal::CompressedMaybeObjectSlot>(v8::internal::YoungGenerationConcurrentMarkingVisitor*, v8::internal::CompressedMaybeObjectSlot) src/heap/marking-visitor-utility-inl.h:38:8 (d8+0x95518f)
+    #4 VisitObjectViaSlotInRemeberedSet<v8::internal::CompressedMaybeObjectSlot> src/heap/concurrent-marking.cc:129:12 (d8+0x954f3c) (BuildId: 087065db758fba2c)
+    #5 CheckAndMarkObject<v8::internal::YoungGenerationConcurrentMarkingVisitor, v8::internal::CompressedMaybeObjectSlot> src/heap/minor-mark-sweep-inl.h:263:19 (d8+0x954f3c)
+    #6 void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationConcurrentMarkingVisitor>(v8::internal::YoungGenerationConcurrentMarkingVisitor*)::'lambda'(v8::internal::CompressedMaybeObjectSlot)::operator()(v8::internal::CompressedMaybeObjectSlot) const src/heap/minor-mark-sweep-inl.h:198:33 (d8+0x954f3c)
+    #7 operator() src/heap/slot-set.h:156:44 (d8+0x954e30) (BuildId: 087065db758fba2c)
+    #8 unsigned long heap::base::BasicSlotSet<4ul>::Iterate<(heap::base::BasicSlotSet<4ul>::AccessMode)1, unsigned long v8::internal::SlotSet::Iterate<(v8::internal::AccessMode)1, void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationConcurrentMarkingVisitor>(v8::internal::YoungGenerationConcurrentMarkingVisitor*)::'lambda'(v8::internal::CompressedMaybeObjectSlot)>(unsigned long, unsigned long, unsigned long, void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationConcurrentMarkingVisitor>(v8::internal::YoungGenerationConcurrentMarkingVisitor*)::'lambda'(v8::internal::CompressedMaybeObjectSlot), heap::base::BasicSlotSet<4ul>::EmptyBucketMode)::'lambda'(unsigned long), unsigned long v8::internal::SlotSet::Iterate<(v8::internal::AccessMode)1, void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationConcurrentMarkingVisitor>(v8::internal::YoungGenerationConcurrentMarkingVisitor*)::'lambda'(v8::internal::CompressedMaybeObjectSlot)>(unsigned long, unsigned long, unsigned long, void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationConcurrentMarkingVisitor>(v8::internal::YoungGenerationConcurrentMarkingVisitor*)::'lambda'(v8::internal::CompressedMaybeObjectSlot), heap::base::BasicSlotSet<4ul>::EmptyBucketMode)::'lambda0'(unsigned long)>(unsigned long, unsigned long, unsigned long, void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationConcurrentMarkingVisitor>(v8::internal::YoungGenerationConcurrentMarkingVisitor*)::'lambda'(v8::internal::CompressedMaybeObjectSlot), unsigned long v8::internal::SlotSet::Iterate<(v8::internal::AccessMode)1, void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationConcurrentMarkingVisitor>(v8::internal::YoungGenerationConcurrentMarkingVisitor*)::'lambda'(v8::internal::CompressedMaybeObjectSlot)>(unsigned long, unsigned long, unsigned long, void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationConcurrentMarkingVisitor>(v8::internal::YoungGenerationConcurrentMarkingVisitor*)::'lambda'(v8::internal::CompressedMaybeObjectSlot), heap::base::BasicSlotSet<4ul>::EmptyBucketMode)::'lambda0'(unsigned long)) src/heap/base/basic-slot-set.h:352:19 (d8+0x954e30)
+    #9 Iterate<(v8::internal::AccessMode)1, (lambda at ../../src/heap/minor-mark-sweep-inl.h:196:19)> src/heap/slot-set.h:154:26 (d8+0x954788) (BuildId: 087065db758fba2c)
+    #10 Iterate<(v8::internal::AccessMode)1, (lambda at ../../src/heap/minor-mark-sweep-inl.h:196:19)> src/heap/remembered-set.h:44:26 (d8+0x954788)
+    #11 Iterate<(v8::internal::AccessMode)1, (lambda at ../../src/heap/minor-mark-sweep-inl.h:196:19)> src/heap/remembered-set.h:199:12 (d8+0x954788)
+    #12 void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationConcurrentMarkingVisitor>(v8::internal::YoungGenerationConcurrentMarkingVisitor*) src/heap/minor-mark-sweep-inl.h:206:9 (d8+0x954788)
+    #13 Process<v8::internal::YoungGenerationConcurrentMarkingVisitor> src/heap/minor-mark-sweep-inl.h:156:5 (d8+0x94aba3) (BuildId: 087065db758fba2c)
+    #14 ProcessNextItem<v8::internal::YoungGenerationConcurrentMarkingVisitor> src/heap/minor-mark-sweep-inl.h:140:19 (d8+0x94aba3)
+    #15 ProcessNextItem<v8::internal::YoungGenerationConcurrentMarkingVisitor> src/heap/minor-mark-sweep.h:96:24 (d8+0x94aba3)
+    #16 v8::internal::ConcurrentMarking::RunMinor(v8::JobDelegate*) src/heap/concurrent-marking.cc:509:30 (d8+0x94aba3)
+    #17 v8::internal::ConcurrentMarking::JobTaskMinor::Run(v8::JobDelegate*) src/heap/concurrent-marking.cc:310:28 (d8+0x95827c) (BuildId: 087065db758fba2c)
+    #18 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (d8+0x2210adb) (BuildId: 087065db758fba2c)
+    #19 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:91:25 (d8+0x22177a4) (BuildId: 087065db758fba2c)
+    #20 NotifyStartedAndRun src/base/platform/platform.h:600:5 (d8+0x220a7d4) (BuildId: 087065db758fba2c)
+    #21 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1138:11 (d8+0x220a7d4)
+
+  Previous write of size 8 at 0x7ec700e80008 by main thread:
+    #0 Flags src/base/flags.h:33:9 (d8+0x938afd) (BuildId: 087065db758fba2c)
+    #1 v8::internal::BasicMemoryChunk::BasicMemoryChunk(v8::internal::Heap*, v8::internal::BaseSpace*, unsigned long, unsigned long, unsigned long, v8::internal::VirtualMemory) src/heap/basic-memory-chunk.h:324:37 (d8+0x938afd)
+    #2 v8::internal::MemoryChunk::MemoryChunk(v8::internal::Heap*, v8::internal::BaseSpace*, unsigned long, unsigned long, unsigned long, v8::internal::VirtualMemory, v8::internal::Executability, v8::internal::PageSize) src/heap/memory-chunk.cc:107:7 (d8+0xa4bc89) (BuildId: 087065db758fba2c)
+    #3 v8::internal::Page::Page(v8::internal::Heap*, v8::internal::BaseSpace*, unsigned long, unsigned long, unsigned long, v8::internal::VirtualMemory, v8::internal::Executability) src/heap/spaces.cc:52:7 (d8+0xaba27f) (BuildId: 087065db758fba2c)
+    #4 v8::internal::MemoryAllocator::AllocatePage(v8::internal::MemoryAllocator::AllocationMode, v8::internal::Space*, v8::internal::Executability) src/heap/memory-allocator.cc:598:40 (d8+0xa492c2) (BuildId: 087065db758fba2c)
+    #5 v8::internal::PagedSpaceBase::TryExpandImpl(v8::internal::MemoryAllocator::AllocationMode) src/heap/paged-spaces.cc:371:44 (d8+0xa81edc) (BuildId: 087065db758fba2c)
+    #6 AllocatePage src/heap/new-spaces.cc:1022:10 (d8+0xa71322) (BuildId: 087065db758fba2c)
+    #7 v8::internal::PagedSpaceForNewSpace::AddPageBeyondCapacity(int, v8::internal::AllocationOrigin) src/heap/new-spaces.cc:1010:10 (d8+0xa71322)
+    #8 EnsureAllocation src/heap/new-spaces-inl.h:131:10 (d8+0xa72cd3) (BuildId: 087065db758fba2c)
+    #9 v8::internal::PagedNewSpace::EnsureAllocation(int, v8::internal::AllocationAlignment, v8::internal::AllocationOrigin, int*) src/heap/new-spaces.h:792:25 (d8+0xa72cd3)
+    #10 AllocateRawUnaligned src/heap/spaces-inl.h:268:8 (d8+0x97776a) (BuildId: 087065db758fba2c)
+    #11 AllocateRawSlow src/heap/spaces-inl.h:322:13 (d8+0x97776a)
+    #12 AllocateRaw src/heap/spaces-inl.h:260:31 (d8+0x97776a)
+    #13 AllocateRaw<(v8::internal::AllocationType)0> src/heap/heap-allocator-inl.h:102:28 (d8+0x97776a)
+    #14 AllocateRawWith<(v8::internal::HeapAllocator::AllocationRetryMode)1> src/heap/heap-allocator-inl.h:205:14 (d8+0x97776a)
+    #15 v8::internal::Factory::NewFillerObject(int, v8::internal::AllocationAlignment, v8::internal::AllocationType, v8::internal::AllocationOrigin) src/heap/factory.cc:382:36 (d8+0x97776a)
+    #16 __RT_impl_Runtime_AllocateInYoungGeneration src/runtime/runtime-internal.cc:518:31 (d8+0x10495de) (BuildId: 087065db758fba2c)
+    #17 v8::internal::Runtime_AllocateInYoungGeneration(int, unsigned long*, v8::internal::Isolate*) src/runtime/runtime-internal.cc:490:1 (d8+0x10495de)
+    #18 Builtins_CEntry_Return1_ArgvOnStack_NoBuiltinExit setup-isolate-deserialize.cc (d8+0x1fa33b5) (BuildId: 087065db758fba2c)
+    #19 v8::internal::Execution::CallScript(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSFunction>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>) src/execution/execution.cc:540:10 (d8+0x8cf44f) (BuildId: 087065db758fba2c)
+    #20 v8::Script::Run(v8::Local<v8::Context>, v8::Local<v8::Data>) src/api/api.cc:2338:7 (d8+0x66fd6c) (BuildId: 087065db758fba2c)
+    #21 v8::Script::Run(v8::Local<v8::Context>) src/api/api.cc:2301:10 (d8+0x66f820) (BuildId: 087065db758fba2c)
+    #22 v8::Shell::ExecuteString(v8::Isolate*, v8::Local<v8::String>, v8::Local<v8::String>, v8::Shell::PrintResult, v8::Shell::ReportExceptions, v8::Shell::ProcessMessageQueue) src/d8/d8.cc:953:28 (d8+0x62dc90) (BuildId: 087065db758fba2c)
+    #23 v8::SourceGroup::Execute(v8::Isolate*) src/d8/d8.cc:4435:10 (d8+0x6460ae) (BuildId: 087065db758fba2c)
+    #24 v8::Shell::RunMainIsolate(v8::Isolate*, bool) src/d8/d8.cc:5236:37 (d8+0x64a32e) (BuildId: 087065db758fba2c)
+    #25 v8::Shell::RunMain(v8::Isolate*, bool) src/d8/d8.cc:5157:18 (d8+0x649d9f) (BuildId: 087065db758fba2c)
+    #26 v8::Shell::Main(int, char**) src/d8/d8.cc:5996:18 (d8+0x64c1ba) (BuildId: 087065db758fba2c)
+    #27 main src/d8/d8.cc:6093:43 (d8+0x64c730) (BuildId: 087065db758fba2c)
+
+  Thread T6 'V8 DefaultWorke' (tid=320814, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1020:3 (d8+0x58debb) (BuildId: 087065db758fba2c)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1170:14 (d8+0x220a6e9) (BuildId: 087065db758fba2c)
+    #2 WorkerThread src/libplatform/default-worker-threads-task-runner.cc:76:3 (d8+0x2216f30) (BuildId: 087065db758fba2c)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (d8+0x2216f30)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)()) src/libplatform/default-worker-threads-task-runner.cc:17:28 (d8+0x2216f30)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/construct_at.h:38:46 (d8+0x220d210) (BuildId: 087065db758fba2c)
+    #6 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void, void> buildtools/third_party/libc++/trunk/include/__memory/allocator_traits.h:304:9 (d8+0x220d210)
+    #7 __shared_ptr_emplace<const int &, double (*)()> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:299:13 (d8+0x220d210)
+    #8 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1010:55 (d8+0x220d210)
+    #9 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1019:12 (d8+0x220d210)
+    #10 v8::platform::DefaultPlatform::EnsureBackgroundTaskRunnerInitialized() src/libplatform/default-platform.cc:132:7 (d8+0x220d210)
+    #11 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:108:5 (d8+0x220d15e) (BuildId: 087065db758fba2c)
+    #12 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController> > > buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (d8+0x220c8f2) (BuildId: 087065db758fba2c)
+    #13 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:53:19 (d8+0x220c8f2)
+    #14 v8::Shell::Main(int, char**) src/d8/d8.cc:5780:16 (d8+0x64b57a) (BuildId: 087065db758fba2c)
+    #15 main src/d8/d8.cc:6093:43 (d8+0x64c730) (BuildId: 087065db758fba2c)
+
+SUMMARY: ThreadSanitizer: data race src/heap/basic-memory-chunk.h:207:45 in GetFlags
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=320807)
+  Atomic read of size 8 at 0x7ec700e80230 by thread T6:
+    #0 __cxx_atomic_load<long> buildtools/third_party/libc++/trunk/include/__atomic/cxx_atomic_impl.h:356:12 (d8+0x9551cc) (BuildId: 087065db758fba2c)
+    #1 load buildtools/third_party/libc++/trunk/include/__atomic/atomic_base.h:56:14 (d8+0x9551cc)
+    #2 atomic_load_explicit<long> buildtools/third_party/libc++/trunk/include/__atomic/atomic.h:239:17 (d8+0x9551cc)
+    #3 Relaxed_Load src/base/atomicops.h:331:10 (d8+0x9551cc)
+    #4 Relaxed_Load<unsigned long> src/base/atomic-utils.h:87:9 (d8+0x9551cc)
+    #5 SetBits<unsigned long> src/base/atomic-utils.h:158:19 (d8+0x9551cc)
+    #6 Set<(v8::internal::AccessMode)0> src/heap/marking.h:70:10 (d8+0x9551cc)
+    #7 TryMark src/heap/marking-state-inl.h:29:38 (d8+0x9551cc)
+    #8 bool v8::internal::VisitYoungObjectViaSlot<(v8::internal::ObjectVisitationMode)1, (v8::internal::SlotTreatmentMode)0, v8::internal::YoungGenerationConcurrentMarkingVisitor, v8::internal::CompressedMaybeObjectSlot>(v8::internal::YoungGenerationConcurrentMarkingVisitor*, v8::internal::CompressedMaybeObjectSlot) src/heap/marking-visitor-utility-inl.h:48:34 (d8+0x9551cc)
+    #9 VisitObjectViaSlotInRemeberedSet<v8::internal::CompressedMaybeObjectSlot> src/heap/concurrent-marking.cc:129:12 (d8+0x954f3c) (BuildId: 087065db758fba2c)
+    #10 CheckAndMarkObject<v8::internal::YoungGenerationConcurrentMarkingVisitor, v8::internal::CompressedMaybeObjectSlot> src/heap/minor-mark-sweep-inl.h:263:19 (d8+0x954f3c)
+    #11 void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationConcurrentMarkingVisitor>(v8::internal::YoungGenerationConcurrentMarkingVisitor*)::'lambda'(v8::internal::CompressedMaybeObjectSlot)::operator()(v8::internal::CompressedMaybeObjectSlot) const src/heap/minor-mark-sweep-inl.h:198:33 (d8+0x954f3c)
+    #12 operator() src/heap/slot-set.h:156:44 (d8+0x954e30) (BuildId: 087065db758fba2c)
+    #13 unsigned long heap::base::BasicSlotSet<4ul>::Iterate<(heap::base::BasicSlotSet<4ul>::AccessMode)1, unsigned long v8::internal::SlotSet::Iterate<(v8::internal::AccessMode)1, void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationConcurrentMarkingVisitor>(v8::internal::YoungGenerationConcurrentMarkingVisitor*)::'lambda'(v8::internal::CompressedMaybeObjectSlot)>(unsigned long, unsigned long, unsigned long, void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationConcurrentMarkingVisitor>(v8::internal::YoungGenerationConcurrentMarkingVisitor*)::'lambda'(v8::internal::CompressedMaybeObjectSlot), heap::base::BasicSlotSet<4ul>::EmptyBucketMode)::'lambda'(unsigned long), unsigned long v8::internal::SlotSet::Iterate<(v8::internal::AccessMode)1, void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationConcurrentMarkingVisitor>(v8::internal::YoungGenerationConcurrentMarkingVisitor*)::'lambda'(v8::internal::CompressedMaybeObjectSlot)>(unsigned long, unsigned long, unsigned long, void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationConcurrentMarkingVisitor>(v8::internal::YoungGenerationConcurrentMarkingVisitor*)::'lambda'(v8::internal::CompressedMaybeObjectSlot), heap::base::BasicSlotSet<4ul>::EmptyBucketMode)::'lambda0'(unsigned long)>(unsigned long, unsigned long, unsigned long, void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationConcurrentMarkingVisitor>(v8::internal::YoungGenerationConcurrentMarkingVisitor*)::'lambda'(v8::internal::CompressedMaybeObjectSlot), unsigned long v8::internal::SlotSet::Iterate<(v8::internal::AccessMode)1, void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationConcurrentMarkingVisitor>(v8::internal::YoungGenerationConcurrentMarkingVisitor*)::'lambda'(v8::internal::CompressedMaybeObjectSlot)>(unsigned long, unsigned long, unsigned long, void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationConcurrentMarkingVisitor>(v8::internal::YoungGenerationConcurrentMarkingVisitor*)::'lambda'(v8::internal::CompressedMaybeObjectSlot), heap::base::BasicSlotSet<4ul>::EmptyBucketMode)::'lambda0'(unsigned long)) src/heap/base/basic-slot-set.h:352:19 (d8+0x954e30)
+    #14 Iterate<(v8::internal::AccessMode)1, (lambda at ../../src/heap/minor-mark-sweep-inl.h:196:19)> src/heap/slot-set.h:154:26 (d8+0x954788) (BuildId: 087065db758fba2c)
+    #15 Iterate<(v8::internal::AccessMode)1, (lambda at ../../src/heap/minor-mark-sweep-inl.h:196:19)> src/heap/remembered-set.h:44:26 (d8+0x954788)
+    #16 Iterate<(v8::internal::AccessMode)1, (lambda at ../../src/heap/minor-mark-sweep-inl.h:196:19)> src/heap/remembered-set.h:199:12 (d8+0x954788)
+    #17 void v8::internal::YoungGenerationRememberedSetsMarkingWorklist::MarkingItem::MarkUntypedPointers<v8::internal::YoungGenerationConcurrentMarkingVisitor>(v8::internal::YoungGenerationConcurrentMarkingVisitor*) src/heap/minor-mark-sweep-inl.h:206:9 (d8+0x954788)
+    #18 Process<v8::internal::YoungGenerationConcurrentMarkingVisitor> src/heap/minor-mark-sweep-inl.h:156:5 (d8+0x94aba3) (BuildId: 087065db758fba2c)
+    #19 ProcessNextItem<v8::internal::YoungGenerationConcurrentMarkingVisitor> src/heap/minor-mark-sweep-inl.h:140:19 (d8+0x94aba3)
+    #20 ProcessNextItem<v8::internal::YoungGenerationConcurrentMarkingVisitor> src/heap/minor-mark-sweep.h:96:24 (d8+0x94aba3)
+    #21 v8::internal::ConcurrentMarking::RunMinor(v8::JobDelegate*) src/heap/concurrent-marking.cc:509:30 (d8+0x94aba3)
+    #22 v8::internal::ConcurrentMarking::JobTaskMinor::Run(v8::JobDelegate*) src/heap/concurrent-marking.cc:310:28 (d8+0x95827c) (BuildId: 087065db758fba2c)
+    #23 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (d8+0x2210adb) (BuildId: 087065db758fba2c)
+    #24 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:91:25 (d8+0x22177a4) (BuildId: 087065db758fba2c)
+    #25 NotifyStartedAndRun src/base/platform/platform.h:600:5 (d8+0x220a7d4) (BuildId: 087065db758fba2c)
+    #26 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1138:11 (d8+0x220a7d4)
+
+  Previous write of size 8 at 0x7ec700e80230 by main thread:
+    #0 __tsan_memset /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_memintrinsics.cpp:35:3 (d8+0x589c84) (BuildId: 087065db758fba2c)
+    #1 ClearCellRangeRelaxed<(v8::internal::AccessMode)1> src/heap/marking-inl.h:56:16 (d8+0xa4c9e4) (BuildId: 087065db758fba2c)
+    #2 Clear<(v8::internal::AccessMode)1> src/heap/marking-inl.h:80:3 (d8+0xa4c9e4)
+    #3 v8::internal::MemoryChunk::ClearLiveness() src/heap/memory-chunk.cc:267:21 (d8+0xa4c9e4)
+    #4 v8::internal::PagedSpaceForNewSpace::InitializePage(v8::internal::MemoryChunk*) src/heap/new-spaces.cc:899:9 (d8+0xa70e16) (BuildId: 087065db758fba2c)
+    #5 v8::internal::MemoryAllocator::AllocatePage(v8::internal::MemoryAllocator::AllocationMode, v8::internal::Space*, v8::internal::Executability) src/heap/memory-allocator.cc:606:10 (d8+0xa492e5) (BuildId: 087065db758fba2c)
+    #6 v8::internal::PagedSpaceBase::TryExpandImpl(v8::internal::MemoryAllocator::AllocationMode) src/heap/paged-spaces.cc:371:44 (d8+0xa81edc) (BuildId: 087065db758fba2c)
+    #7 AllocatePage src/heap/new-spaces.cc:1022:10 (d8+0xa71322) (BuildId: 087065db758fba2c)
+    #8 v8::internal::PagedSpaceForNewSpace::AddPageBeyondCapacity(int, v8::internal::AllocationOrigin) src/heap/new-spaces.cc:1010:10 (d8+0xa71322)
+    #9 EnsureAllocation src/heap/new-spaces-inl.h:131:10 (d8+0xa72cd3) (BuildId: 087065db758fba2c)
+    #10 v8::internal::PagedNewSpace::EnsureAllocation(int, v8::internal::AllocationAlignment, v8::internal::AllocationOrigin, int*) src/heap/new-spaces.h:792:25 (d8+0xa72cd3)
+    #11 AllocateRawUnaligned src/heap/spaces-inl.h:268:8 (d8+0x97776a) (BuildId: 087065db758fba2c)
+    #12 AllocateRawSlow src/heap/spaces-inl.h:322:13 (d8+0x97776a)
+    #13 AllocateRaw src/heap/spaces-inl.h:260:31 (d8+0x97776a)
+    #14 AllocateRaw<(v8::internal::AllocationType)0> src/heap/heap-allocator-inl.h:102:28 (d8+0x97776a)
+    #15 AllocateRawWith<(v8::internal::HeapAllocator::AllocationRetryMode)1> src/heap/heap-allocator-inl.h:205:14 (d8+0x97776a)
+    #16 v8::internal::Factory::NewFillerObject(int, v8::internal::AllocationAlignment, v8::internal::AllocationType, v8::internal::AllocationOrigin) src/heap/factory.cc:382:36 (d8+0x97776a)
+    #17 __RT_impl_Runtime_AllocateInYoungGeneration src/runtime/runtime-internal.cc:518:31 (d8+0x10495de) (BuildId: 087065db758fba2c)
+    #18 v8::internal::Runtime_AllocateInYoungGeneration(int, unsigned long*, v8::internal::Isolate*) src/runtime/runtime-internal.cc:490:1 (d8+0x10495de)
+    #19 Builtins_CEntry_Return1_ArgvOnStack_NoBuiltinExit setup-isolate-deserialize.cc (d8+0x1fa33b5) (BuildId: 087065db758fba2c)
+    #20 v8::internal::Execution::CallScript(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSFunction>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>) src/execution/execution.cc:540:10 (d8+0x8cf44f) (BuildId: 087065db758fba2c)
+    #21 v8::Script::Run(v8::Local<v8::Context>, v8::Local<v8::Data>) src/api/api.cc:2338:7 (d8+0x66fd6c) (BuildId: 087065db758fba2c)
+    #22 v8::Script::Run(v8::Local<v8::Context>) src/api/api.cc:2301:10 (d8+0x66f820) (BuildId: 087065db758fba2c)
+    #23 v8::Shell::ExecuteString(v8::Isolate*, v8::Local<v8::String>, v8::Local<v8::String>, v8::Shell::PrintResult, v8::Shell::ReportExceptions, v8::Shell::ProcessMessageQueue) src/d8/d8.cc:953:28 (d8+0x62dc90) (BuildId: 087065db758fba2c)
+    #24 v8::SourceGroup::Execute(v8::Isolate*) src/d8/d8.cc:4435:10 (d8+0x6460ae) (BuildId: 087065db758fba2c)
+    #25 v8::Shell::RunMainIsolate(v8::Isolate*, bool) src/d8/d8.cc:5236:37 (d8+0x64a32e) (BuildId: 087065db758fba2c)
+    #26 v8::Shell::RunMain(v8::Isolate*, bool) src/d8/d8.cc:5157:18 (d8+0x649d9f) (BuildId: 087065db758fba2c)
+    #27 v8::Shell::Main(int, char**) src/d8/d8.cc:5996:18 (d8+0x64c1ba) (BuildId: 087065db758fba2c)
+    #28 main src/d8/d8.cc:6093:43 (d8+0x64c730) (BuildId: 087065db758fba2c)
+
+  Thread T6 'V8 DefaultWorke' (tid=320814, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1020:3 (d8+0x58debb) (BuildId: 087065db758fba2c)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1170:14 (d8+0x220a6e9) (BuildId: 087065db758fba2c)
+    #2 WorkerThread src/libplatform/default-worker-threads-task-runner.cc:76:3 (d8+0x2216f30) (BuildId: 087065db758fba2c)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (d8+0x2216f30)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)()) src/libplatform/default-worker-threads-task-runner.cc:17:28 (d8+0x2216f30)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/construct_at.h:38:46 (d8+0x220d210) (BuildId: 087065db758fba2c)
+    #6 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void, void> buildtools/third_party/libc++/trunk/include/__memory/allocator_traits.h:304:9 (d8+0x220d210)
+    #7 __shared_ptr_emplace<const int &, double (*)()> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:299:13 (d8+0x220d210)
+    #8 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1010:55 (d8+0x220d210)
+    #9 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1019:12 (d8+0x220d210)
+    #10 v8::platform::DefaultPlatform::EnsureBackgroundTaskRunnerInitialized() src/libplatform/default-platform.cc:132:7 (d8+0x220d210)
+    #11 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:108:5 (d8+0x220d15e) (BuildId: 087065db758fba2c)
+    #12 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController> > > buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (d8+0x220c8f2) (BuildId: 087065db758fba2c)
+    #13 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:53:19 (d8+0x220c8f2)
+    #14 v8::Shell::Main(int, char**) src/d8/d8.cc:5780:16 (d8+0x64b57a) (BuildId: 087065db758fba2c)
+    #15 main src/d8/d8.cc:6093:43 (d8+0x64c730) (BuildId: 087065db758fba2c)
+
+SUMMARY: ThreadSanitizer: data race buildtools/third_party/libc++/trunk/include/__atomic/cxx_atomic_impl.h:356:12 in __cxx_atomic_load<long>
+==================
+ThreadSanitizer: reported 2 warnings

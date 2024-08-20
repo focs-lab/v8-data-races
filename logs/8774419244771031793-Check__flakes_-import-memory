@@ -1,0 +1,154 @@
+Test: mjsunit/wasm/import-memory (flaky in a repeated run)
+Flags: --test /b/s/w/ir/test/mjsunit/mjsunit.js /b/s/w/ir/test/mjsunit/wasm/import-memory.js --random-seed=-2112458564 --nohard-abort --testing-d8-test-runner --future --expose-wasm
+Command: out/build/d8 --test test/mjsunit/mjsunit.js test/mjsunit/wasm/import-memory.js --random-seed=-2112458564 --nohard-abort --testing-d8-test-runner --future --expose-wasm
+Variant: future
+Shard: 2:6
+
+GN arguments:
+dcheck_always_on = false
+is_component_build = false
+is_debug = false
+is_tsan = true
+target_cpu = "x64"
+use_goma = false
+use_remoteexec = true
+v8_enable_atomic_object_field_writes = false
+v8_enable_concurrent_marking = false
+v8_enable_google_benchmark = true
+v8_enable_test_features = true
+
+Trigger flake bisect on command line:
+bb add v8/try.triggered/v8_flako -p 'bisect_builder_group="client.v8"' -p 'bisect_buildername="V8 Linux64 TSAN - no-concurrent-marking - builder"' -p 'revision="9b7d2a9cd9bbcec35d5008a43056bfd1e1914a81"' -p 'swarming_dimensions=["cpu:x86-64", "pool:chromium.tests", "os:Ubuntu-22.04"]' -p 'isolated_name="bot_default"' -p 'test_name="mjsunit/wasm/import-memory"' -p 'timeout_sec=60' -p 'total_timeout_sec=120' -p 'variant="future"' -p 'extra_args=[]'
+
+Local flake reproduction on command line:
+tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=future --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1 mjsunit/wasm/import-memory
+
+Run #1
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS
+Duration: 00:02:326
+
+Crash Type:
+Data race
+WRITE 4
+
+Crash State:
+store
+set_wrapper_code
+v8::internal::(anonymous namespace)::ReplaceWrapper(v8::internal::Isolate*, v8::internal::Handle<v8::internal::WasmInstanceObject>, int, v8::internal::Handle<v8::internal::Code>)
+
+Stdout:
+TestOne
+TestIdentity
+TestImportExport
+ValidateBoundsCheck
+MaximumDescriptor
+ZeroInitialMemory
+ImportedMemoryBufferLength
+TestMemoryGrowExportedMaximum
+TestMemoryGrowWebAssemblyInstances
+TestImportMemoryMultipleInstances
+TestExportImportedMemoryGrowMultipleInstances
+TestExportImportedMemoryGrowPastV8Maximum
+TestExportGrow
+TestImportTooLarge
+TestMemoryGrowDetachBuffer
+TestInitialMemorySharedModule
+
+Stderr:
+==================
+WARNING: ThreadSanitizer: data race (pid=176386)
+  Write of size 4 at 0x7ea7001cb550 by main thread:
+    #0 store src/objects/tagged-field-inl.h:101:27 (d8+0x14106e8) (BuildId: 28c32274ca6efed9)
+    #1 set_wrapper_code gen/torque-generated/src/wasm/wasm-objects-tq-inl.inc:448:3 (d8+0x14106e8)
+    #2 v8::internal::(anonymous namespace)::ReplaceWrapper(v8::internal::Isolate*, v8::internal::Handle<v8::internal::WasmInstanceObject>, int, v8::internal::Handle<v8::internal::Code>) src/runtime/runtime-wasm.cc:371:18 (d8+0x14106e8)
+    #3 __RT_impl_Runtime_WasmCompileWrapper src/runtime/runtime-wasm.cc:409:3 (d8+0x13f2bde) (BuildId: 28c32274ca6efed9)
+    #4 v8::internal::Runtime_WasmCompileWrapper(int, unsigned long*, v8::internal::Isolate*) src/runtime/runtime-wasm.cc:375:1 (d8+0x13f2bde)
+    #5 Builtins_WasmCEntry setup-isolate-deserialize.cc (d8+0x20a53db) (BuildId: 28c32274ca6efed9)
+    #6 v8::internal::Execution::CallScript(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSFunction>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>) src/execution/execution.cc:540:10 (d8+0x8e7f4f) (BuildId: 28c32274ca6efed9)
+    #7 v8::Script::Run(v8::Local<v8::Context>, v8::Local<v8::Data>) src/api/api.cc:2131:7 (d8+0x68552c) (BuildId: 28c32274ca6efed9)
+    #8 v8::Script::Run(v8::Local<v8::Context>) src/api/api.cc:2094:10 (d8+0x684fe0) (BuildId: 28c32274ca6efed9)
+    #9 v8::Shell::ExecuteString(v8::Isolate*, v8::Local<v8::String>, v8::Local<v8::String>, v8::Shell::PrintResult, v8::Shell::ReportExceptions, v8::Shell::ProcessMessageQueue) src/d8/d8.cc:958:28 (d8+0x645020) (BuildId: 28c32274ca6efed9)
+    #10 v8::SourceGroup::Execute(v8::Isolate*) src/d8/d8.cc:4443:10 (d8+0x65d45e) (BuildId: 28c32274ca6efed9)
+    #11 v8::Shell::RunMainIsolate(v8::Isolate*, bool) src/d8/d8.cc:5248:37 (d8+0x66171e) (BuildId: 28c32274ca6efed9)
+    #12 v8::Shell::RunMain(v8::Isolate*, bool) src/d8/d8.cc:5169:18 (d8+0x661186) (BuildId: 28c32274ca6efed9)
+    #13 v8::Shell::Main(int, char**) src/d8/d8.cc:6025:18 (d8+0x663500) (BuildId: 28c32274ca6efed9)
+    #14 main src/d8/d8.cc:6117:43 (d8+0x663b30) (BuildId: 28c32274ca6efed9)
+
+  Previous atomic read of size 4 at 0x7ea7001cb550 by thread T11:
+    #0 __cxx_atomic_load<int> buildtools/third_party/libc++/trunk/include/__atomic/cxx_atomic_impl.h:356:12 (d8+0x19a381d) (BuildId: 28c32274ca6efed9)
+    #1 load buildtools/third_party/libc++/trunk/include/__atomic/atomic_base.h:56:14 (d8+0x19a381d)
+    #2 atomic_load_explicit<int> buildtools/third_party/libc++/trunk/include/__atomic/atomic.h:239:17 (d8+0x19a381d)
+    #3 Relaxed_Load src/base/atomicops.h:237:10 (d8+0x19a381d)
+    #4 Relaxed_Load<unsigned int> src/base/atomic-utils.h:87:9 (d8+0x19a381d)
+    #5 Relaxed_Load src/objects/tagged-field-inl.h:118:26 (d8+0x19a381d)
+    #6 is_promising_wasm_export src/objects/shared-function-info-inl.h:775:7 (d8+0x19a381d)
+    #7 v8::internal::compiler::SharedFunctionInfoRef::is_promising_wasm_export() const src/compiler/heap-refs.cc:1632:1 (d8+0x19a381d)
+    #8 v8::internal::compiler::JSCallReducer::ReduceJSCall(v8::internal::compiler::Node*, v8::internal::compiler::SharedFunctionInfoRef) src/compiler/js-call-reducer.cc:5109:15 (d8+0x19d3308) (BuildId: 28c32274ca6efed9)
+    #9 v8::internal::compiler::JSCallReducer::ReduceJSCall(v8::internal::compiler::Node*) src/compiler/js-call-reducer.cc (d8+0x19c2b66) (BuildId: 28c32274ca6efed9)
+    #10 v8::internal::compiler::JSCallReducer::ReduceJSCall(v8::internal::compiler::Node*) src/compiler/js-call-reducer.cc (d8+0x19c3938) (BuildId: 28c32274ca6efed9)
+    #11 v8::internal::compiler::JSCallReducer::Reduce(v8::internal::compiler::Node*) src/compiler/js-call-reducer.cc:2651:14 (d8+0x19c0439) (BuildId: 28c32274ca6efed9)
+    #12 Reduce src/compiler/graph-reducer.cc:34:25 (d8+0x197d5aa) (BuildId: 28c32274ca6efed9)
+    #13 v8::internal::compiler::GraphReducer::Reduce(v8::internal::compiler::Node*) src/compiler/graph-reducer.cc:105:35 (d8+0x197d5aa)
+    #14 v8::internal::compiler::GraphReducer::ReduceTop() src/compiler/graph-reducer.cc:178:25 (d8+0x197cf30) (BuildId: 28c32274ca6efed9)
+    #15 v8::internal::compiler::GraphReducer::ReduceNode(v8::internal::compiler::Node*) src/compiler/graph-reducer.cc:75:7 (d8+0x197c748) (BuildId: 28c32274ca6efed9)
+    #16 v8::internal::compiler::GraphReducer::ReduceGraph() src/compiler/graph-reducer.cc:97:36 (d8+0x197d484) (BuildId: 28c32274ca6efed9)
+    #17 v8::internal::compiler::InliningPhase::Run(v8::internal::compiler::PipelineData*, v8::internal::Zone*) src/compiler/pipeline.cc:1493:19 (d8+0x1b28879) (BuildId: 28c32274ca6efed9)
+    #18 auto v8::internal::compiler::PipelineImpl::Run<v8::internal::compiler::InliningPhase>() src/compiler/pipeline.cc:1378:18 (d8+0x1b134d3) (BuildId: 28c32274ca6efed9)
+    #19 v8::internal::compiler::PipelineImpl::CreateGraph() src/compiler/pipeline.cc:2916:3 (d8+0x1b0e87a) (BuildId: 28c32274ca6efed9)
+    #20 v8::internal::compiler::PipelineCompilationJob::ExecuteJobImpl(v8::internal::RuntimeCallStats*, v8::internal::LocalIsolate*) src/compiler/pipeline.cc:1302:18 (d8+0x1b0e688) (BuildId: 28c32274ca6efed9)
+    #21 v8::internal::OptimizedCompilationJob::ExecuteJob(v8::internal::RuntimeCallStats*, v8::internal::LocalIsolate*) src/codegen/compiler.cc:490:22 (d8+0x7f8ade) (BuildId: 28c32274ca6efed9)
+    #22 v8::internal::OptimizingCompileDispatcher::CompileNext(v8::internal::TurbofanCompilationJob*, v8::internal::LocalIsolate*) src/compiler-dispatcher/optimizing-compile-dispatcher.cc:103:12 (d8+0x84d58d) (BuildId: 28c32274ca6efed9)
+    #23 v8::internal::OptimizingCompileDispatcher::CompileTask::Run(v8::JobDelegate*) src/compiler-dispatcher/optimizing-compile-dispatcher.cc:56:22 (d8+0x84ff25) (BuildId: 28c32274ca6efed9)
+    #24 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (d8+0x2316ddb) (BuildId: 28c32274ca6efed9)
+    #25 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:93:25 (d8+0x231da84) (BuildId: 28c32274ca6efed9)
+    #26 NotifyStartedAndRun src/base/platform/platform.h:609:5 (d8+0x231081a) (BuildId: 28c32274ca6efed9)
+    #27 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1166:11 (d8+0x231081a)
+
+  Thread T11 'V8 DefaultWorke' (tid=176410, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1020:3 (d8+0x5a4ebb) (BuildId: 28c32274ca6efed9)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1198:14 (d8+0x2310709) (BuildId: 28c32274ca6efed9)
+    #2 WorkerThread src/libplatform/default-worker-threads-task-runner.cc:78:3 (d8+0x231d237) (BuildId: 28c32274ca6efed9)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *, v8::base::Thread::Priority &> buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (d8+0x231d237)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)(), v8::base::Thread::Priority) src/libplatform/default-worker-threads-task-runner.cc:18:28 (d8+0x231d237)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/construct_at.h:38:46 (d8+0x23133be) (BuildId: 28c32274ca6efed9)
+    #6 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void, void> buildtools/third_party/libc++/trunk/include/__memory/allocator_traits.h:304:9 (d8+0x23133be)
+    #7 __shared_ptr_emplace<const int &, double (*)(), v8::base::Thread::Priority> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:299:13 (d8+0x23133be)
+    #8 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), v8::base::Thread::Priority, void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1010:55 (d8+0x23133be)
+    #9 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::base::Thread::Priority, void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1019:12 (d8+0x23133be)
+    #10 v8::platform::DefaultPlatform::EnsureBackgroundTaskRunnerInitialized() src/libplatform/default-platform.cc:141:9 (d8+0x23133be)
+    #11 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:112:5 (d8+0x23131e5) (BuildId: 28c32274ca6efed9)
+    #12 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController> >, v8::platform::PriorityMode &> buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (d8+0x231293c) (BuildId: 28c32274ca6efed9)
+    #13 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>, v8::platform::PriorityMode) src/libplatform/default-platform.cc:54:19 (d8+0x231293c)
+    #14 v8::Shell::Main(int, char**) src/d8/d8.cc:5802:16 (d8+0x662983) (BuildId: 28c32274ca6efed9)
+    #15 main src/d8/d8.cc:6117:43 (d8+0x663b30) (BuildId: 28c32274ca6efed9)
+
+SUMMARY: ThreadSanitizer: data race src/objects/tagged-field-inl.h:101:27 in store
+==================
+ThreadSanitizer: reported 1 warnings
+
+Run #2
+Exit code: 0 [0x00]
+Result: PASS
+Expected outcomes: PASS
+Duration: 00:01:682
+
+Stdout:
+TestOne
+TestIdentity
+TestImportExport
+ValidateBoundsCheck
+MaximumDescriptor
+ZeroInitialMemory
+ImportedMemoryBufferLength
+TestMemoryGrowExportedMaximum
+TestMemoryGrowWebAssemblyInstances
+TestImportMemoryMultipleInstances
+TestExportImportedMemoryGrowMultipleInstances
+TestExportImportedMemoryGrowPastV8Maximum
+TestExportGrow
+TestImportTooLarge
+TestMemoryGrowDetachBuffer
+TestInitialMemorySharedModule
+

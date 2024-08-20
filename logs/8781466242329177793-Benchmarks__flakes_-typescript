@@ -1,0 +1,142 @@
+Test: benchmarks/octane/typescript (flaky in a repeated run)
+Flags: --test /b/s/w/ir/test/benchmarks/data/octane/base.js /b/s/w/ir/test/benchmarks/data/octane/typescript.js /b/s/w/ir/test/benchmarks/data/octane/typescript-compiler.js /b/s/w/ir/test/benchmarks/data/octane/typescript-input.js -e BenchmarkSuite.RunSuites({}); --random-seed=59642693 --nohard-abort --testing-d8-test-runner --jitless
+Command: out/build/d8 --test test/benchmarks/data/octane/base.js test/benchmarks/data/octane/typescript.js test/benchmarks/data/octane/typescript-compiler.js test/benchmarks/data/octane/typescript-input.js -e BenchmarkSuite.RunSuites({}); --random-seed=59642693 --nohard-abort --testing-d8-test-runner --jitless
+Variant: jitless
+Shard: 1:2
+
+GN arguments:
+dcheck_always_on = true
+is_component_build = true
+is_debug = true
+is_tsan = true
+symbol_level = 1
+target_cpu = "x64"
+use_goma = false
+use_remoteexec = true
+v8_enable_backtrace = true
+v8_enable_fast_mksnapshot = true
+v8_enable_google_benchmark = true
+v8_enable_slow_dchecks = false
+v8_enable_test_features = true
+v8_enable_verify_heap = false
+
+Trigger flake bisect on command line:
+bb add v8/try.triggered/v8_flako -p 'bisect_builder_group="client.v8"' -p 'bisect_buildername="V8 Linux64 TSAN - debug builder"' -p 'revision="8d4d57a024dc50cf3bfe4c9f35c8345d061a10c4"' -p 'swarming_dimensions=["cpu:x86-64", "pool:chromium.tests", "os:Ubuntu-18.04"]' -p 'isolated_name="benchmarks"' -p 'test_name="benchmarks/octane/typescript"' -p 'timeout_sec=60' -p 'total_timeout_sec=120' -p 'variant="jitless"' -p 'extra_args=[]'
+
+Local flake reproduction on command line:
+tools/run-tests.py --outdir=SET_OUTDIR_HERE --variants=jitless --random-seed-stress-count=1000000 --total-timeout-sec=120 --exit-after-n-failures=1 benchmarks/octane/typescript
+
+Run #1
+Exit code: 66 [0x42]
+Result: FAIL
+Expected outcomes: PASS
+Duration: 10:26:913
+
+Crash Type:
+Data race
+READ 4
+
+Crash State:
+contains_map_value
+v8::internal::FreeSpace::IsValid() const
+v8::internal::FreeSpace::set_next(v8::internal::FreeSpace)
+
+Stderr:
+Warning: disabling flag --expose_wasm due to conflicting flags
+==================
+WARNING: ThreadSanitizer: data race (pid=10428)
+  Read of size 4 at 0x7e8b0027553c by thread T7 (mutexes: write M0):
+    #0 contains_map_value src/objects/compressed-slots-inl.h:25:20 (libv8.so+0x2196166) (BuildId: e80e3bfe53ca8ea1)
+    #1 v8::internal::FreeSpace::IsValid() const src/objects/free-space-inl.h:74:3 (libv8.so+0x2196166)
+    #2 v8::internal::FreeSpace::set_next(v8::internal::FreeSpace) src/objects/free-space-inl.h:45:3 (libv8.so+0x2192101) (BuildId: e80e3bfe53ca8ea1)
+    #3 v8::internal::FreeListCategory::Free(unsigned long, unsigned long, v8::internal::FreeMode, v8::internal::FreeList*) src/heap/free-list.cc:78:16 (libv8.so+0x21922c2) (BuildId: e80e3bfe53ca8ea1)
+    #4 v8::internal::FreeListManyCached::Free(unsigned long, unsigned long, v8::internal::FreeMode) src/heap/free-list.cc:294:35 (libv8.so+0x21946b6) (BuildId: e80e3bfe53ca8ea1)
+    #5 UnaccountedFree src/heap/paged-spaces.h:135:33 (libv8.so+0x23375ab) (BuildId: e80e3bfe53ca8ea1)
+    #6 v8::internal::Sweeper::FreeAndProcessFreedMemory(unsigned long, unsigned long, v8::internal::Page*, v8::internal::Space*, v8::internal::FreeSpaceTreatmentMode, bool) src/heap/sweeper.cc:669:59 (libv8.so+0x23375ab)
+    #7 v8::internal::Sweeper::RawSweep(v8::internal::Page*, v8::internal::FreeSpaceTreatmentMode, v8::internal::Sweeper::SweepingMode, bool) src/heap/sweeper.cc:814:26 (libv8.so+0x2332a0f) (BuildId: e80e3bfe53ca8ea1)
+    #8 v8::internal::Sweeper::LocalSweeper::ParallelSweepPage(v8::internal::Page*, v8::internal::AllocationSpace, v8::internal::Sweeper::SweepingMode) src/heap/sweeper.cc:362:27 (libv8.so+0x2332229) (BuildId: e80e3bfe53ca8ea1)
+    #9 v8::internal::Sweeper::ConcurrentMajorSweeper::ConcurrentSweepSpace(v8::internal::AllocationSpace, v8::JobDelegate*) src/heap/sweeper.cc:57:22 (libv8.so+0x23510fe) (BuildId: e80e3bfe53ca8ea1)
+    #10 v8::internal::Sweeper::MajorSweeperJob::RunImpl(v8::JobDelegate*, bool) src/heap/sweeper.cc:159:31 (libv8.so+0x2350edb) (BuildId: e80e3bfe53ca8ea1)
+    #11 v8::internal::Sweeper::MajorSweeperJob::Run(v8::JobDelegate*) src/heap/sweeper.cc:131:5 (libv8.so+0x2350af9) (BuildId: e80e3bfe53ca8ea1)
+    #12 v8::platform::DefaultJobWorker::Run() src/libplatform/default-job.h:147:18 (libv8_libplatform.so+0x1b92b) (BuildId: 8b4bdc19d12a6876)
+    #13 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::Run() src/libplatform/default-worker-threads-task-runner.cc:73:11 (libv8_libplatform.so+0x1f420) (BuildId: 8b4bdc19d12a6876)
+    #14 NotifyStartedAndRun src/base/platform/platform.h:596:5 (libv8_libbase.so+0x56634) (BuildId: a7b505981c4987cf)
+    #15 v8::base::ThreadEntry(void*) src/base/platform/platform-posix.cc:1126:11 (libv8_libbase.so+0x56634)
+
+  Previous atomic write of size 4 at 0x7e8b0027553c by main thread:
+    #0 __cxx_atomic_store<int> buildtools/third_party/libc++/trunk/include/__atomic/cxx_atomic_impl.h:344:5 (libv8.so+0x21c643e) (BuildId: e80e3bfe53ca8ea1)
+    #1 store buildtools/third_party/libc++/trunk/include/__atomic/atomic_base.h:48:7 (libv8.so+0x21c643e)
+    #2 atomic_store_explicit<int> buildtools/third_party/libc++/trunk/include/__atomic/atomic.h:201:10 (libv8.so+0x21c643e)
+    #3 Relaxed_Store src/base/atomicops.h:192:3 (libv8.so+0x21c643e)
+    #4 Relaxed_Store<unsigned int> src/base/atomic-utils.h:110:5 (libv8.so+0x21c643e)
+    #5 Relaxed_Store_Map_Word src/objects/tagged-field-inl.h:135:3 (libv8.so+0x21c643e)
+    #6 set_map_word src/objects/objects-inl.h:951:3 (libv8.so+0x21c643e)
+    #7 set_map_after_allocation src/objects/objects-inl.h:918:3 (libv8.so+0x21c643e)
+    #8 CreateFillerObjectAtImpl src/heap/heap.cc:3141:12 (libv8.so+0x21c643e)
+    #9 v8::internal::Heap::CreateFillerObjectAtRaw(unsigned long, int, v8::internal::ClearFreedMemoryMode, v8::internal::ClearRecordedSlots, v8::internal::Heap::VerifyNoSlotsRecorded) src/heap/heap.cc:3219:3 (libv8.so+0x21c643e)
+    #10 v8::internal::Heap::NotifyObjectSizeChange(v8::internal::HeapObject, int, int, v8::internal::ClearRecordedSlots) src/heap/heap.cc:3901:3 (libv8.so+0x21cc25f) (BuildId: e80e3bfe53ca8ea1)
+    #11 void v8::internal::String::MakeThin<v8::internal::Isolate>(v8::internal::Isolate*, v8::internal::String) src/objects/string.cc:241:24 (libv8.so+0x29b8b61) (BuildId: e80e3bfe53ca8ea1)
+    #12 v8::internal::(anonymous namespace)::SetInternalizedReference(v8::internal::Isolate*, v8::internal::String, v8::internal::String) src/objects/string-table.cc:493:12 (libv8.so+0x29b3f27) (BuildId: e80e3bfe53ca8ea1)
+    #13 unsigned long v8::internal::StringTable::Data::TryStringToIndexOrLookupExisting<unsigned char>(v8::internal::Isolate*, v8::internal::String, v8::internal::String, unsigned long) src/objects/string-table.cc:782:5 (libv8.so+0x29b4e7d) (BuildId: e80e3bfe53ca8ea1)
+    #14 v8::internal::StringTable::TryStringToIndexOrLookupExisting(v8::internal::Isolate*, unsigned long) src/objects/string-table.cc:824:12 (libv8.so+0x29b46c7) (BuildId: e80e3bfe53ca8ea1)
+    #15 Builtins_KeyedLoadIC_Megamorphic setup-isolate-deserialize.cc (libv8.so+0x110fc31) (BuildId: e80e3bfe53ca8ea1)
+    #16 v8::internal::Execution::CallScript(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSFunction>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>) src/execution/execution.cc:540:10 (libv8.so+0x1fcbb90) (BuildId: e80e3bfe53ca8ea1)
+    #17 v8::Script::Run(v8::Local<v8::Context>, v8::Local<v8::Data>) src/api/api.cc:2307:7 (libv8.so+0x1ab1189) (BuildId: e80e3bfe53ca8ea1)
+    #18 v8::Script::Run(v8::Local<v8::Context>) src/api/api.cc:2270:10 (libv8.so+0x1ab0c80) (BuildId: e80e3bfe53ca8ea1)
+    #19 v8::Shell::ExecuteString(v8::Isolate*, v8::Local<v8::String>, v8::Local<v8::String>, v8::Shell::PrintResult, v8::Shell::ReportExceptions, v8::Shell::ProcessMessageQueue) src/d8/d8.cc:954:28 (d8+0x14ddbf) (BuildId: 6661cac2189b9c2d)
+    #20 v8::SourceGroup::Execute(v8::Isolate*) src/d8/d8.cc:4391:12 (d8+0x169aea) (BuildId: 6661cac2189b9c2d)
+    #21 v8::Shell::RunMainIsolate(v8::Isolate*, bool) src/d8/d8.cc:5243:37 (d8+0x16e613) (BuildId: 6661cac2189b9c2d)
+    #22 v8::Shell::RunMain(v8::Isolate*, bool) src/d8/d8.cc:5163:18 (d8+0x16e076) (BuildId: 6661cac2189b9c2d)
+    #23 v8::Shell::Main(int, char**) src/d8/d8.cc:6015:18 (d8+0x170ec6) (BuildId: 6661cac2189b9c2d)
+    #24 main src/d8/d8.cc:6107:43 (d8+0x1714a0) (BuildId: 6661cac2189b9c2d)
+
+  Mutex M0 (0x7b0c000004e0) created at:
+    #0 pthread_mutex_init /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1341:3 (d8+0xad8c0) (BuildId: 6661cac2189b9c2d)
+    #1 InitializeNativeHandle src/base/platform/mutex.cc:94:12 (libv8_libbase.so+0x41c24) (BuildId: a7b505981c4987cf)
+    #2 v8::base::Mutex::Mutex() src/base/platform/mutex.cc:152:3 (libv8_libbase.so+0x41c24)
+    #3 v8::internal::MemoryChunk::MemoryChunk(v8::internal::Heap*, v8::internal::BaseSpace*, unsigned long, unsigned long, unsigned long, v8::internal::VirtualMemory, v8::internal::Executability, v8::internal::PageSize) src/heap/memory-chunk.cc:110:18 (libv8.so+0x22be415) (BuildId: e80e3bfe53ca8ea1)
+    #4 v8::internal::Page::Page(v8::internal::Heap*, v8::internal::BaseSpace*, unsigned long, unsigned long, unsigned long, v8::internal::VirtualMemory, v8::internal::Executability) src/heap/spaces.cc:52:7 (libv8.so+0x232c88f) (BuildId: e80e3bfe53ca8ea1)
+    #5 v8::internal::MemoryAllocator::AllocatePage(v8::internal::MemoryAllocator::AllocationMode, v8::internal::Space*, v8::internal::Executability) src/heap/memory-allocator.cc:583:40 (libv8.so+0x22b8add) (BuildId: e80e3bfe53ca8ea1)
+    #6 v8::internal::SemiSpace::Commit() src/heap/new-spaces.cc:126:50 (libv8.so+0x22c8d7a) (BuildId: e80e3bfe53ca8ea1)
+    #7 v8::internal::SemiSpaceNewSpace::SemiSpaceNewSpace(v8::internal::Heap*, unsigned long, unsigned long, v8::internal::LinearAllocationArea&) src/heap/new-spaces.cc:486:18 (libv8.so+0x22cbd36) (BuildId: e80e3bfe53ca8ea1)
+    #8 make_unique<v8::internal::SemiSpaceNewSpace, v8::internal::Heap *, unsigned long &, unsigned long &, v8::internal::LinearAllocationArea &> buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (libv8.so+0x21d311d) (BuildId: e80e3bfe53ca8ea1)
+    #9 v8::internal::Heap::SetUpSpaces(v8::internal::LinearAllocationArea&, v8::internal::LinearAllocationArea&) src/heap/heap.cc:5461:27 (libv8.so+0x21d311d)
+    #10 v8::internal::Isolate::Init(v8::internal::SnapshotData*, v8::internal::SnapshotData*, v8::internal::SnapshotData*, bool) src/execution/isolate.cc:4410:9 (libv8.so+0x2010ead) (BuildId: e80e3bfe53ca8ea1)
+    #11 v8::internal::Isolate::InitWithSnapshot(v8::internal::SnapshotData*, v8::internal::SnapshotData*, v8::internal::SnapshotData*, bool) src/execution/isolate.cc:4079:10 (libv8.so+0x20130a9) (BuildId: e80e3bfe53ca8ea1)
+    #12 v8::internal::Snapshot::Initialize(v8::internal::Isolate*) src/snapshot/snapshot.cc:182:27 (libv8.so+0x2dd1078) (BuildId: e80e3bfe53ca8ea1)
+    #13 v8::Isolate::Initialize(v8::Isolate*, v8::Isolate::CreateParams const&) src/api/api.cc:9479:8 (libv8.so+0x1b283a3) (BuildId: e80e3bfe53ca8ea1)
+    #14 v8::Isolate::New(v8::Isolate::CreateParams const&) src/api/api.cc:9515:3 (libv8.so+0x1b28a55) (BuildId: e80e3bfe53ca8ea1)
+    #15 v8::Shell::Main(int, char**) src/d8/d8.cc:5899:22 (d8+0x170584) (BuildId: 6661cac2189b9c2d)
+    #16 main src/d8/d8.cc:6107:43 (d8+0x1714a0) (BuildId: 6661cac2189b9c2d)
+
+  Thread T7 'V8 DefaultWorke' (tid=10436, running) created by main thread at:
+    #0 pthread_create /b/s/w/ir/cache/builder/src/third_party/llvm/compiler-rt/lib/tsan/rtl/tsan_interceptors_posix.cpp:1048:3 (d8+0xabf4b) (BuildId: 6661cac2189b9c2d)
+    #1 v8::base::Thread::Start() src/base/platform/platform-posix.cc:1158:14 (libv8_libbase.so+0x5650b) (BuildId: a7b505981c4987cf)
+    #2 v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread::WorkerThread(v8::platform::DefaultWorkerThreadsTaskRunner*) src/libplatform/default-worker-threads-task-runner.cc:66:3 (libv8_libplatform.so+0x1f2ff) (BuildId: 8b4bdc19d12a6876)
+    #3 make_unique<v8::platform::DefaultWorkerThreadsTaskRunner::WorkerThread, v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (libv8_libplatform.so+0x1ed5f) (BuildId: 8b4bdc19d12a6876)
+    #4 v8::platform::DefaultWorkerThreadsTaskRunner::DefaultWorkerThreadsTaskRunner(unsigned int, double (*)()) src/libplatform/default-worker-threads-task-runner.cc:16:28 (libv8_libplatform.so+0x1ed5f)
+    #5 construct_at<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), v8::platform::DefaultWorkerThreadsTaskRunner *> buildtools/third_party/libc++/trunk/include/__memory/construct_at.h:38:46 (libv8_libplatform.so+0x1c611) (BuildId: 8b4bdc19d12a6876)
+    #6 construct<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void, void> buildtools/third_party/libc++/trunk/include/__memory/allocator_traits.h:304:9 (libv8_libplatform.so+0x1c611)
+    #7 __shared_ptr_emplace<const int &, double (*)()> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:299:13 (libv8_libplatform.so+0x1c611)
+    #8 allocate_shared<v8::platform::DefaultWorkerThreadsTaskRunner, std::__Cr::allocator<v8::platform::DefaultWorkerThreadsTaskRunner>, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1010:55 (libv8_libplatform.so+0x1c611)
+    #9 make_shared<v8::platform::DefaultWorkerThreadsTaskRunner, const int &, double (*)(), void> buildtools/third_party/libc++/trunk/include/__memory/shared_ptr.h:1019:12 (libv8_libplatform.so+0x1c611)
+    #10 v8::platform::DefaultPlatform::EnsureBackgroundTaskRunnerInitialized() src/libplatform/default-platform.cc:132:7 (libv8_libplatform.so+0x1c611)
+    #11 v8::platform::DefaultPlatform::DefaultPlatform(int, v8::platform::IdleTaskSupport, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:108:5 (libv8_libplatform.so+0x1c554) (BuildId: 8b4bdc19d12a6876)
+    #12 make_unique<v8::platform::DefaultPlatform, int &, v8::platform::IdleTaskSupport &, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController> > > buildtools/third_party/libc++/trunk/include/__memory/unique_ptr.h:686:30 (libv8_libplatform.so+0x1ba34) (BuildId: 8b4bdc19d12a6876)
+    #13 v8::platform::NewDefaultPlatform(int, v8::platform::IdleTaskSupport, v8::platform::InProcessStackDumping, std::__Cr::unique_ptr<v8::TracingController, std::__Cr::default_delete<v8::TracingController>>) src/libplatform/default-platform.cc:53:19 (libv8_libplatform.so+0x1ba34)
+    #14 v8::Shell::Main(int, char**) src/d8/d8.cc:5794:16 (d8+0x170084) (BuildId: 6661cac2189b9c2d)
+    #15 main src/d8/d8.cc:6107:43 (d8+0x1714a0) (BuildId: 6661cac2189b9c2d)
+
+SUMMARY: ThreadSanitizer: data race src/objects/compressed-slots-inl.h:25:20 in contains_map_value
+==================
+ThreadSanitizer: reported 1 warnings
+
+Run #2
+Exit code: 0 [0x00]
+Result: PASS
+Expected outcomes: PASS
+Duration: 05:07:421
+
+Stderr:
+Warning: disabling flag --expose_wasm due to conflicting flags
+
